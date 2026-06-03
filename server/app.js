@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const session = require('express-session');
 
@@ -52,6 +53,17 @@ function createApp() {
     app.post('/api/create-checkout-session', createCheckoutSessionHandler);
     app.use('/api/orders', ordersRoutes);
     app.use('/api/admin/ai', ...requireAdmin, aiIgRoutes);
+
+    if (process.env.NODE_ENV === 'production') {
+        const frontendDistPath = path.join(__dirname, '../frontend/dist');
+
+        app.use(express.static(frontendDistPath));
+
+        // Express 5 requires a named wildcard (see path-to-regexp migration)
+        app.get('/{*splat}', (req, res) => {
+            res.sendFile(path.join(frontendDistPath, 'index.html'));
+        });
+    }
 
     return app;
 }
