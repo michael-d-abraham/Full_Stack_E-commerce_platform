@@ -1,3 +1,5 @@
+import { getCartSession, putCartSession } from '../services/api.js';
+
 const CART_KEY = 'artist-portfolio-cart';
 
 function readCart() {
@@ -16,9 +18,37 @@ function notifyCartUpdated() {
     }
 }
 
+function syncCartToServer(items) {
+    putCartSession(items).catch(() => {
+        /* offline or session unavailable — local cart still works */
+    });
+}
+
 function writeCart(items) {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
+    syncCartToServer(items);
     notifyCartUpdated();
+}
+
+/**
+ * Restore cart from server session when local storage is empty (new device / cleared storage).
+ */
+export async function hydrateCartFromServer() {
+    if (readCart().length) {
+        syncCartToServer(readCart());
+        return;
+    }
+
+    try {
+        const data = await getCartSession();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (items.length) {
+            localStorage.setItem(CART_KEY, JSON.stringify(items));
+            notifyCartUpdated();
+        }
+    } catch {
+        /* ignore */
+    }
 }
 
 /**

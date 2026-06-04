@@ -28,9 +28,6 @@
           <router-link to="/contact" class="app-nav__link" active-class="app-nav__link--active">
             Contact
           </router-link>
-          <router-link to="/admin" class="app-nav__link" active-class="app-nav__link--active">
-            Admin
-          </router-link>
         </nav>
         <div class="app-header__end">
           <CartIcon />
@@ -70,6 +67,7 @@ import SocialIconLinks from './components/social/SocialIconLinks.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
+import { hydrateCartFromServer } from './utils/cart.js';
 
 const MOBILE_HEADER_MQ = '(max-width: 640px)';
 

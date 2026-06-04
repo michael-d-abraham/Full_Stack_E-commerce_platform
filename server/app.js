@@ -17,7 +17,9 @@ const adminUploadRoutes = require('./routes/adminUpload');
 const adminOrderRoutes = require('./routes/adminOrders');
 const adminDashboardRoutes = require('./routes/adminDashboard');
 const { attachAdminUser, requireAdminRole } = require('./middleware/adminAuth');
-const { isProduction, sessionCookieOptions } = require('./sessionConfig');
+const { isProduction } = require('./sessionConfig');
+const { sessionMiddlewareOptions } = require('./sessionStore');
+const cartSessionRoutes = require('./routes/cartSession');
 
 function createApp() {
     const app = express();
@@ -35,18 +37,11 @@ function createApp() {
 
     app.use(express.json());
 
-    app.use(
-        session({
-            secret: process.env.SESSION_SECRET || 'dev-session-secret-change-me',
-            saveUninitialized: false,
-            resave: false,
-            proxy: isProduction(),
-            cookie: sessionCookieOptions()
-        })
-    );
+    app.use(session(sessionMiddlewareOptions()));
 
     const requireAdmin = [attachAdminUser, requireAdminRole];
 
+    app.use('/api/cart', cartSessionRoutes);
     app.use('/api/admin/session', adminSessionRoutes);
     app.use('/api/admin', ...requireAdmin, adminUploadRoutes);
     app.use('/api/admin/products', ...requireAdmin, adminProductRoutes);

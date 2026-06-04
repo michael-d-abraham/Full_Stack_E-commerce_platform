@@ -144,6 +144,18 @@ export function createCheckoutSession(body) {
     });
 }
 
+/** Guest cart persisted in server session (MongoDB). */
+export function getCartSession() {
+    return fetchJson('/api/cart');
+}
+
+export function putCartSession(items) {
+    return fetchJson('/api/cart', {
+        method: 'PUT',
+        body: { items }
+    });
+}
+
 /** Paid Checkout Session summary from Stripe (server-side; no client prices). */
 export function getCheckoutSessionOrder(sessionId) {
     return fetchJson(

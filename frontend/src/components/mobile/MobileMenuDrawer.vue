@@ -41,14 +41,6 @@
     >
       Contact
     </router-link>
-    <router-link
-      to="/admin"
-      class="mobile-menu-drawer__link"
-      active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      Admin
-    </router-link>
   </nav>
 </template>
 
