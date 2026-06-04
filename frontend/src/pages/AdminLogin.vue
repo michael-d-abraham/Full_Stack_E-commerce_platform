@@ -44,6 +44,7 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { loginAdmin } from '../services/api.js';
+import { adminLoginErrorMessage } from '../utils/adminLoginErrors.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,6 +56,16 @@ const busy = ref(false);
 
 async function onSubmit() {
   error.value = '';
+
+  if (!username.value.trim()) {
+    error.value = 'Please enter your username.';
+    return;
+  }
+  if (!plainPassword.value) {
+    error.value = 'Please enter your password.';
+    return;
+  }
+
   busy.value = true;
   try {
     await loginAdmin({
@@ -64,11 +75,7 @@ async function onSubmit() {
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/admin/dashboard';
     await router.replace(redirect || '/admin/dashboard');
   } catch (e) {
-    if (e.status === 401) {
-      error.value = 'Invalid username or password.';
-    } else {
-      error.value = e.message || 'Sign-in failed';
-    }
+    error.value = adminLoginErrorMessage(e);
   } finally {
     busy.value = false;
   }

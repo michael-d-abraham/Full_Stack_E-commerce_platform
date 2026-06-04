@@ -2,23 +2,21 @@ const AdminUser = require('../models/AdminUser');
 const { hashPassword, verifyPassword } = require('../utils/adminPassword');
 
 /**
- * Create or sync the admin user from ADMIN_USERNAME and ADMIN_PASSWORD when both are set.
+ * Create or update one admin user (username + password hash synced from env).
  */
-async function ensureAdminUserFromEnv() {
-    const username =
-        process.env.ADMIN_USERNAME != null ? String(process.env.ADMIN_USERNAME).trim() : '';
-    const password =
-        process.env.ADMIN_PASSWORD != null ? String(process.env.ADMIN_PASSWORD) : '';
+async function ensureAdminUser(username, password) {
+    const name = username != null ? String(username).trim() : '';
+    const plain = password != null ? String(password) : '';
 
-    if (!username || !password) {
+    if (!name || !plain) {
         return;
     }
 
-    const existing = await AdminUser.findOne({ username });
+    const existing = await AdminUser.findOne({ username: name });
     if (!existing) {
         await AdminUser.create({
-            username,
-            passwordHash: hashPassword(password),
+            username: name,
+            passwordHash: hashPassword(plain),
             enabled: true,
             isAdmin: true
         });
@@ -26,11 +24,28 @@ async function ensureAdminUserFromEnv() {
     }
 
     const $set = { enabled: true, isAdmin: true };
-    if (!verifyPassword(password, existing.passwordHash)) {
-        $set.passwordHash = hashPassword(password);
+    if (!verifyPassword(plain, existing.passwordHash)) {
+        $set.passwordHash = hashPassword(plain);
     }
 
     await AdminUser.updateOne({ _id: existing._id }, { $set });
 }
 
-module.exports = { ensureAdminUserFromEnv };
+/**
+ * Sync primary admin (ADMIN_USERNAME / ADMIN_PASSWORD) and master admin
+ * (ADMIN_MASTER_USERNAME / ADMIN_MASTER_PASSWORD) from environment on server start.
+ */
+async function ensureAdminUserFromEnv() {
+    await ensureAdminUser(
+        process.env.ADMIN_USERNAME,
+        process.env.ADMIN_PASSWORD
+    );
+
+    const masterUsername =
+        process.env.ADMIN_MASTER_USERNAME != null
+            ? String(process.env.ADMIN_MASTER_USERNAME).trim()
+            : 'admin';
+    await ensureAdminUser(masterUsername, process.env.ADMIN_MASTER_PASSWORD);
+}
+
+module.exports = { ensureAdminUserFromEnv, ensureAdminUser };

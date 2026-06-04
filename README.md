@@ -37,7 +37,7 @@ Full-stack web application for an independent artist: a **public product gallery
    npm install
    ```
 
-2. Configure environment variables (e.g. `.env`): **MongoDB connection string**, **session secret**, **`ADMIN_USERNAME`** / **`ADMIN_PASSWORD`** (creates or syncs the admin user in MongoDB on server start), **`STRIPE_SECRET_KEY`**, **`STRIPE_WEBHOOK_SECRET`**, **`CLIENT_URL`** (e.g. `http://localhost:5173`), **Cloudflare R2** (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`) for admin image uploads, **`RESEND_API_KEY`** (and optional **`NOTIFICATION_EMAIL`** / **`RESEND_FROM_EMAIL`**) for the contact form, and optionally **`OLLAMA_HOST`** / **`OLLAMA_MODEL`**.
+2. Configure environment variables (e.g. `.env`): **MongoDB connection string**, **session secret**, **`ADMIN_USERNAME`** / **`ADMIN_PASSWORD`** and optional **`ADMIN_MASTER_USERNAME`** (default `admin`) / **`ADMIN_MASTER_PASSWORD`** (all synced to admin users in MongoDB on server start), **`STRIPE_SECRET_KEY`**, **`STRIPE_WEBHOOK_SECRET`**, **`CLIENT_URL`** (e.g. `http://localhost:5173`), **Cloudflare R2** (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`) for admin image uploads, **`RESEND_API_KEY`** (and optional **`NOTIFICATION_EMAIL`** / **`RESEND_FROM_EMAIL`**) for the contact form, and optionally **`OLLAMA_HOST`** / **`OLLAMA_MODEL`**.
 
    For local Stripe webhooks: `stripe listen --forward-to localhost:3000/api/webhooks/stripe` and use the printed signing secret as `STRIPE_WEBHOOK_SECRET`.
 
@@ -61,7 +61,7 @@ Full-stack web application for an independent artist: a **public product gallery
    - Sign in: `/admin/login`
    - After login: `/admin/dashboard` (hamburger menu: Dashboard, Orders, Listing, Customize, AI, Settings)
 
-   Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the environment (synced to MongoDB on server start). `robots.txt` disallows `/admin` for crawlers.
+   Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the environment (synced to MongoDB on server start). Optional **`ADMIN_MASTER_USERNAME`** (default `admin`) and **`ADMIN_MASTER_PASSWORD`** create a second admin account in MongoDB for backup access. `robots.txt` disallows `/admin` for crawlers.
 
 ---
 

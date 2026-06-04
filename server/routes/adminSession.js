@@ -5,29 +5,45 @@ const { attachAdminUser } = require('../middleware/adminAuth');
 
 const router = express.Router();
 
-router.post('/login', function (req, res) {
+router.post('/login', async function (req, res) {
     const username = req.body && req.body.username;
     const plainPassword = req.body && req.body.plainPassword;
 
-    if (!username || !plainPassword) {
-        return res.status(422).json({ error: 'username and plainPassword are required' });
+    if (!username || !String(username).trim() || !plainPassword) {
+        return res.status(422).json({
+            error: 'Please enter your username and password.'
+        });
     }
 
-    AdminUser.findOne({ username: String(username).trim() })
-        .then(function (user) {
-            if (!user || !verifyPassword(plainPassword, user.passwordHash)) {
-                return res.sendStatus(401);
-            }
-            if (!user.enabled) {
-                return res.sendStatus(401);
-            }
-            req.session.userId = user._id.toString();
-            res.json({ ok: true });
-        })
-        .catch(function (err) {
-            console.error('admin login', err);
-            res.sendStatus(500);
+    try {
+        const user = await AdminUser.findOne({ username: String(username).trim() });
+
+        if (!user) {
+            return res.status(401).json({
+                error: 'That username or password is not correct. Check your details and try again.'
+            });
+        }
+
+        if (!user.enabled) {
+            return res.status(401).json({
+                error: 'This admin account is disabled. Contact the site owner.'
+            });
+        }
+
+        if (!verifyPassword(String(plainPassword), user.passwordHash)) {
+            return res.status(401).json({
+                error: 'That username or password is not correct. Check your details and try again.'
+            });
+        }
+
+        req.session.userId = user._id.toString();
+        res.json({ ok: true, username: user.username });
+    } catch (err) {
+        console.error('admin login', err);
+        res.status(500).json({
+            error: 'Something went wrong while signing you in. Please try again in a moment.'
         });
+    }
 });
 
 router.get('/', attachAdminUser, function (req, res) {
@@ -43,7 +59,9 @@ router.post('/logout', function (req, res) {
     req.session.destroy(function (err) {
         if (err) {
             console.error('session destroy', err);
-            return res.sendStatus(500);
+            return res.status(500).json({
+                error: 'Could not sign you out. Please try again.'
+            });
         }
         res.clearCookie('connect.sid', { path: '/' });
         res.json({ ok: true });
