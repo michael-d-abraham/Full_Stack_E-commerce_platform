@@ -80,7 +80,7 @@ onUnmounted(() => {
 .admin-shell {
   --admin-sidebar-width: 15.5rem;
   width: 100%;
-  height: 100%;
+  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -178,6 +178,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -189,7 +190,8 @@ onUnmounted(() => {
 
   .admin-shell__content {
     margin-left: var(--admin-sidebar-width);
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -203,10 +205,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 767px) {
-  .admin-shell {
-    min-height: 100dvh;
-  }
-
   .admin-shell__content {
     min-height: 0;
     flex: 1;

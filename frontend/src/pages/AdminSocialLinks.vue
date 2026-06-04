@@ -53,7 +53,7 @@
                 v-model="form[platform.id].enabled"
                 type="checkbox"
               />
-              <span>Contact page</span>
+              <span>Include</span>
             </label>
           </div>
           <p v-if="fieldErrors[platform.id]" class="field-error platform-row__error">

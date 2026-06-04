@@ -47,3 +47,8 @@
     max-height: calc(var(--home-hero-max-height) - var(--space-md) - var(--space-xl));
   }
 }
+
+/* Admin customize scroll panel — avoid 80dvh bands that extend past content */
+.admin-shell__main .hero-display {
+  max-height: none;
+}

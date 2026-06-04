@@ -16,6 +16,7 @@ const {
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct
 } = require('../utils/homePageDefaults');
+const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
 
 const SETTINGS_KEY = 'default';
 
@@ -138,21 +139,104 @@ function normalizeContactHeroImageUrl(value) {
     return { contact_hero_image_url: url };
 }
 
-function toDisplayPicturesPayload(doc) {
-    const url = doc.contact_hero_image_url != null ? String(doc.contact_hero_image_url).trim() : '';
-    return { contact_hero_image_url: url };
+function mergeContactPageStored(stored) {
+    const base = stored && typeof stored === 'object' ? stored : {};
+
+    return {
+        show_hero_image: base.show_hero_image !== false,
+        page_title: normalizeOptionalText(base.page_title),
+        form_name_label: normalizeOptionalText(base.form_name_label),
+        form_email_label: normalizeOptionalText(base.form_email_label),
+        form_subject_label: normalizeOptionalText(base.form_subject_label),
+        form_message_label: normalizeOptionalText(base.form_message_label),
+        form_submit_label: normalizeOptionalText(base.form_submit_label),
+        success_message: normalizeOptionalText(base.success_message)
+    };
+}
+
+function toContactPageAdminPayload(doc) {
+    const heroUrl =
+        doc.contact_hero_image_url != null ? String(doc.contact_hero_image_url).trim() : '';
+    const page = mergeContactPageStored(doc.contact_page);
+
+    return {
+        contact_hero_image_url: heroUrl,
+        ...page
+    };
 }
 
 async function getAdminDisplayPictures() {
     const doc = await ensureSiteSettingsDoc();
-    return toDisplayPicturesPayload(doc);
+    return toContactPageAdminPayload(doc);
 }
 
 async function getPublicContactHero() {
     const doc = await ensureSiteSettingsDoc();
-    const url =
+    const heroUrl =
         doc.contact_hero_image_url != null ? String(doc.contact_hero_image_url).trim() : '';
-    return { image_url: url || null };
+    const page = withContactFormLabelDefaults(doc.contact_page);
+
+    return {
+        image_url: heroUrl || null,
+        ...page
+    };
+}
+
+function normalizeContactPageInput(body) {
+    const errors = [];
+    if (!body || typeof body !== 'object') {
+        return { errors: ['Request body is required'] };
+    }
+
+    const $set = {};
+
+    if (body.contact_hero_image_url !== undefined) {
+        const heroParsed = normalizeContactHeroImageUrl(body.contact_hero_image_url);
+        if (heroParsed.errors) {
+            errors.push(...heroParsed.errors);
+        } else {
+            $set.contact_hero_image_url = heroParsed.contact_hero_image_url;
+        }
+    }
+
+    const contactPage = {};
+    let hasContactPageFields = false;
+
+    if (body.show_hero_image !== undefined) {
+        contactPage.show_hero_image = Boolean(body.show_hero_image);
+        hasContactPageFields = true;
+    }
+
+    const textFields = [
+        'page_title',
+        'form_name_label',
+        'form_email_label',
+        'form_subject_label',
+        'form_message_label',
+        'form_submit_label',
+        'success_message'
+    ];
+
+    for (const field of textFields) {
+        if (body[field] !== undefined) {
+            contactPage[field] = normalizeOptionalText(body[field]);
+            hasContactPageFields = true;
+        }
+    }
+
+    if (errors.length) {
+        return { errors };
+    }
+
+    if (!Object.keys($set).length && !hasContactPageFields) {
+        return { errors: ['No fields to update'] };
+    }
+
+    if (hasContactPageFields) {
+        $set.contact_page = contactPage;
+    }
+
+    return { $set, partialContactPage: hasContactPageFields, errors: null };
 }
 
 function normalizeOptionalImageUrl(value, fieldName, errors) {
@@ -372,20 +456,28 @@ async function updateHomePage(body) {
 }
 
 async function updateDisplayPictures(body) {
-    const parsed = normalizeContactHeroImageUrl(
-        body && body.contact_hero_image_url
-    );
+    const parsed = normalizeContactPageInput(body);
     if (parsed.errors) {
         return { ok: false, status: 400, errors: parsed.errors };
     }
 
-    const doc = await SiteSettings.findOneAndUpdate(
+    const doc = await ensureSiteSettingsDoc();
+    const $set = { ...parsed.$set };
+
+    if (parsed.partialContactPage && parsed.$set.contact_page) {
+        $set.contact_page = {
+            ...mergeContactPageStored(doc.contact_page),
+            ...parsed.$set.contact_page
+        };
+    }
+
+    const updated = await SiteSettings.findOneAndUpdate(
         { key: SETTINGS_KEY },
-        { $set: { contact_hero_image_url: parsed.contact_hero_image_url } },
+        { $set },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    return { ok: true, settings: toDisplayPicturesPayload(doc) };
+    return { ok: true, settings: toContactPageAdminPayload(updated) };
 }
 
 async function updateSocialSettings(body) {

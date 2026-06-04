@@ -373,7 +373,10 @@ const showSocialFooter = computed(() => {
 }
 
 .app-main--admin:has(.admin-shell) .app-main__inner {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
 }
 
 .app-main__inner {
@@ -403,6 +406,15 @@ const showSocialFooter = computed(() => {
 .app:has(.admin-shell) {
   height: 100vh;
   height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#app:has(.admin-shell) {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
   overflow: hidden;
 }
 

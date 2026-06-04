@@ -30,6 +30,20 @@ const homePageSchema = new mongoose.Schema(
     { _id: false }
 );
 
+const contactPageSchema = new mongoose.Schema(
+    {
+        show_hero_image: { type: Boolean, default: true },
+        page_title: { type: String, default: '' },
+        form_name_label: { type: String, default: '' },
+        form_email_label: { type: String, default: '' },
+        form_subject_label: { type: String, default: '' },
+        form_message_label: { type: String, default: '' },
+        form_submit_label: { type: String, default: '' },
+        success_message: { type: String, default: '' }
+    },
+    { _id: false }
+);
+
 const siteSettingsSchema = new mongoose.Schema(
     {
         key: { type: String, required: true, unique: true, default: 'default' },
@@ -40,6 +54,7 @@ const siteSettingsSchema = new mongoose.Schema(
             facebook: { type: socialLinkSchema, default: () => ({}) }
         },
         contact_hero_image_url: { type: String, default: '' },
+        contact_page: { type: contactPageSchema, default: () => ({}) },
         contact_email: { type: String, default: '' },
         home_page: { type: homePageSchema, default: () => ({}) }
     },
