@@ -43,6 +43,48 @@
   font-size: 0.9375rem;
 }
 
+.admin-page-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: -0.5rem 0 1.25rem;
+  flex-wrap: wrap;
+}
+
+.admin-page-toolbar__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.admin-page-toolbar__select {
+  flex: 1 1 auto;
+  min-width: 10rem;
+  max-width: 16rem;
+  min-height: 44px;
+  padding: 0.5rem 2rem 0.5rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  box-sizing: border-box;
+}
+
+.admin-page-toolbar__select:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
+}
+
 .admin-page-header__end {
   display: flex;
   align-items: center;
@@ -994,6 +1036,46 @@
 }
 
 @media (max-width: 767px) {
+  body.admin-menu-open .admin-shell__main {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .admin-float--desktop-only {
+    display: none !important;
+  }
+
+  .admin-page-header,
+  .admin-dash-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .admin-page-header__title,
+  .admin-dash-header__title {
+    font-size: 1.25rem;
+  }
+
+  .admin-page-header__btn,
+  .admin-panel__action,
+  .admin-panel__action--primary {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .admin-page-toolbar {
+    margin: 0 0 1rem;
+  }
+
+  .admin-page-toolbar__select {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+    min-height: 48px;
+  }
+
   .admin-panel__table-wrap--desktop {
     display: none;
   }
@@ -1003,10 +1085,295 @@
     align-items: stretch;
   }
 
-  .admin-panel__action,
-  .admin-panel__action--primary {
+  .admin-float--padded {
+    padding: 1rem 1.125rem 1.25rem;
+  }
+
+  .admin-float + .admin-float {
+    margin-top: 1rem;
+  }
+
+  .admin-float--padded .field-row {
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  .admin-float--padded .field-row .field {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 1rem;
+  }
+
+  .admin-float--padded .field-row .field:last-child {
+    margin-bottom: 0;
+  }
+
+  .admin-float--padded .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .admin-float--padded .actions .admin-panel__btn-primary,
+  .admin-float--padded .actions button[type='submit'],
+  .admin-float--padded > .admin-panel__btn-primary {
     width: 100%;
     min-height: 48px;
+  }
+
+  .admin-float--padded .actions a {
+    text-align: center;
+    padding: 0.5rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-page .admin-panel__btn-ghost {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .admin-mobile-cards {
+    padding: 0;
+    gap: 0.75rem;
+  }
+
+  .admin-mobile-card {
+    padding: 1rem 1.125rem;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    box-shadow:
+      0 4px 6px rgba(15, 23, 42, 0.04),
+      0 10px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-mobile-card__head {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .admin-mobile-card__head--stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-mobile-card__head-status {
+    width: 100%;
+  }
+
+  .admin-mobile-card__head-status .admin-status-select {
+    width: 100%;
+    min-height: 44px;
+    min-width: 0;
+    font-size: 0.8125rem;
+  }
+
+  .admin-mobile-card__identity {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .admin-mobile-card__head-end {
+    flex: 1 1 auto;
+    margin-left: auto;
+    gap: 0.35rem;
+  }
+
+  .admin-listings .admin-mobile-cards {
+    gap: 0.5rem;
+  }
+
+  /* Order cards: product title on top, status top-right, Id below */
+  .admin-mobile-card--order {
+    position: relative;
+    overflow: visible;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__corner {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__corner .admin-status-select {
+    width: auto;
+    min-width: 7.25rem;
+    max-width: 10.5rem;
+    min-height: 36px;
+    font-size: 0.75rem;
+    padding: 0.35rem 1.75rem 0.35rem 0.75rem;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__title {
+    margin: 0 0 0.25rem;
+    padding: 0 6.5rem 0 0;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #1f2937;
+    text-align: left;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__order-id {
+    margin: 0 0 0.35rem;
+    padding: 0;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.35;
+    color: #9ca3af;
+    letter-spacing: 0.01em;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__row:last-child {
+    margin-bottom: 0;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__row dt {
+    margin: 0;
+    font-size: inherit;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #6b7280;
+    flex-shrink: 0;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__row dt::after {
+    content: ':';
+    margin-left: 0.05em;
+  }
+
+  .admin-mobile-card--order .admin-mobile-card__row dd {
+    margin: 0;
+    font-size: inherit;
+    font-weight: 500;
+    color: #374151;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  /* Listing cards: title on top, corner actions, thumb + price/stock below */
+  .admin-mobile-card--listing {
+    position: relative;
+    overflow: visible;
+    max-width: 100%;
+    padding: 0.5rem 0.625rem 0.5rem;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__corner {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__title {
+    margin: 0 0 0.4rem;
+    padding: 0 5.75rem 0 0;
+    min-width: 0;
+    text-align: left;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__status {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .admin-mobile-card--listing .admin-actions-menu__trigger {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__body {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__media {
+    flex-shrink: 0;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__meta--stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem 0.5rem;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__stat {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__stat dt {
+    margin: 0;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  .admin-mobile-card--listing .admin-mobile-card__stat dd {
+    margin: 0;
+    color: #4b5563;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-mobile-card__row {
+    grid-template-columns: 5.5rem 1fr;
   }
 
   .admin-mobile-card__actions--grid {
@@ -1019,6 +1386,104 @@
     min-width: 0;
     width: 100%;
     min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-actions-menu__trigger {
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-actions-menu__panel {
+    z-index: 1300;
+    min-width: 11rem;
+  }
+
+  .admin-status-select {
+    min-height: 40px;
+    font-size: 0.8125rem;
+  }
+
+  /* Dashboard */
+  .admin-dash {
+    gap: 1.25rem;
+  }
+
+  .admin-dash-hero {
+    padding: 1.25rem 1.125rem;
+  }
+
+  .admin-dash-section-card {
+    padding: 1rem 1.125rem 1.25rem;
+  }
+
+  .admin-dash-section__head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 0.35rem;
+  }
+
+  .admin-dash-section__head-end {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-dash-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 0.85rem 0.9rem;
+  }
+
+  .admin-dash-row .admin-status-pill {
+    margin-left: 0;
+    flex-shrink: 0;
+  }
+
+  .admin-dash-list__title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .admin-dash-order__top {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .admin-dash-order__sub {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .admin-dash-section-card .admin-dash-stack {
+    max-height: none;
+  }
+
+  /* Customize embedded */
+  .admin-social--embedded .platform-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .admin-social--embedded .admin-social__save {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  /* AI output */
+  .admin-ai-lines li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .admin-ai-lines__heart {
+    align-self: flex-end;
+    min-width: 44px;
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;

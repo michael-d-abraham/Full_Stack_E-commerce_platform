@@ -44,6 +44,10 @@ import { useAdminNav } from '../../composables/useAdminNav.js';
 const route = useRoute();
 const { adminMenuOpen, toggleAdminMenu, closeAdminMenu } = useAdminNav();
 
+function setBodyMenuLock(open) {
+  document.body.classList.toggle('admin-menu-open', open);
+}
+
 function onEscape(event) {
   if (event.key === 'Escape' && adminMenuOpen.value) {
     closeAdminMenu();
@@ -57,6 +61,10 @@ watch(
   }
 );
 
+watch(adminMenuOpen, (open) => {
+  setBodyMenuLock(open);
+});
+
 onMounted(() => {
   window.addEventListener('keydown', onEscape);
 });
@@ -64,6 +72,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onEscape);
   closeAdminMenu();
+  setBodyMenuLock(false);
 });
 </script>
 
@@ -93,14 +102,16 @@ onUnmounted(() => {
   top: 0;
   z-index: 1100;
   background: #fff;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: none;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
 }
 
 .admin-shell__mobile-bar {
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: 44px 1fr 44px;
   align-items: center;
-  padding: 1rem 20px;
+  min-height: 56px;
+  padding: 0.75rem max(16px, env(safe-area-inset-left)) 0.75rem max(16px, env(safe-area-inset-right));
   box-sizing: border-box;
 }
 
@@ -146,6 +157,7 @@ onUnmounted(() => {
 .admin-shell__mobile-brand {
   grid-column: 2;
   justify-self: center;
+  padding: 0 0.5rem;
   font-family: var(--font-sans);
   font-size: 1.375rem;
   font-weight: 900;
@@ -191,8 +203,18 @@ onUnmounted(() => {
 }
 
 @media (max-width: 767px) {
+  .admin-shell {
+    min-height: 100dvh;
+  }
+
+  .admin-shell__content {
+    min-height: 0;
+    flex: 1;
+  }
+
   .admin-shell__main {
-    padding: var(--space-lg) 20px var(--space-2xl);
+    padding: 1.25rem max(16px, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-right));
   }
 }
 </style>

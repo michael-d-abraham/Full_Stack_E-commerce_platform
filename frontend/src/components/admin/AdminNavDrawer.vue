@@ -64,11 +64,15 @@ function isNavActive(path) {
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.125rem;
-  padding: 0.5rem 20px 1.25rem;
+  gap: 0.25rem;
+  padding: 0.75rem max(16px, env(safe-area-inset-left)) 1.25rem max(16px, env(safe-area-inset-right));
   background: #fff;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: none;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
   box-sizing: border-box;
+  max-height: min(70vh, calc(100dvh - 4.5rem));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-nav-drawer--open {

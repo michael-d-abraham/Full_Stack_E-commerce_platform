@@ -8,11 +8,16 @@
     <p v-else-if="error" class="error admin-page-header__status">{{ error }}</p>
     <p v-else-if="!orders.length" class="admin-float admin-float--padded admin-page-empty">No orders yet.</p>
 
-    <div v-else class="admin-float admin-float--table">
+    <template v-else>
+      <AdminListSortBar
+        v-model="sortBy"
+        select-id="orders-sort"
+        :options="ORDER_SORT_OPTIONS"
+      />
+
       <ul class="admin-mobile-cards" aria-label="Orders">
-        <li v-for="order in orders" :key="order._id" class="admin-mobile-card">
-          <div class="admin-mobile-card__head">
-            <span class="admin-mobile-card__id">{{ order.order_number }}</span>
+        <li v-for="order in sortedOrders" :key="order._id" class="admin-mobile-card admin-mobile-card--order">
+          <div class="admin-mobile-card__corner">
             <label :for="'status-' + order._id" class="visually-hidden">Order status</label>
             <select
               :id="'status-' + order._id"
@@ -27,11 +32,9 @@
               </option>
             </select>
           </div>
+          <h3 class="admin-mobile-card__title">{{ order.product_summary }}</h3>
+          <p class="admin-mobile-card__order-id">{{ order.order_number }}</p>
           <dl class="admin-mobile-card__meta">
-            <div class="admin-mobile-card__row">
-              <dt>Product</dt>
-              <dd>{{ order.product_summary }}</dd>
-            </div>
             <div class="admin-mobile-card__row">
               <dt>Customer</dt>
               <dd>{{ order.customer_display }}</dd>
@@ -48,6 +51,7 @@
         </li>
       </ul>
 
+      <div class="admin-float admin-float--table admin-float--desktop-only">
       <div class="admin-panel__table-wrap admin-panel__table-wrap--desktop">
         <table class="admin-data-table">
           <thead>
@@ -61,7 +65,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="order in orders" :key="'row-' + order._id">
+            <tr v-for="order in sortedOrders" :key="'row-' + order._id">
               <td class="admin-data-table__cell--strong admin-data-table__cell--nowrap">
                 {{ order.order_number }}
               </td>
@@ -92,24 +96,30 @@
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { getAdminOrders, updateAdminOrderFulfillmentStatus } from '../../services/api.js';
 import { formatUsdFromCents } from '../../utils/storefrontProduct.js';
 import {
     FULFILLMENT_STATUS_OPTIONS,
     fulfillmentStatusClass
 } from '../../utils/orderFulfillmentStatus.js';
+import { ORDER_SORT_OPTIONS, sortOrders } from '../../utils/adminListSort.js';
+import AdminListSortBar from '../../components/admin/AdminListSortBar.vue';
 
 const statusOptions = FULFILLMENT_STATUS_OPTIONS;
 const orders = ref([]);
+const sortBy = ref('newest');
 const loading = ref(true);
 const error = ref('');
 const savingId = ref(null);
+
+const sortedOrders = computed(() => sortOrders(orders.value, sortBy.value));
 
 function formatAmount(cents, currency) {
     const code = (currency || 'usd').toUpperCase();
