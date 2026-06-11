@@ -26,8 +26,11 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1061.0",
-    "@langchain/core": "^0.3.57",
-    "@langchain/langgraph": "^0.2.74",
+    "@langchain/core": "^1.1.48",
+    "@langchain/groq": "^1.2.1",
+    "@langchain/langgraph": "^1.4.1",
+    "@langchain/ollama": "^1.2.7",
+    "@langchain/openai": "^1.4.7",
     "connect-mongo": "^6.0.0",
     "cropperjs": "^1.6.2",
     "dotenv": "^16.4.5",

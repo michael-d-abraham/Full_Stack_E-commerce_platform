@@ -18,6 +18,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Cursor
+.cursor/
+
 # Logs
 logs/
 *.log

@@ -1,375 +1,225 @@
 /**
- * LangGraph workflow: rough listing description → structured Instagram copy (hooks, captions, CTAs, hashtags).
+ * LangGraph agentic workflow: listing description → structured Instagram copy.
  *
- * HOW THE SYSTEM FITS TOGETHER (for explaining end-to-end):
- * 1) HTTP (`server/routes/aiIg.js`) validates the body with Zod, then calls `runIgGeneration` with
- *    userInput, personalizedVoice, tone, focus.
- * 2) This graph runs a linear prep chain, then calls two LangChain tools from `igTools.js` (not model-chosen —
- *    nodes invoke them in order): first load “hearted” examples from memory, then ask Ollama once for a draft.
- * 3) The draft must be JSON matching `modelIgOutputSchema` in `schemas.js`. If parse/validation fails and the
- *    error looks retryable, we bump a counter and call Ollama again (up to MAX_GENERATION_ATTEMPTS) with a
- *    stricter “RETRY” note in the prompt. Transport errors or bad validation after retries end in `finalize` with error.
- * 4) Success: `outputJson` holds the validated object for the API to return as JSON.
+ * Architecture — real tool-calling agent loop:
  *
- * Graph shape (edges):
- *   START → startRequest → prepareContext → fetchExamplesTool → generateTool
- *   → (conditional) validate OR finalize on hard generation error
- *   validate → (conditional) finalize success OR bumpRetry OR finalize with error
- *   bumpRetry → generateTool (loop)
- *   finalize → END
+ *   START → initMessages
+ *         → agent           (LLM with bound tools: decides what to do)
+ *         ↕  [tool-call loop]
+ *         → tools           (ToolNode: executes tool calls, appends ToolMessages)
+ *         → agent           (LLM reads results, decides to call more tools or answer)
+ *         → validateOutput  (JSON.parse + Zod; extracts finalOutput)
+ *         ↕  [repair loop up to MAX_ATTEMPTS on bad output]
+ *         → repairAgent     (appends error + repair prompt to messages)
+ *         → agent           (LLM sees error, can use tools again before re-answering)
+ *         → validateOutput
+ *         → END
+ *
+ * The LLM is shown full tool schemas (name, description, Zod input schema) via
+ * .bindTools() in modelProvider.js. It decides:
+ *   - whether to call fetch_preferred_copy_examples (and which category)
+ *   - whether to call get_artist_voice_profile
+ *   - when it has enough context to produce the final JSON answer
+ *
+ * The code never calls tools directly. ToolNode handles all tool execution and
+ * appends ToolMessages to the thread for the model to read.
  */
 
-const { StateGraph, START, END, Annotation } = require('@langchain/langgraph');
-const {
-    fetchPreferredCopyExamplesTool,
-    generateIgDraftFromPromptTool
-} = require('./igTools');
+const { StateGraph, MessagesAnnotation, Annotation, START, END } = require('@langchain/langgraph');
+const { ToolNode } = require('@langchain/langgraph/prebuilt');
+const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
+const { fetchPreferredCopyExamplesTool, getArtistVoiceProfileTool } = require('./igTools');
 const { modelIgOutputSchema } = require('./schemas');
+const { createChatModel } = require('./modelProvider');
 
-const MAX_GENERATION_ATTEMPTS = 3;
+const MAX_ATTEMPTS = 3;
 
+const TOOLS = [fetchPreferredCopyExamplesTool, getArtistVoiceProfileTool];
 
-// states 
-const IgState = Annotation.Root({
+// ─── State ────────────────────────────────────────────────────────────────────
+//
+// Extends MessagesAnnotation (which provides the messages[] reducer) with
+// additional fields for the request context, validated output, and retry state.
+
+const IgAgentState = Annotation.Root({
+    ...MessagesAnnotation.spec,
     userInput: Annotation(),
-    personalizedVoice: Annotation(),
     tone: Annotation(),
     focus: Annotation(),
-    formattedRequest: Annotation(),
-    hookExamples: Annotation(),
-    captionExamples: Annotation(),
-    ctaExamples: Annotation(),
-    generationAttempt: Annotation(),
-    rawModelText: Annotation(),
-    hooks: Annotation(),
-    captions: Annotation(),
-    ctas: Annotation(),
-    hashtags: Annotation(),
-    outputJson: Annotation(),
-    error: Annotation()
+    finalOutput: Annotation(),
+    validationErrors: Annotation(),
+    attempts: Annotation()
 });
 
+// ─── Model singleton ──────────────────────────────────────────────────────────
+//
+// Lazy-initialised on first agent invocation. Tests can replace this via
+// setModelForTesting() without needing API keys or a running provider.
 
-/*
- * formatExamplesList — turns a string array into numbered lines for the prompt, or a placeholder if empty
- * so the model still sees the section and follows “personalized voice” rules.
- */
-function formatExamplesList(label, items) {
-    if (!items || !items.length) {
-        return `${label}\n(none yet — follow the personalized voice and output rules.)`;
+let _modelWithTools = null;
+
+function getModelWithTools() {
+    if (!_modelWithTools) {
+        _modelWithTools = createChatModel(TOOLS);
     }
-    return `${label}\n${items.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
+    return _modelWithTools;
 }
 
-/*
- * buildGenerationPrompt — composes one big user message for Ollama: role, listing text, voice, tone, focus,
- * preferred examples, strict JSON output rules, and on retries an extra “RETRY” block demanding valid JSON only.
- */
-function buildGenerationPrompt(state) {
-    const voice =
-        (state.personalizedVoice || '').trim() ||
-        '(no extra style notes — use a warm, artist-friendly Instagram tone.)';
-    const tone = state.tone || 'Simple';
-    const focus = state.focus || 'Story';
-    const hooksEx = formatExamplesList('Preferred hook examples (user liked these)', state.hookExamples);
-    const capsEx = formatExamplesList(
-        'Preferred caption examples (user liked these)',
-        state.captionExamples
-    );
-    const ctasEx = formatExamplesList('Preferred CTA examples (user liked these)', state.ctaExamples);
-
-    const retryNote =
-        (state.generationAttempt || 0) > 0
-            ? `\n=== RETRY ===\nYour previous reply was not valid JSON or failed schema checks. Output ONLY one JSON object with keys hooks, captions, ctas, hashtags — no markdown fences, no extra text.\n`
-            : '';
-
-    return `
-=== SYSTEM ROLE ===
-You help a visual artist turn a rough description of their listing into Instagram post components. Be faithful to the art described. Output must be valid JSON only — no markdown, no commentary outside the JSON object.
-${retryNote}
-=== USER REQUEST (listing / piece) ===
-${state.formattedRequest}
-
-=== PERSONALIZED VOICE (style guidelines from the artist) ===
-${voice}
-
-=== TONE (how writing should sound) ===
-${tone}
-
-=== FOCUS (main content objective) ===
-${focus}
-
-=== PREFERRED HOOK EXAMPLES ===
-${hooksEx}
-
-=== PREFERRED CAPTION EXAMPLES ===
-${capsEx}
-
-=== PREFERRED CTA EXAMPLES ===
-${ctasEx}
-
-=== OUTPUT RULES ===
-Return a single JSON object with exactly these keys and array lengths:
-- "hooks": array of exactly 3 strings. Short attention-grabbing openers (one line each when possible).
-- "captions": array of exactly 3 strings. Main body copy: digestible, artist-aligned, not walls of text.
-- "ctas": array of exactly 3 strings. Encourage gentle action — not pushy or salesy.
-- "hashtags": array of exactly 10 strings. Relevant to the piece and art audience; avoid spammy filler. You may include or omit the "#" prefix consistently.
-
-Do not include any keys other than hooks, captions, ctas, hashtags. No text before or after the JSON.
-`.trim();
+function setModelForTesting(model) {
+    _modelWithTools = model;
 }
 
-/*
- * extractJsonObjectText — strips common ```json fences if the model wrapped JSON in markdown anyway.
- */
-function extractJsonObjectText(raw) {
-    let s = String(raw || '').trim();
-    if (!s) return s;
-    if (s.startsWith('```')) {
-        s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
-    }
-    return s.trim();
+// ─── Prompt constants ─────────────────────────────────────────────────────────
+
+const SYSTEM_PROMPT = `You are an Instagram copy assistant for a visual artist. Your task is to generate Instagram post components from a rough description of their artwork or listing.
+
+You have two tools available:
+  • fetch_preferred_copy_examples — loads copy lines the artist has previously approved; use these as style and tone references.
+  • get_artist_voice_profile      — loads the artist's brand preferences: brandIdentity (who they are), emphasize (what to highlight), and avoid (what to never include).
+
+Always call get_artist_voice_profile before writing. Call fetch_preferred_copy_examples when you want concrete examples of their preferred writing style.
+
+Your final response must be ONLY a single valid JSON object — no markdown fences, no commentary, nothing outside the JSON. Required shape:
+{
+  "hooks":    [exactly 3 short attention-grabbing openers],
+  "captions": [exactly 3 body captions],
+  "ctas":     [exactly 3 calls to action],
+  "hashtags": [exactly 10 hashtags]
+}`;
+
+function buildHumanMessage(state) {
+    return [
+        'Please write Instagram copy for the following piece:',
+        '',
+        state.userInput,
+        '',
+        `Tone: ${state.tone || 'Simple'}`,
+        `Focus: ${state.focus || 'Story'}`
+    ].join('\n');
 }
 
-/*
- * isRetryableValidationError — only JSON parse failures and Zod validation failures trigger a retry loop;
- * other errors (e.g. network) skip retry and go straight to finalize.
- */
-function isRetryableValidationError(message) {
-    const m = String(message || '');
-    return (
-        m.includes('not valid JSON') ||
-        m.includes('Output failed validation') ||
-        m.includes('Model output was not valid JSON')
-    );
-}
+// ─── Nodes ────────────────────────────────────────────────────────────────────
 
-// ---------------------------------------------------------------------------
-// Nodes — each function receives partial state and returns a patch merged into state.
-// ---------------------------------------------------------------------------
-
-/*
- * startRequestNode — seed defaults: tone/focus, clear error, attempt 0, empty outputs.
- */
-function startRequestNode(state) {
+function initMessagesNode(state) {
     return {
-        userInput: state.userInput,
-        personalizedVoice: state.personalizedVoice ?? '',
-        tone: state.tone ?? 'Simple',
-        focus: state.focus ?? 'Story',
-        error: null,
-        generationAttempt: 0,
-        rawModelText: '',
-        hooks: [],
-        captions: [],
-        ctas: [],
-        hashtags: [],
-        outputJson: null
+        messages: [
+            new SystemMessage(SYSTEM_PROMPT),
+            new HumanMessage(buildHumanMessage(state))
+        ],
+        finalOutput: null,
+        validationErrors: null,
+        attempts: 0
     };
 }
 
-/*
- * prepareContextNode — normalize whitespace on the user’s listing description for a stable prompt.
- */
-function prepareContextNode(state) {
-    const formattedRequest = String(state.userInput || '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    return { formattedRequest };
+async function agentNode(state) {
+    const model = getModelWithTools();
+    const response = await model.invoke(state.messages);
+    return { messages: [response] };
 }
 
-/*
- * fetchExamplesToolNode — invokes fetch_preferred_copy_examples; parses JSON into three arrays.
- * On parse failure, sets error so later nodes can short-circuit to finalize.
- */
-async function fetchExamplesToolNode(state) {
-    const raw = await fetchPreferredCopyExamplesTool.invoke({ categories: 'all' });
-    let parsed;
-    try {
-        parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    } catch {
-        return {
-            hookExamples: [],
-            captionExamples: [],
-            ctaExamples: [],
-            error: 'Failed to parse preferred examples tool output.'
-        };
-    }
-    return {
-        hookExamples: parsed.hooks || [],
-        captionExamples: parsed.captions || [],
-        ctaExamples: parsed.ctas || []
-    };
-}
-
-/*
- * generateToolNode — builds the full prompt, calls generate_ig_draft_from_prompt (Ollama).
- * If a prior error exists or description is empty, skips work or returns an error patch.
- * Success stores rawModelText for validation.
- */
-async function generateToolNode(state) {
-    if (state.error) {
-        return {};
-    }
-    if (!state.formattedRequest) {
-        return { error: 'Description is empty after normalization.' };
-    }
-
-    const prompt = buildGenerationPrompt(state);
-    try {
-        const raw = await generateIgDraftFromPromptTool.invoke({
-            promptText: prompt,
-            temperature: 0.7
-        });
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (!parsed.ok) {
-            return { error: parsed.error || 'Generation tool failed.' };
-        }
-        return { rawModelText: parsed.rawText, error: null };
-    } catch (err) {
-        const msg =
-            err && err.message ? String(err.message) : 'Failed to reach the language model.';
-        return { error: msg };
-    }
-}
-
-/*
- * validateOutputNode — JSON.parse + Zod safeParse; on success copies arrays into state.outputJson.
- * On failure sets error string for routing (retry vs finalize).
- */
 function validateOutputNode(state) {
-    if (state.error) {
-        return {};
+    const lastMessage = state.messages[state.messages.length - 1];
+
+    // Guard: agent chose to make another tool call instead of answering — shouldn't
+    // reach validateOutput but handled for safety.
+    if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+        return { validationErrors: 'Agent made tool calls instead of producing a final answer.' };
     }
-    const jsonText = extractJsonObjectText(state.rawModelText);
+
+    const raw = typeof lastMessage.content === 'string'
+        ? lastMessage.content
+        : JSON.stringify(lastMessage.content || '');
+
+    // Strip markdown code fences that some models add despite instructions.
+    const text = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
     let parsed;
     try {
-        parsed = JSON.parse(jsonText);
+        parsed = JSON.parse(text);
     } catch {
-        return { error: 'Model output was not valid JSON.' };
+        return { validationErrors: 'Model output was not valid JSON.' };
     }
 
     const check = modelIgOutputSchema.safeParse(parsed);
     if (!check.success) {
         const detail = check.error.flatten().fieldErrors;
         const msg = Object.keys(detail).length
-            ? `Output failed validation: ${JSON.stringify(detail)}`
-            : 'Output failed validation.';
-        return { error: msg };
+            ? `Output failed schema validation: ${JSON.stringify(detail)}`
+            : 'Output failed schema validation.';
+        return { validationErrors: msg };
     }
 
-    const data = check.data;
+    return { finalOutput: check.data, validationErrors: null };
+}
+
+function repairAgentNode(state) {
+    const errorMsg = state.validationErrors || 'Your previous output was invalid.';
     return {
-        hooks: data.hooks,
-        captions: data.captions,
-        ctas: data.ctas,
-        hashtags: data.hashtags,
-        outputJson: {
-            hooks: data.hooks,
-            captions: data.captions,
-            ctas: data.ctas,
-            hashtags: data.hashtags
-        },
-        error: null
+        messages: [
+            new HumanMessage(
+                `Your previous response was not valid.\nError: ${errorMsg}\n\n` +
+                'Respond with ONLY a JSON object — no markdown fences, no explanation.\n' +
+                'Required: { "hooks": [3 strings], "captions": [3 strings], ' +
+                '"ctas": [3 strings], "hashtags": [10 strings] }'
+            )
+        ],
+        attempts: (state.attempts || 0) + 1,
+        validationErrors: null
     };
 }
 
-/*
- * bumpRetryNode — increments generationAttempt, clears last raw text and output so the next generate step is fresh;
- * clears error so generateToolNode will run again (retry prompt text comes from generationAttempt > 0).
- */
-function bumpRetryNode(state) {
-    return {
-        generationAttempt: (state.generationAttempt || 0) + 1,
-        error: null,
-        rawModelText: '',
-        outputJson: null
-    };
-}
+// ─── Routing ──────────────────────────────────────────────────────────────────
 
-/*
- * finalizeNode — last step: if any error remains, ensure outputJson is null; otherwise pass through success payload.
- */
-function finalizeNode(state) {
-    if (state.error) {
-        return { outputJson: null };
-    }
-    return { outputJson: state.outputJson };
-}
-
-// ---------------------------------------------------------------------------
-// Routing — conditional edges read state and return the name of the next edge key (see addConditionalEdges).
-// ---------------------------------------------------------------------------
-
-/*
- * routeAfterGenerate — after Ollama: if tool reported error (network, empty, etc.), skip validation and end.
- * Otherwise always run validateOutputNode next.
- */
-function routeAfterGenerate(state) {
-    if (state.error) {
-        return 'finalize';
+function routeAfterAgent(state) {
+    const last = state.messages[state.messages.length - 1];
+    if (last.tool_calls && last.tool_calls.length > 0) {
+        return 'tools';
     }
     return 'validate';
 }
 
-/*
- * routeAfterValidate — if outputJson is set, we’re done (success path to finalize).
- * If validation failed with a retryable message and attempts remain, go to bumpRetry → generate again.
- * Else finalize with error stuck in state (HTTP layer returns 502).
- */
 function routeAfterValidate(state) {
-    if (state.outputJson) {
-        return 'success';
-    }
-    const attempt = state.generationAttempt || 0;
-    if (
-        attempt < MAX_GENERATION_ATTEMPTS - 1 &&
-        state.error &&
-        isRetryableValidationError(state.error)
-    ) {
-        return 'retry';
-    }
-    return 'finalize';
+    if (state.finalOutput) return 'success';
+    if ((state.attempts || 0) < MAX_ATTEMPTS) return 'repair';
+    return 'error';
 }
 
-// ---------------------------------------------------------------------------
-// Graph compilation — wires nodes and edges; .compile() returns an invokable runnable.
-// ---------------------------------------------------------------------------
+// ─── Graph compilation ────────────────────────────────────────────────────────
 
-const igGenerationGraph = new StateGraph(IgState)
-    .addNode('startRequest', startRequestNode)
-    .addNode('prepareContext', prepareContextNode)
-    .addNode('fetchExamplesTool', fetchExamplesToolNode)
-    .addNode('generateTool', generateToolNode)
+const igGenerationGraph = new StateGraph(IgAgentState)
+    .addNode('initMessages', initMessagesNode)
+    .addNode('agent', agentNode)
+    .addNode('tools', new ToolNode(TOOLS))
     .addNode('validateOutput', validateOutputNode)
-    .addNode('bumpRetry', bumpRetryNode)
-    .addNode('finalize', finalizeNode)
-    .addEdge(START, 'startRequest')
-    .addEdge('startRequest', 'prepareContext')
-    .addEdge('prepareContext', 'fetchExamplesTool')
-    .addEdge('fetchExamplesTool', 'generateTool')
-    .addConditionalEdges('generateTool', routeAfterGenerate, {
-        validate: 'validateOutput',
-        finalize: 'finalize'
+    .addNode('repairAgent', repairAgentNode)
+    .addEdge(START, 'initMessages')
+    .addEdge('initMessages', 'agent')
+    .addConditionalEdges('agent', routeAfterAgent, {
+        tools: 'tools',
+        validate: 'validateOutput'
     })
+    .addEdge('tools', 'agent')
     .addConditionalEdges('validateOutput', routeAfterValidate, {
-        success: 'finalize',
-        retry: 'bumpRetry',
-        finalize: 'finalize'
+        success: END,
+        repair: 'repairAgent',
+        error: END
     })
-    .addEdge('bumpRetry', 'generateTool')
-    .addEdge('finalize', END)
+    .addEdge('repairAgent', 'agent')
     .compile();
 
-/*
- * runIgGeneration — public entry: pass the same fields the HTTP route parsed; returns final graph state
- * (check error and outputJson on the result).
- */
+// ─── Public API ───────────────────────────────────────────────────────────────
+
 async function runIgGeneration(input) {
-    return igGenerationGraph.invoke(input);
+    return igGenerationGraph.invoke({
+        userInput: input.userInput,
+        tone: input.tone,
+        focus: input.focus
+    });
 }
 
 module.exports = {
     runIgGeneration,
-    igGenerationGraph
+    igGenerationGraph,
+    setModelForTesting
 };

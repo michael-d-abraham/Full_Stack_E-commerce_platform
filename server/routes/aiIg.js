@@ -1,28 +1,38 @@
 /**
  * Admin AI HTTP API for Instagram-ready post copy.
  *
- * This file is the bridge between the Vue admin UI and `server/ai/*`:
- * - Validates JSON bodies with Zod schemas from `schemas.js` (same rules as the graph expects).
- * - POST /generate-ig runs the LangGraph in `igGenerationGraph.js` and returns structured JSON or an error status.
- * - POST /save-preferred pushes one liked line into `preferredExamplesStore.js` for future prompts (no graph run).
+ * Routes (all require admin session):
+ *   POST /api/admin/ai/generate-ig    — run LangGraph agent pipeline, save history, return copy
+ *   POST /api/admin/ai/save-preferred — heart a line; persisted to MongoDB
+ *   GET  /api/admin/ai/voice-profile  — load the artist's brand preferences (3 fields)
+ *   PUT  /api/admin/ai/voice-profile  — upsert the artist's brand preferences
  *
  * Related modules:
- * - server/ai/preferredExamplesStore.js — FIFO stacks of liked hooks/captions/CTAs (max 5 each)
- * - server/ai/schemas.js — Zod schemas for request bodies and model output
- * - server/ai/igGenerationGraph.js — LangGraph: context → Ollama → validated JSON
+ *   server/ai/igGenerationGraph.js     — LangGraph agentic loop (LLM + tool calls → validated JSON)
+ *   server/ai/preferredExamplesStore.js — MongoDB-backed FIFO (max 5 per type)
+ *   server/ai/schemas.js               — Zod schemas for all request bodies + model output
+ *   server/models/AiVoiceProfile.js    — single 'default' doc with brandIdentity/emphasize/avoid
+ *   server/models/AiGeneration.js      — write-once record of every successful generation
  */
 
 const express = require('express');
 const { runIgGeneration } = require('../ai/igGenerationGraph');
-const { generationRequestSchema, savePreferredRequestSchema } = require('../ai/schemas');
+const {
+    generationRequestSchema,
+    savePreferredRequestSchema,
+    voiceProfileUpdateSchema
+} = require('../ai/schemas');
 const { savePreferredExample } = require('../ai/preferredExamplesStore');
+const AiVoiceProfile = require('../models/AiVoiceProfile');
+const AiGeneration = require('../models/AiGeneration');
 
 const router = express.Router();
 
 /*
  * POST /api/admin/ai/generate-ig
- * Body must match generationRequestSchema. On success returns { hooks, captions, ctas, hashtags }.
- * 502 if the graph ends with an error or missing outputJson; 500 on unexpected exceptions.
+ * Body must match generationRequestSchema. On success returns { hooks, captions, ctas, hashtags }
+ * and fires off a background save to the ai_generations collection.
+ * 502 if the agent ends without valid output; 500 on unexpected exceptions.
  */
 router.post('/generate-ig', async (req, res) => {
     const parsed = generationRequestSchema.safeParse(req.body || {});
@@ -32,17 +42,24 @@ router.post('/generate-ig', async (req, res) => {
     }
 
     try {
-        const { userInput, personalizedVoice, tone, focus } = parsed.data;
-        const finalState = await runIgGeneration({ userInput, personalizedVoice, tone, focus });
+        const { userInput, tone, focus } = parsed.data;
+        const finalState = await runIgGeneration({ userInput, tone, focus });
 
-        if (finalState.error) {
-            return res.status(502).json({ error: finalState.error });
-        }
-        if (!finalState.outputJson) {
-            return res.status(502).json({ error: 'No output produced.' });
+        if (!finalState.finalOutput) {
+            const errMsg =
+                finalState.validationErrors || 'No output produced after maximum retry attempts.';
+            return res.status(502).json({ error: errMsg });
         }
 
-        return res.json(finalState.outputJson);
+        // Fire-and-forget: record the generation for history.
+        AiGeneration.create({
+            inputDescription: userInput,
+            tone,
+            focus,
+            output: finalState.finalOutput
+        }).catch((err) => console.error('[AI] Failed to save generation history:', err));
+
+        return res.json(finalState.finalOutput);
     } catch (err) {
         const msg = err && err.message ? String(err.message) : 'Generation failed.';
         return res.status(500).json({ error: msg });
@@ -51,17 +68,75 @@ router.post('/generate-ig', async (req, res) => {
 
 /*
  * POST /api/admin/ai/save-preferred
- * Body: { type: 'hook'|'caption'|'cta', text: string }. Persists to in-memory stacks for the next generation.
+ * Body: { type: 'hook'|'caption'|'cta', text: string }
+ * Persists to MongoDB FIFO stacks for the next generation.
  */
-router.post('/save-preferred', (req, res) => {
+router.post('/save-preferred', async (req, res) => {
     const parsed = savePreferredRequestSchema.safeParse(req.body || {});
     if (!parsed.success) {
         const msg = parsed.error.issues.map((e) => e.message).join(' ') || 'Invalid request body';
         return res.status(400).json({ error: msg });
     }
 
-    savePreferredExample(parsed.data.type, parsed.data.text);
-    return res.json({ ok: true });
+    try {
+        await savePreferredExample(parsed.data.type, parsed.data.text);
+        return res.json({ ok: true });
+    } catch (err) {
+        const msg = err && err.message ? String(err.message) : 'Failed to save example.';
+        return res.status(500).json({ error: msg });
+    }
+});
+
+/*
+ * GET /api/admin/ai/voice-profile
+ * Returns { brandIdentity, emphasize, avoid } from MongoDB.
+ * Returns empty strings on first use (no profile saved yet).
+ */
+router.get('/voice-profile', async (req, res) => {
+    try {
+        const profile = await AiVoiceProfile.findOne({ name: 'default' }).lean();
+        return res.json({
+            brandIdentity: profile ? (profile.brandIdentity || '') : '',
+            emphasize: profile ? (profile.emphasize || '') : '',
+            avoid: profile ? (profile.avoid || '') : ''
+        });
+    } catch (err) {
+        const msg = err && err.message ? String(err.message) : 'Failed to load voice profile.';
+        return res.status(500).json({ error: msg });
+    }
+});
+
+/*
+ * PUT /api/admin/ai/voice-profile
+ * Body: { brandIdentity, emphasize, avoid } — upserts the default voice profile.
+ * Returns the saved values on success.
+ */
+router.put('/voice-profile', async (req, res) => {
+    const parsed = voiceProfileUpdateSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+        const msg = parsed.error.issues.map((e) => e.message).join(' ') || 'Invalid request body';
+        return res.status(400).json({ error: msg });
+    }
+
+    try {
+        const profile = await AiVoiceProfile.findOneAndUpdate(
+            { name: 'default' },
+            { $set: {
+                brandIdentity: parsed.data.brandIdentity,
+                emphasize: parsed.data.emphasize,
+                avoid: parsed.data.avoid
+            }},
+            { upsert: true, new: true }
+        );
+        return res.json({
+            brandIdentity: profile.brandIdentity,
+            emphasize: profile.emphasize,
+            avoid: profile.avoid
+        });
+    } catch (err) {
+        const msg = err && err.message ? String(err.message) : 'Failed to save voice profile.';
+        return res.status(500).json({ error: msg });
+    }
 });
 
 module.exports = router;

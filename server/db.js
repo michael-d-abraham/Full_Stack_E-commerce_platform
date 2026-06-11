@@ -36,6 +36,9 @@ const OrderItem = require('./models/OrderItem');
 const AdminUser = require('./models/AdminUser');
 const SiteSettings = require('./models/SiteSettings');
 const PaidCheckoutNotification = require('./models/PaidCheckoutNotification');
+const AiPreferredExample = require('./models/AiPreferredExample');
+const AiVoiceProfile = require('./models/AiVoiceProfile');
+const AiGeneration = require('./models/AiGeneration');
 
 module.exports = {
     Product,
@@ -45,6 +48,9 @@ module.exports = {
     AdminUser,
     SiteSettings,
     PaidCheckoutNotification,
+    AiPreferredExample,
+    AiVoiceProfile,
+    AiGeneration,
     connectDb,
     disconnectDb
 };

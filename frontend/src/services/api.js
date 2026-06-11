@@ -252,3 +252,16 @@ export function savePreferredExample(body) {
         body
     });
 }
+
+/** Returns { brandIdentity, emphasize, avoid } */
+export function getVoiceProfile() {
+    return fetchJson('/api/admin/ai/voice-profile');
+}
+
+/** Body: { brandIdentity, emphasize, avoid } */
+export function updateVoiceProfile(body) {
+    return fetchJson('/api/admin/ai/voice-profile', {
+        method: 'PUT',
+        body
+    });
+}
