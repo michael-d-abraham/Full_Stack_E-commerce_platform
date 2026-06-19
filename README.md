@@ -88,7 +88,7 @@ server/
   services/            Checkout, orders, dashboard, site settings, R2
   middleware/          Admin auth, image upload
 tests/                 Jest + Supertest + mongodb-memory-server
-images/                Demo walkthrough videos (see above)
+images/                Demo GIFs, AgenticGraph.png, databaseschema.png
 ```
 
 Production serves the built Vue app from Express (`npm run build` → `frontend/dist`).
@@ -145,6 +145,8 @@ The LLM decides when to call tools. Voice profile and preferred examples are **n
 
 Requires Ollama (`OLLAMA_HOST`, `OLLAMA_MODEL` in `.env`).
 
+![Agentic system graph](./images/AgenticGraph.png)
+
 ### Data models (MongoDB)
 
 | Model | Purpose |
@@ -157,6 +159,8 @@ Requires Ollama (`OLLAMA_HOST`, `OLLAMA_MODEL` in `.env`).
 | `AdminUser` | Scrypt-hashed credentials |
 
 Order fulfillment statuses: `new_order` → `shipped` → `completed` → `cancelled`.
+
+![Database schema](./images/databaseschema.png)
 
 ### API surface (summary)
 
