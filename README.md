@@ -1,262 +1,226 @@
 # Artist Portfolio Store
 
-**Live site:** [artist-portfolio-store.onrender.com](https://artist-portfolio-store.onrender.com/)
+**A full-stack e-commerce platform built for independent artists.**
 
-> Hosted on Render. If the site has been idle, the first load can take about **20 seconds** while the server spins up — then it runs normally.
+**Live site:** [artist-portfolio-store.onrender.com](https://artist-portfolio-store.onrender.com)
 
-A **complete ecommerce platform** for independent artists — gallery, checkout, order management, and an **AI-powered content assistant**, all in one codebase.
+> Hosted on Render. First load after idle may take ~20 seconds while the server spins up.
 
-The app is built as **two separate sides** that share the same backend:
+This project began as a website for my brother's artwork, but evolved into a reusable platform that is completely customizable — the same build has been adapted for other artists (including a tattoo artist) without changing the underlying code.
 
-| | **Front face** (public) | **Admin side** (private) |
-|---|---|---|
-| **Who sees it** | Visitors, buyers, collectors | The artist / shop owner |
-| **Purpose** | Browse, buy, contact | Manage the entire business |
-| **URL** | `/`, `/gallery`, `/checkout`, … | `/admin/*` (login required) |
+The platform combines three things in one app:
 
-The **front face** is the customer-facing storefront. The **admin side** is a full back-office: listings, orders, site customization, settings, and AI tools. The admin is **completely customizable** — swap branding, copy, and layout and you can reuse this same build for other artist shops, small galleries, or similar portfolio-and-store sites without starting from scratch.
+- **Public storefront** — gallery, cart, checkout, contact
+- **Admin workspace** — products, orders, analytics, site customization
+- **AI marketing assistant** — brand-aware Instagram copy generation
 
-Built as an academic project using **Vue 3**, **Express**, and **MongoDB**.
+Unlike a typical portfolio site, the platform handles the entire workflow:
 
----
+* Browse artwork and collections
+* Purchase through Stripe Checkout
+* Manage inventory and orders
+* Customize site content without code changes
+* Generate social media content with AI
 
-## Two sides, one platform
+### Highlights
 
-### Front face — the storefront
+* Full e-commerce platform built from scratch
+* Stripe payment processing and order fulfillment
+* Custom admin dashboard for managing products, orders, and site content
+* AI-powered Instagram content assistant using LangGraph and Ollama
+* Brand-aware AI that learns from user preferences and saved examples
+* Cloudflare R2 image storage and management
+* Responsive design for desktop and mobile
+* Reusable architecture that can be adapted for other artists and small businesses
 
-This is what the public sees: a polished ecommerce site end to end.
+### Tech Stack
 
-- Product gallery and detail pages
-- Shopping cart and **Stripe Checkout** (real payments, inventory, order records)
-- Contact form and order confirmation
-- Fully styled public pages — home, gallery, product, checkout, contact
+Vue 3 · Node.js · Express · MongoDB · Stripe · Cloudflare R2 · LangGraph · Ollama · Zod
 
-Everything needed to **sell online** is wired up: prices and stock live in the database, checkout goes through Stripe, and paid orders land in MongoDB for fulfillment.
+### Architecture
 
-### Admin side — run the business
+The application is split into two experiences:
 
-Hidden behind login (`/admin/login`), the admin is a separate workspace for the owner:
+**Storefront**
 
-- **Dashboard** — earnings, active listings, recent orders
-- **Listings** — create, edit, upload images (Cloudflare R2), toggle visibility
-- **Orders** — paid orders with fulfillment workflow (New Order → Shipped → Completed → Cancelled)
-- **Customize** — site content and presentation
-- **Settings** — links, contact details, and configuration
-- **AI** — Instagram caption generator (see below)
+* Product gallery
+* Product pages
+* Shopping cart
+* Checkout
+* Contact forms
 
-The admin panel is designed to be **adaptable**. The same architecture supports different brands, product types, and site copy — making it a practical starting point for other similar ecommerce sites, not just this one artist.
+**Admin Portal**
 
----
+* Product management
+* Order fulfillment
+* Site customization
+* Analytics dashboard
+* AI content generation
 
-## AI assistant — the standout feature
-
-The admin includes a built-in **AI content assistant** for social media. It is not a generic chatbot — it is trained on *your* brand over time.
-
-**How it learns your voice**
-- Set brand identity, what to emphasize, and what to avoid — saved in MongoDB and injected into every generation
-- Heart lines you like (hooks, captions, CTAs) — stored as few-shot examples the agent pulls on future runs
-- The more you refine preferences, the closer output gets to your actual writing style
-
-**What it generates per post**
-- Opening hooks
-- Full captions
-- Calls to action
-- Hashtag sets
-
-**Per-post controls:** tone (Poetic, Simple, Luxury, …) and focus (Engagement, Sell, Story, …) on top of your saved voice profile.
-
-**Under the hood:** a LangGraph agent calls Ollama, returns structured JSON, validates with Zod, and retries on recoverable failures. The agent fetches your voice profile and preferred examples via tool calls — you do not paste the same context every time.
-
-Admin → **AI** · Code: `server/ai/`, `server/routes/aiIg.js`
+Both experiences share a common backend and database while remaining completely separate from the user's perspective.
 
 ---
 
-## What you get (summary)
+## Demo videos
 
-**Complete ecommerce**
-- Browse → cart → Stripe payment → order stored → admin fulfillment
-- Prices and inventory always from MongoDB (never trusted from the browser)
-- Idempotent order recording via Stripe webhook and/or order-success page
+Walkthroughs of the live product — storefront, admin, checkout flow, AI agent, and customization.
 
-**Customizable admin template**
-- Reusable back-office for similar portfolio/store sites
-- Product CRUD, image uploads, order management, site customization
+### 1. Storefront & Stripe checkout
 
-**AI-powered marketing**
-- Brand-aware caption generation with learning from saved preferences and hearted examples
+A quick tour of the public site: browsing the gallery, viewing product detail, adding to cart, and completing payment through **Stripe Checkout**. Prices and inventory always come from the server — the browser never controls what gets charged.
 
----
+<video src="./images/Userfacing.mov" controls width="100%"></video>
 
-## Tech stack
+[Download video](./images/Userfacing.mov)
 
-| Layer | Stack |
-|--------|--------|
-| Frontend | Vue 3, Vue Router, Vite |
-| Backend | Node.js, Express 5 |
-| Database | MongoDB, Mongoose |
-| Auth | Cookie sessions (`express-session`), scrypt password hashing |
-| Payments | Stripe Checkout |
-| Images | Cloudflare R2 |
-| Email | Resend |
-| AI | **LangGraph agent**, Ollama, Zod — brand-aware caption generation |
+### 2. Admin dashboard
 
----
+Overview of the private admin workspace: earnings, active listings, recent orders, and how the layout responds on different screen sizes. Everything the owner needs to run the shop lives here — no separate tools required.
 
-## Quick start
+<video src="./images/DashboardOverview.mov" controls width="100%"></video>
 
-**You need:** Node.js, MongoDB, and (for **AI features**) a running Ollama instance.
+[Download video](./images/DashboardOverview.mov)
 
-```bash
-git clone https://github.com/michael-d-abraham/artist-portfolio-store.git
-cd artist-portfolio-store
-npm install
-cp .env.example .env   # then fill in values
-npm run dev:all        # API on :3000 + frontend on :5173
-```
+### 3. Successful purchase → admin update
 
-| Command | What it does |
-|---------|----------------|
-| `npm run dev:all` | Run API + frontend together (best for local dev) |
-| `npm run server` | API only |
-| `npm run dev` | Frontend only |
-| `npm run build` | Production build of the Vue app |
-| `npm start` | Production API (serves built frontend if present) |
-| `npm test` | Run Jest tests |
+End-to-end proof that commerce is wired up: a customer completes checkout, the **dashboard updates** with the new order, **inventory decrements**, and the **store owner receives an email** notification. One purchase triggers the full backend pipeline.
 
-**Admin login:** open `/admin/login`. Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env` — they sync to MongoDB on server start. An optional master admin (`ADMIN_MASTER_USERNAME` / `ADMIN_MASTER_PASSWORD`) can be configured the same way.
+<video src="./images/Succesfull%20purchaseAdmin.mov" controls width="100%"></video>
+
+[Download video](./images/Succesfull%20purchaseAdmin.mov)
+
+### 4. AI agentic caption flow
+
+The built-in marketing assistant in action. This is not a single prompt → text box — it is a **LangGraph agent** that calls tools to load the artist's saved voice profile and hearted examples, generates structured output (hooks, captions, CTAs, hashtags), and validates the response with **Zod** before returning it. The model decides when to fetch context; the app decides when output is valid.
+
+<video src="./images/ArtistsAgenticFlow.mov" controls width="100%"></video>
+
+[Download video](./images/ArtistsAgenticFlow.mov)
+
+**What makes this impressive technically**
+
+* Tool-calling loop — agent invokes `get_artist_voice_profile` and `fetch_preferred_copy_examples` at runtime
+* Brand preferences persist in MongoDB and improve over time as the artist hearts lines they like
+* Structured JSON output with a repair loop (up to 3 retries) if validation fails
+* Runs against a local **Ollama** model via LangChain — no hard-coded copy templates
+
+### 5. Customize the front face (no code)
+
+Every major section of the public site — home hero, featured work, about copy, contact page labels, social links, and images — can be changed from **Admin → Customize**. Upload new photos, edit text, pick featured products, and preview changes without touching the codebase.
+
+<video src="./images/customize.mov" controls width="100%"></video>
+
+[Download video](./images/customize.mov)
 
 ---
 
-## Environment variables
+## Technical overview
 
-Copy `.env.example` and fill in what you need. Grouped by feature:
+The sections below are for developers who want to understand how the code is organized and what matters under the hood.
 
-**Core**
-- `MONGO_STRING`, `DB_NAME` — MongoDB connection
-- `SESSION_SECRET` — session cookie signing
-- `CLIENT_URL` — frontend URL (e.g. `http://localhost:5173`); must match Vite in dev
-
-**Admin**
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD`
-- `ADMIN_MASTER_USERNAME`, `ADMIN_MASTER_PASSWORD` (optional backup account)
-
-**Stripe**
-- `STRIPE_SECRET_KEY` — secret key (`sk_test_...`), not publishable
-- `STRIPE_WEBHOOK_SECRET` — from Stripe CLI or dashboard
-
-Local webhooks:
-```bash
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-Test card: `4242 4242 4242 4242`.
-
-**Image uploads (admin)**
-- `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`
-
-**Contact form**
-- `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `NOTIFICATION_EMAIL` (optional)
-
-**AI captions (required for Admin → AI)**
-- `OLLAMA_HOST`, `OLLAMA_MODEL` — defaults work if Ollama runs locally
-
----
-
-## How checkout works (ecommerce flow)
-
-This is a **full checkout pipeline**, not a demo cart.
-
-1. Customer adds items on `/checkout` (prices loaded from the API for display only).
-2. Frontend calls `POST /api/checkout/create-session` with `{ items: [{ product_id, quantity }] }`.
-3. Server validates stock and builds Stripe line items from **database** prices.
-4. Customer pays on Stripe-hosted Checkout.
-5. After payment, the order is saved to MongoDB via:
-   - Stripe webhook (`checkout.session.completed`), and/or
-   - `GET /api/orders/checkout-session/:sessionId` on the order-success page
-
-Both paths use the same idempotent logic — safe to run twice. Admin orders are read from MongoDB only.
-
-**Local dev tip:** if webhooks are awkward, the order-success page alone can record orders after each test checkout. Make sure `CLIENT_URL` matches your Vite port.
-
----
-
-## Project layout
+### Project structure
 
 ```
-frontend/src/
-  pages/               Public storefront (front face)
-  pages/admin/         Admin workspace (dashboard, listings, orders, AI, …)
+frontend/src/          Vue 3 SPA — public pages + admin workspace
 server/
-  models/              Mongoose schemas (Product, Order, AiVoiceProfile, …)
+  ai/                  LangGraph agent, tools, Zod schemas
+  models/              Mongoose schemas
   routes/              Express route handlers
-  services/            Business logic (orders, checkout, dashboard)
-  ai/                  LangGraph workflow, tools, schemas — AI caption engine
-tests/                 Jest API tests
+  services/            Checkout, orders, dashboard, site settings, R2
+  middleware/          Admin auth, image upload
+tests/                 Jest + Supertest + mongodb-memory-server
+images/                Demo walkthrough videos (see above)
 ```
 
-**Main data models**
-- **Product** — listing with price, stock, Stripe IDs, images, visibility
-- **Order / OrderItem** — paid checkout with customer snapshot and line items
-- **AiVoiceProfile** — brand preferences the AI agent uses on every run
-- **AiPreferredExample** — hearted hooks, captions, CTAs (up to 5 per type)
+Production serves the built Vue app from Express (`npm run build` → `frontend/dist`).
 
----
-
-## API reference
-
-All `/api/admin/*` routes require a logged-in session except `POST /api/admin/session/login`.
-
-<details>
-<summary><strong>Public routes</strong></summary>
-
-| Method | Route | Purpose |
-|--------|--------|---------|
-| `GET` | `/api/products` | Active product gallery |
-| `GET` | `/api/product/:slug` | Single product + images |
-| `POST` | `/api/checkout/create-session` | Start Stripe Checkout |
-| `POST` | `/api/webhooks/stripe` | Stripe webhook handler |
-| `POST` | `/api/contact` | Contact form → email |
-| `GET` | `/api/orders/checkout-session/:sessionId` | Order summary + persist to DB |
-
-</details>
-
-<details>
-<summary><strong>Admin — products & orders</strong></summary>
-
-| Method | Route | Purpose |
-|--------|--------|---------|
-| `GET` | `/api/admin/dashboard` | Stats (earnings, listings, recent orders) |
-| `GET/POST/PUT/DELETE` | `/api/admin/products` | Product CRUD |
-| `PATCH` | `/api/admin/products/:id/toggle-active` | Show/hide listing |
-| `POST` | `/api/admin/upload-image` | Upload image → R2 |
-| `GET` | `/api/admin/orders` | List paid orders |
-| `PATCH` | `/api/admin/orders/:id/fulfillment-status` | Update status |
-
-Fulfillment statuses: `new_order`, `shipped`, `completed`, `cancelled`.
-
-</details>
-
-<details>
-<summary><strong>Admin — AI (caption assistant)</strong></summary>
-
-| Method | Route | Purpose |
-|--------|--------|---------|
-| `POST` | `/api/admin/ai/generate-ig` | Generate hooks, captions, CTAs, hashtags |
-| `POST` | `/api/admin/ai/save-preferred` | Save a hearted line for future generations |
-| `GET/PUT` | `/api/admin/ai/voice-profile` | Read/update brand voice preferences |
-
-The agent loads voice profile and preferred examples automatically via tool calls during generation.
-
-</details>
-
----
-
-## Migration
-
-If upgrading from an older artwork/product-type schema:
+### Quick start
 
 ```bash
-npm run migrate:catalog
+npm install
+cp .env.example .env   # fill in MongoDB, Stripe, R2, admin credentials, etc.
+npm run dev:all        # API :3000 + Vite :5173
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev:all` | Run API + frontend together |
+| `npm run build` | Production frontend build |
+| `npm start` | Production server |
+| `npm test` | Jest test suite |
+
+Admin login: `/admin/login` (not linked from the public site). Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env` — synced to MongoDB on server start.
+
+### Core backend patterns
+
+**Server-authoritative commerce**
+- Cart and checkout send only `{ product_id, quantity }` — prices and stock are always loaded from MongoDB at checkout time
+- Stripe line items built from database records, not client input
+
+**Idempotent order fulfillment**
+- Paid orders recorded via Stripe webhook and/or the order-success API — both call the same pipeline
+- Deduped on `stripe_checkout_session_id`
+- MongoDB transactions atomically create Order + OrderItem snapshots and decrement inventory
+
+**Sessions**
+- `express-session` with MongoDB store (`connect-mongo`) — admin auth and cart persist across restarts (important on Render)
+
+**Images**
+- Admin uploads go to Cloudflare R2 via the AWS S3 SDK (`POST /api/admin/upload-image`)
+- In-browser crop/rotate/flip before upload (Cropper.js)
+
+**Site CMS**
+- Home page, contact page, and social links stored in a single `SiteSettings` document — editable from Admin → Customize without redeploying
+
+### AI pipeline (`server/ai/`)
+
+| Piece | Role |
+|-------|------|
+| `igGenerationGraph.js` | LangGraph state machine — agent ↔ tools ↔ validate ↔ repair loop |
+| `igTools.js` | `get_artist_voice_profile`, `fetch_preferred_copy_examples` |
+| `modelProvider.js` | ChatOllama + `.bindTools()` |
+| `schemas.js` | Zod for HTTP bodies and model output (3 hooks, 3 captions, 3 CTAs, 10 hashtags) |
+| `preferredExamplesStore.js` | Hearted lines in MongoDB — FIFO, max 5 active per type |
+
+The LLM decides when to call tools. Voice profile and preferred examples are **not** passed in the generate request — the agent fetches them at runtime. Successful runs are logged to `AiGeneration`.
+
+Requires Ollama (`OLLAMA_HOST`, `OLLAMA_MODEL` in `.env`).
+
+### Data models (MongoDB)
+
+| Model | Purpose |
+|-------|---------|
+| `Product` / `ProductImage` | Catalog, multi-image, soft-delete, Stripe IDs |
+| `Order` / `OrderItem` | Paid checkout with fulfillment status + purchase-time snapshots |
+| `SiteSettings` | CMS for home, contact, social |
+| `AiVoiceProfile` | Brand identity, emphasize, avoid |
+| `AiPreferredExample` | Hearted hooks, captions, CTAs |
+| `AdminUser` | Scrypt-hashed credentials |
+
+Order fulfillment statuses: `new_order` → `shipped` → `completed` → `cancelled`.
+
+### API surface (summary)
+
+**Public:** `GET /api/products`, `GET /api/product/:slug`, `POST /api/checkout/create-session`, `POST /api/webhooks/stripe`, `POST /api/contact`, `GET /api/orders/checkout-session/:sessionId`
+
+**Admin** (session required): products CRUD, image upload, dashboard, orders + fulfillment status, site settings, AI generate / voice profile / save-preferred
+
+### Environment variables
+
+See `.env.example`. Minimum to run locally:
+
+- **Core:** `MONGO_STRING`, `SESSION_SECRET`, `CLIENT_URL`
+- **Admin:** `ADMIN_USERNAME`, `ADMIN_PASSWORD`
+- **Stripe:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- **Images:** `R2_*` (all five vars)
+- **Contact:** `RESEND_API_KEY`
+- **AI:** `OLLAMA_HOST`, `OLLAMA_MODEL`
+
+Local Stripe webhooks: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+
+### Tests
+
+Jest suites cover checkout validation, Stripe webhook idempotency, order-success recording, cart behavior, and AI schemas/persistence/auth guards. AI graph is mocked in tests (LangGraph ESM dependency).
 
 ---
 
