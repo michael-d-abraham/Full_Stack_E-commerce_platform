@@ -1,3 +1,11 @@
+// Mock the LangGraph pipeline so Jest never tries to parse @langchain/langgraph's
+// ESM-only uuid dependency. None of these tests exercise the generation pipeline.
+jest.mock('../server/ai/igGenerationGraph', () => ({
+    runIgGeneration: jest.fn().mockResolvedValue({ finalOutput: null, validationErrors: null }),
+    igGenerationGraph: {},
+    setModelForTesting: jest.fn()
+}));
+
 const request = require('supertest');
 const { createApp } = require('../server/app');
 const { Order, OrderItem } = require('../server/db');

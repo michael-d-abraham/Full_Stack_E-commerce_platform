@@ -5,5 +5,10 @@ module.exports = {
     setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
     testTimeout: 60000,
     clearMocks: true,
-    restoreMocks: true
+    restoreMocks: true,
+    // Transform JS files through babel-jest so Jest (CJS mode) can parse
+    // frontend ESM files (import/export) without changing production code.
+    transform: {
+        '^.+\\.js$': ['babel-jest', { plugins: ['@babel/plugin-transform-modules-commonjs'] }]
+    }
 };
