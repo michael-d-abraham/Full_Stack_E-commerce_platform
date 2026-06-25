@@ -32,6 +32,7 @@ const homePageSchema = new mongoose.Schema(
 
 const contactPageSchema = new mongoose.Schema(
     {
+        show_in_nav: { type: Boolean, default: true },
         show_hero_image: { type: Boolean, default: true },
         page_title: { type: String, default: '' },
         form_name_label: { type: String, default: '' },
@@ -40,6 +41,17 @@ const contactPageSchema = new mongoose.Schema(
         form_message_label: { type: String, default: '' },
         form_submit_label: { type: String, default: '' },
         success_message: { type: String, default: '' }
+    },
+    { _id: false }
+);
+
+const bookPageSchema = new mongoose.Schema(
+    {
+        show_in_nav: { type: Boolean, default: true },
+        booking_url: { type: String, default: '' },
+        page_title: { type: String, default: '' },
+        body_text: { type: String, default: '' },
+        button_label: { type: String, default: '' }
     },
     { _id: false }
 );
@@ -56,7 +68,8 @@ const siteSettingsSchema = new mongoose.Schema(
         contact_hero_image_url: { type: String, default: '' },
         contact_page: { type: contactPageSchema, default: () => ({}) },
         contact_email: { type: String, default: '' },
-        home_page: { type: homePageSchema, default: () => ({}) }
+        home_page: { type: homePageSchema, default: () => ({}) },
+        book_page: { type: bookPageSchema, default: () => ({}) }
     },
     {
         timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -64,5 +77,8 @@ const siteSettingsSchema = new mongoose.Schema(
     }
 );
 
-module.exports =
-    mongoose.models.SiteSettings || mongoose.model('SiteSettings', siteSettingsSchema);
+if (mongoose.models.SiteSettings) {
+    delete mongoose.models.SiteSettings;
+}
+
+module.exports = mongoose.model('SiteSettings', siteSettingsSchema);

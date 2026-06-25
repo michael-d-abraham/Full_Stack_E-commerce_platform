@@ -18,6 +18,7 @@ const {
     mergeHomePageTextDefaults
 } = require('../utils/homePageDefaults');
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
+const { mergeBookPageLabels } = require('../utils/bookPageDefaults');
 const { isValidEmail } = require('../../shared/email');
 
 const SETTINGS_KEY = 'default';
@@ -145,6 +146,10 @@ function mergeContactPageStored(stored) {
     const base = stored && typeof stored === 'object' ? stored : {};
 
     return {
+        show_in_nav:
+            base.show_in_nav === true || base.show_in_nav === false
+                ? base.show_in_nav
+                : true,
         show_hero_image: base.show_hero_image !== false,
         page_title: normalizeOptionalText(base.page_title),
         form_name_label: normalizeOptionalText(base.form_name_label),
@@ -184,6 +189,111 @@ async function getPublicContactHero() {
     };
 }
 
+function toBookPageAdminPayload(doc) {
+    const base = doc.book_page || {};
+    return {
+        show_in_nav:
+            base.show_in_nav === true || base.show_in_nav === false
+                ? base.show_in_nav
+                : true,
+        booking_url: normalizeOptionalText(base.booking_url),
+        page_title: normalizeOptionalText(base.page_title),
+        body_text: normalizeOptionalText(base.body_text),
+        button_label: normalizeOptionalText(base.button_label)
+    };
+}
+
+async function getAdminBookPage() {
+    const doc = await ensureSiteSettingsDoc();
+    return toBookPageAdminPayload(doc);
+}
+
+async function getPublicBookPage() {
+    const doc = await ensureSiteSettingsDoc();
+    return mergeBookPageLabels(doc.book_page);
+}
+
+async function getPublicNavVisibility() {
+    const doc = await ensureSiteSettingsDoc();
+    const contact = withContactFormLabelDefaults(doc.contact_page);
+    const book = mergeBookPageLabels(doc.book_page);
+
+    return {
+        contact: contact.show_in_nav !== false,
+        book: book.show_in_nav !== false
+    };
+}
+
+function normalizeBookPageInput(body) {
+    const errors = [];
+    if (!body || typeof body !== 'object') {
+        return { errors: ['Request body is required'] };
+    }
+
+    const textFields = ['booking_url', 'page_title', 'body_text', 'button_label'];
+    const normalized = {};
+
+    for (const field of textFields) {
+        if (body[field] === undefined || body[field] === null) {
+            errors.push(`${field} is required`);
+            continue;
+        }
+        const value = String(body[field]).trim();
+        if (!value) {
+            errors.push(`${field} cannot be empty`);
+            continue;
+        }
+        normalized[field] = value;
+    }
+
+    if (errors.length) {
+        return { errors };
+    }
+
+    if (!isValidHttpUrl(normalized.booking_url)) {
+        return { errors: ['booking_url must be a valid http or https URL'] };
+    }
+
+    normalized.show_in_nav =
+        body.show_in_nav === true || body.show_in_nav === false
+            ? body.show_in_nav
+            : true;
+
+    return { book_page: normalized, errors: null };
+}
+
+async function updateBookPage(body) {
+    const parsed = normalizeBookPageInput(body);
+    if (parsed.errors) {
+        return { ok: false, status: 400, errors: parsed.errors };
+    }
+
+    const doc = await ensureSiteSettingsDoc();
+    const book_page = {
+        ...toBookPageStored(doc.book_page),
+        ...parsed.book_page
+    };
+
+    const updated = await SiteSettings.findOneAndUpdate(
+        { key: SETTINGS_KEY },
+        { $set: { book_page } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    return { ok: true, settings: toBookPageAdminPayload(updated) };
+}
+
+function toBookPageStored(stored) {
+    const base = stored && typeof stored === 'object' ? stored : {};
+    return {
+        show_in_nav: base.show_in_nav !== false,
+        booking_url: normalizeOptionalText(base.booking_url),
+        page_title: normalizeOptionalText(base.page_title),
+        body_text: normalizeOptionalText(base.body_text),
+        button_label: normalizeOptionalText(base.button_label)
+    };
+}
+
 function normalizeContactPageInput(body) {
     const errors = [];
     if (!body || typeof body !== 'object') {
@@ -206,6 +316,14 @@ function normalizeContactPageInput(body) {
 
     if (body.show_hero_image !== undefined) {
         contactPage.show_hero_image = Boolean(body.show_hero_image);
+        hasContactPageFields = true;
+    }
+
+    if (body.show_in_nav !== undefined) {
+        contactPage.show_in_nav =
+            body.show_in_nav === true || body.show_in_nav === false
+                ? body.show_in_nav
+                : true;
         hasContactPageFields = true;
     }
 
@@ -515,6 +633,10 @@ module.exports = {
     getAdminHomePage,
     getPublicHomePage,
     updateHomePage,
+    getAdminBookPage,
+    getPublicBookPage,
+    getPublicNavVisibility,
+    updateBookPage,
     ensureSiteSettingsDoc,
     FEATURED_PRODUCT_SLOTS,
     emptyFeaturedProduct

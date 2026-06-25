@@ -25,8 +25,21 @@
           <router-link to="/gallery" class="app-nav__link" active-class="app-nav__link--active">
             Gallery
           </router-link>
-          <router-link to="/contact" class="app-nav__link" active-class="app-nav__link--active">
+          <router-link
+            v-if="showContactNav"
+            to="/contact"
+            class="app-nav__link"
+            active-class="app-nav__link--active"
+          >
             Contact
+          </router-link>
+          <router-link
+            v-if="showBookNav"
+            to="/book"
+            class="app-nav__link"
+            active-class="app-nav__link--active"
+          >
+            Book
           </router-link>
         </nav>
         <div class="app-header__end">
@@ -68,6 +81,7 @@ import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
 import { hydrateCartFromServer } from './utils/cart.js';
+import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
 
 const MOBILE_HEADER_MQ = '(max-width: 640px)';
 
@@ -188,6 +202,7 @@ watch([mobileMenuOpen, drawerOpen], () => {
 
 onMounted(() => {
   hydrateCartFromServer();
+  ensureStorefrontNavLoaded();
   window.addEventListener('keydown', onEscape);
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', syncMobileHeaderOffset);
@@ -224,7 +239,7 @@ onUnmounted(() => {
 
 const showSocialFooter = computed(() => {
   const name = route.name;
-  return name === 'home' || name === 'gallery' || name === 'contact' || name === 'product-detail';
+  return name === 'home' || name === 'gallery' || name === 'contact' || name === 'product-detail' || name === 'book-appointment';
 });
 </script>
 

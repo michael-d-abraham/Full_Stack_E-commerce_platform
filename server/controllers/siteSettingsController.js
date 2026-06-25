@@ -8,7 +8,11 @@ const {
     updateDisplayPictures,
     getAdminHomePage,
     getPublicHomePage,
-    updateHomePage
+    updateHomePage,
+    getAdminBookPage,
+    getPublicBookPage,
+    getPublicNavVisibility,
+    updateBookPage
 } = require('../services/siteSettingsService');
 
 const getPublicContactEmailHandler = async (_req, res) => {
@@ -120,6 +124,49 @@ const updateAdminHomePageHandler = async (req, res) => {
     }
 };
 
+const getPublicBookPageHandler = async (_req, res) => {
+    try {
+        const data = await getPublicBookPage();
+        return res.json(data);
+    } catch (err) {
+        console.error('getPublicBookPage', err);
+        return res.status(500).json({ error: 'Failed to load book page' });
+    }
+};
+
+const getPublicNavVisibilityHandler = async (_req, res) => {
+    try {
+        const data = await getPublicNavVisibility();
+        return res.json(data);
+    } catch (err) {
+        console.error('getPublicNavVisibility', err);
+        return res.status(500).json({ error: 'Failed to load navigation settings' });
+    }
+};
+
+const getAdminBookPageHandler = async (_req, res) => {
+    try {
+        const settings = await getAdminBookPage();
+        return res.json(settings);
+    } catch (err) {
+        console.error('getAdminBookPage', err);
+        return res.status(500).json({ error: 'Failed to load book page settings' });
+    }
+};
+
+const updateAdminBookPageHandler = async (req, res) => {
+    try {
+        const result = await updateBookPage(req.body);
+        if (!result.ok) {
+            return res.status(result.status || 400).json({ errors: result.errors });
+        }
+        return res.json(result.settings);
+    } catch (err) {
+        console.error('updateAdminBookPage', err);
+        return res.status(500).json({ error: 'Failed to save book page settings' });
+    }
+};
+
 module.exports = {
     getPublicContactEmailHandler,
     getPublicSocialLinksHandler,
@@ -130,5 +177,9 @@ module.exports = {
     updateAdminDisplayPicturesHandler,
     getPublicHomePageHandler,
     getAdminHomePageHandler,
-    updateAdminHomePageHandler
+    updateAdminHomePageHandler,
+    getPublicBookPageHandler,
+    getPublicNavVisibilityHandler,
+    getAdminBookPageHandler,
+    updateAdminBookPageHandler
 };

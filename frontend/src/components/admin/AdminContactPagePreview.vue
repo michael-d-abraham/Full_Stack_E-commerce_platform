@@ -1,5 +1,14 @@
 <template>
   <div class="admin-contact-preview contact-page">
+    <label class="admin-contact-preview__checkbox admin-contact-preview__nav-toggle">
+      <input
+        v-model="form.show_in_nav"
+        type="checkbox"
+        :disabled="disabled"
+      />
+      <span>Show Contact tab in navigation</span>
+    </label>
+
     <input
       v-model="form.page_title"
       type="text"
@@ -93,21 +102,6 @@
         />
       </form>
     </div>
-
-    <section class="admin-contact-preview__success-block" aria-label="Success state preview">
-      <p class="admin-contact-preview__success-hint">After visitors submit</p>
-      <div class="contact-page__success admin-contact-preview__success">
-        <input
-          v-model="form.success_message"
-          type="text"
-          class="admin-contact-preview__success-message-input contact-page__success-message"
-          placeholder="Message sent successfully."
-          aria-label="Success message"
-          :disabled="disabled"
-        />
-        <span class="btn-primary contact-page__success-back">Back to gallery</span>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -128,6 +122,10 @@ defineEmits(['pick-image', 'remove-image']);
   padding: var(--space-md) var(--space-lg) var(--space-lg);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
+}
+
+.admin-contact-preview__nav-toggle {
+  margin-bottom: var(--space-lg);
 }
 
 .admin-contact-preview__title-input {
@@ -282,45 +280,6 @@ defineEmits(['pick-image', 'remove-image']);
 .admin-contact-preview__submit-input:focus {
   outline: none;
   box-shadow: var(--focus-ring);
-}
-
-.admin-contact-preview__success-block {
-  margin-top: var(--space-2xl);
-  padding-top: var(--space-xl);
-  border-top: 1px solid var(--color-border);
-}
-
-.admin-contact-preview__success-hint {
-  margin: 0 0 var(--space-md);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-.admin-contact-preview__success {
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-md);
-}
-
-.admin-contact-preview__success-message-input {
-  display: block;
-  width: 100%;
-  margin: 0 0 var(--space-xl);
-  padding: 0.25rem 0.5rem;
-  text-align: center;
-  border: 1px dashed transparent;
-  background: transparent;
-  box-shadow: none;
-  cursor: text;
-}
-
-.admin-contact-preview__success-message-input:hover,
-.admin-contact-preview__success-message-input:focus {
-  border-color: var(--color-border);
-  outline: none;
 }
 
 @media (max-width: 640px) {

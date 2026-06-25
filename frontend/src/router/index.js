@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
 import Gallery from '../pages/Gallery.vue';
 import Contact from '../pages/Contact.vue';
+import BookAppointment from '../pages/BookAppointment.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
 import AdminLayout from '../components/admin/AdminLayout.vue';
 import AdminDashboard from '../pages/admin/AdminDashboard.vue';
@@ -17,6 +18,7 @@ import Checkout from '../pages/Checkout.vue';
 import OrderSuccess from '../pages/OrderSuccess.vue';
 import CheckoutCancel from '../pages/CheckoutCancel.vue';
 import { getAdminSession } from '../services/api.js';
+import { ensureStorefrontNavLoaded, invalidateStorefrontNav, showContactNav, showBookNav } from '../composables/useStorefrontNav.js';
 
 const routes = [
     { path: '/', name: 'home', component: Home },
@@ -32,6 +34,7 @@ const routes = [
     },
     { path: '/checkout/cancel', name: 'checkout-cancel', component: CheckoutCancel },
     { path: '/contact', name: 'contact', component: Contact },
+    { path: '/book', name: 'book-appointment', component: BookAppointment },
     { path: '/art/:slug', redirect: { name: 'gallery' } },
     { path: '/product/:slug', name: 'product-detail', component: ProductDetail, props: true },
     { path: '/admin/login', name: 'admin-login', component: AdminLogin },
@@ -62,8 +65,16 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
     if (!to.path.startsWith('/admin')) {
+        await ensureStorefrontNavLoaded();
+        if (to.name === 'contact' && !showContactNav.value) {
+            return { name: 'home' };
+        }
+        if (to.name === 'book-appointment' && !showBookNav.value) {
+            return { name: 'home' };
+        }
         return true;
     }
+
     if (to.name === 'admin-login') {
         return true;
     }
@@ -87,7 +98,11 @@ router.beforeEach(async (to) => {
 
 // GA4 SPA tracking: gtag.js is loaded in index.html with send_page_view: false,
 // so we push page_view events manually on every non-admin route change.
-router.afterEach((to) => {
+router.afterEach((to, from) => {
+    if (from.path.startsWith('/admin') && !to.path.startsWith('/admin')) {
+        invalidateStorefrontNav();
+        ensureStorefrontNavLoaded();
+    }
     if (to.path.startsWith('/admin')) {
         return;
     }

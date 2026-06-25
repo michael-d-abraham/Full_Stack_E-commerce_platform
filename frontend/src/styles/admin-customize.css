@@ -1,0 +1,16 @@
+/**
+ * Admin Customize tab — stacked site section editors (home, contact, book, social).
+ */
+
+.admin-customize {
+  width: 100%;
+  max-width: 100%;
+}
+
+.admin-customize .admin-float-card__title {
+  margin-bottom: 1rem;
+}
+
+.admin-customize .admin-float--padded > :last-child {
+  margin-bottom: 0;
+}

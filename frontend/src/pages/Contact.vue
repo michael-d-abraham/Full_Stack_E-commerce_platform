@@ -1,13 +1,8 @@
 <template>
   <div class="contact-page">
     <h1 class="page-hero-title">{{ pageTitle }}</h1>
-    <div v-if="submitted" class="contact-page__success" role="status">
-      <p class="contact-page__success-message">{{ successMessage }}</p>
-      <router-link to="/gallery" class="btn-primary contact-page__success-back">Back to gallery</router-link>
-    </div>
 
     <div
-      v-else
       class="contact-page__layout"
       :class="{ 'contact-page__layout--no-hero': !showHeroImage }"
     >
@@ -43,6 +38,7 @@
           {{ formMessageLabel }}
           <textarea v-model.trim="message" name="message" rows="6" required></textarea>
         </label>
+        <p v-if="submitted" class="contact-page__sent" role="status">{{ successMessage }}</p>
         <p v-if="submitError" class="error contact-form__error">{{ submitError }}</p>
         <button type="submit" class="btn-primary" :disabled="busy">
           {{ busy ? 'Submitting…' : formSubmitLabel }}
@@ -105,6 +101,7 @@ function applyPageConfig(data) {
 
 async function onSubmit() {
   submitError.value = '';
+  submitted.value = false;
   const validationError = validateForm();
   if (validationError) {
     submitError.value = validationError;
@@ -121,6 +118,10 @@ async function onSubmit() {
     });
     successMessage.value = result.message || successMessage.value;
     submitted.value = true;
+    name.value = '';
+    email.value = '';
+    subject.value = '';
+    message.value = '';
   } catch (e) {
     submitError.value = e.message || 'Unable to send message.';
   } finally {
@@ -141,13 +142,5 @@ onMounted(async () => {
 <style scoped>
 .contact-form__error {
   margin: 0;
-}
-
-@media (max-width: 640px) {
-  .contact-page__success-back {
-    width: 100%;
-    min-width: 0;
-    pointer-events: auto;
-  }
 }
 </style>

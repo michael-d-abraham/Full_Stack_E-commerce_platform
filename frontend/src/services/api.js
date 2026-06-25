@@ -63,6 +63,14 @@ export function getPublicHomePage() {
     return fetchJson('/api/site/home-page');
 }
 
+export function getPublicBookPage() {
+    return fetchJson('/api/site/book-page');
+}
+
+export function getPublicNavVisibility() {
+    return fetchJson('/api/site/nav-visibility');
+}
+
 /** Contact form — returns { success, message }; throws on failure with message in Error. */
 export async function submitContactForm(body) {
     const res = await fetch('/api/contact', {
@@ -120,6 +128,17 @@ export function getAdminSocialLinks() {
 
 export function updateAdminSocialLinks(body) {
     return fetchJson('/api/admin/site/social-links', {
+        method: 'PUT',
+        body
+    });
+}
+
+export function getAdminBookPage() {
+    return fetchJson('/api/admin/site/book-page');
+}
+
+export function updateAdminBookPage(body) {
+    return fetchJson('/api/admin/site/book-page', {
         method: 'PUT',
         body
     });

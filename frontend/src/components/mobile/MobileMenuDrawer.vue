@@ -36,6 +36,7 @@
       Gallery
     </router-link>
     <router-link
+      v-if="showContactNav"
       to="/contact"
       class="mobile-menu-drawer__link"
       active-class="mobile-menu-drawer__link--active"
@@ -43,15 +44,26 @@
     >
       Contact
     </router-link>
+    <router-link
+      v-if="showBookNav"
+      to="/book"
+      class="mobile-menu-drawer__link"
+      active-class="mobile-menu-drawer__link--active"
+      @click="closeMobileMenu"
+    >
+      Book
+    </router-link>
   </nav>
 </template>
 
 <script setup>
 import { useMobileNav } from '../../composables/useMobileNav.js';
+import { useStorefrontNav } from '../../composables/useStorefrontNav.js';
 
 defineOptions({ inheritAttrs: false });
 
 const { mobileMenuOpen, closeMobileMenu } = useMobileNav();
+const { showContactNav, showBookNav } = useStorefrontNav();
 </script>
 
 <style scoped>

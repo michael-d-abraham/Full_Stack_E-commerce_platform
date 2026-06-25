@@ -1,4 +1,5 @@
 const DEFAULT_CONTACT_PAGE = {
+    show_in_nav: true,
     show_hero_image: true,
     page_title: 'Contact',
     form_name_label: 'Name',
@@ -17,6 +18,7 @@ function mergeContactPageLabels(stored) {
     };
 
     return {
+        show_in_nav: base.show_in_nav !== false,
         show_hero_image: base.show_hero_image !== false,
         page_title: text('page_title'),
         form_name_label: text('form_name_label'),

@@ -7,6 +7,7 @@ import './styles/home-page-layout.css';
 import './styles/contact-page-layout.css';
 import './styles/hero-display.css';
 import './styles/admin-data-table.css';
+import './styles/admin-customize.css';
 import './styles/mobile.css';
 
 createApp(App).use(router).mount('#app');

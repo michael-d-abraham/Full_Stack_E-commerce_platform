@@ -5,7 +5,9 @@ const {
     getAdminDisplayPicturesHandler,
     updateAdminDisplayPicturesHandler,
     getAdminHomePageHandler,
-    updateAdminHomePageHandler
+    updateAdminHomePageHandler,
+    getAdminBookPageHandler,
+    updateAdminBookPageHandler
 } = require('../controllers/siteSettingsController');
 
 const router = express.Router();
@@ -16,5 +18,7 @@ router.get('/display-pictures', getAdminDisplayPicturesHandler);
 router.put('/display-pictures', updateAdminDisplayPicturesHandler);
 router.get('/home-page', getAdminHomePageHandler);
 router.put('/home-page', updateAdminHomePageHandler);
+router.get('/book-page', getAdminBookPageHandler);
+router.put('/book-page', updateAdminBookPageHandler);
 
 module.exports = router;

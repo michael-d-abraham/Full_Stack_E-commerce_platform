@@ -43,6 +43,7 @@ import {
   uploadAdminImage
 } from '../services/api.js';
 import { applyContactPageDefaults } from '../constants/contactPageDefaults.js';
+import { invalidateStorefrontNav } from '../composables/useStorefrontNav.js';
 import AdminContactPagePreview from '../components/admin/AdminContactPagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
 
@@ -55,8 +56,13 @@ const uploading = ref(false);
 const saving = ref(false);
 const photoFlowRef = ref(null);
 
-function applySettings(data) {
+function applySettings(data, savedNavPreference) {
   Object.assign(form, applyContactPageDefaults(data));
+  if (typeof data?.show_in_nav === 'boolean') {
+    form.show_in_nav = data.show_in_nav;
+  } else if (typeof savedNavPreference === 'boolean') {
+    form.show_in_nav = savedNavPreference;
+  }
 }
 
 function payloadFromForm() {
@@ -69,7 +75,8 @@ function payloadFromForm() {
     form_subject_label: form.form_subject_label,
     form_message_label: form.form_message_label,
     form_submit_label: form.form_submit_label,
-    success_message: form.success_message
+    success_message: form.success_message,
+    show_in_nav: form.show_in_nav
   };
 }
 
@@ -91,8 +98,10 @@ async function persistSettings() {
   actionError.value = '';
   saved.value = false;
   try {
-    const data = await updateAdminDisplayPictures(payloadFromForm());
-    applySettings(data);
+    const payload = payloadFromForm();
+    const data = await updateAdminDisplayPictures(payload);
+    applySettings(data, payload.show_in_nav);
+    invalidateStorefrontNav();
     saved.value = true;
     window.setTimeout(() => {
       saved.value = false;
