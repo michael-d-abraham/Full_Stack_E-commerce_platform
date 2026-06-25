@@ -289,5 +289,6 @@ describe('security headers', () => {
         const res = await request(app).get('/api/admin/products');
         const csp = res.headers['content-security-policy'] || '';
         expect(csp).toMatch(/img-src[^;]*https:\/\/static\.wixstatic\.com/);
+        expect(csp).toMatch(/img-src[^;]*\bhttps:/);
     });
 });

@@ -33,9 +33,10 @@ function parseOrigin(value) {
     }
 }
 
-/** Helmet defaults block all external images; allow storefront CDNs from env. */
+/** Helmet defaults block all external images; allow storefront and CMS image URLs. */
 function buildContentSecurityPolicyDirectives() {
-    const imgSrc = ["'self'", 'data:', 'blob:', 'https://static.wixstatic.com'];
+    // Product/site images may be R2 uploads or legacy https URLs stored in MongoDB.
+    const imgSrc = ["'self'", 'data:', 'blob:', 'https:', 'https://static.wixstatic.com'];
 
     const r2Origin = parseOrigin(process.env.R2_PUBLIC_URL);
     if (r2Origin) {
