@@ -85,4 +85,20 @@ router.beforeEach(async (to) => {
     }
 });
 
+// GA4 SPA tracking: gtag.js is loaded in index.html with send_page_view: false,
+// so we push page_view events manually on every non-admin route change.
+router.afterEach((to) => {
+    if (to.path.startsWith('/admin')) {
+        return;
+    }
+    if (typeof window.gtag !== 'function') {
+        return;
+    }
+    window.gtag('event', 'page_view', {
+        page_path: to.fullPath,
+        page_location: window.location.origin + to.fullPath,
+        page_title: document.title
+    });
+});
+
 export default router;
