@@ -10,6 +10,7 @@
         :disabled="uploading || saving"
         @pick-image="openFilePicker"
         @remove-image="clearImage"
+        @move-hero-image="moveHeroImage"
       />
 
       <footer class="admin-home__footer">
@@ -42,11 +43,12 @@ import {
 } from '../services/api.js';
 import AdminHomePagePreview from '../components/admin/AdminHomePagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
-import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct } from '@shared/homePageDefaults.js';
+import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls } from '@shared/homePageDefaults.js';
 
 function createEmptyForm() {
   return {
     hero_image_url: '',
+    hero_image_urls: [],
     featured_title: '',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, emptyFeaturedProduct),
     about_title: '',
@@ -67,10 +69,15 @@ const uploading = ref(false);
 const uploadTarget = ref(null);
 const photoFlowRef = ref(null);
 
+function syncHeroFromUrls() {
+  form.hero_image_url = form.hero_image_urls[0] || '';
+}
+
 function applySettings(data) {
   const next = createEmptyForm();
   if (data && typeof data === 'object') {
-    next.hero_image_url = data.hero_image_url != null ? String(data.hero_image_url).trim() : '';
+    next.hero_image_urls = resolveHeroImageUrls(data);
+    next.hero_image_url = next.hero_image_urls[0] || '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
     next.about_title = data.about_title != null ? String(data.about_title) : '';
     next.about_header = data.about_header != null ? String(data.about_header) : '';
@@ -88,6 +95,7 @@ function applySettings(data) {
   }
 
   form.hero_image_url = next.hero_image_url;
+  form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
   form.featured_title = next.featured_title;
   form.about_title = next.about_title;
   form.about_header = next.about_header;
@@ -96,13 +104,17 @@ function applySettings(data) {
   for (let i = 0; i < FEATURED_PRODUCT_SLOTS; i++) {
     Object.assign(form.featured_products[i], next.featured_products[i]);
   }
+
+  console.log('[AdminHomePage] form.hero_image_urls after applySettings', [...form.hero_image_urls]);
 }
 
 function payloadFromForm() {
+  const hero_image_urls = form.hero_image_urls.map((url) => String(url).trim()).filter(Boolean);
   return {
     hero_title: '',
     hero_subtitle: '',
-    hero_image_url: form.hero_image_url,
+    hero_image_url: hero_image_urls[0] || '',
+    hero_image_urls,
     featured_title: form.featured_title,
     featured_products: form.featured_products.map((row) => ({
       product_id: row.product_id
@@ -138,7 +150,14 @@ async function persistSettings() {
   actionError.value = '';
   saved.value = false;
   try {
-    const data = await updateAdminHomePage(payloadFromForm());
+    console.log('[AdminHomePage] form.hero_image_urls before save', [...form.hero_image_urls]);
+    const payload = payloadFromForm();
+    console.log('[AdminHomePage] PUT payload hero_image_urls', payload.hero_image_urls);
+    const data = await updateAdminHomePage(payload);
+    console.log('[AdminHomePage] PUT response hero_image_urls', data?.hero_image_urls);
+    if (data?.hero_image_urls === undefined) {
+      throw new Error('PUT response missing hero_image_urls');
+    }
     applySettings(data);
     saved.value = true;
     window.setTimeout(() => {
@@ -180,11 +199,33 @@ function openFilePicker(target) {
 
 function setImageUrl(target, url) {
   if (target.type === 'hero') {
-    form.hero_image_url = url;
+    form.hero_image_urls.push(url);
+    syncHeroFromUrls();
     return;
   }
   if (target.type === 'about') {
     form.about_image_url = url;
+  }
+}
+
+function removeHeroAt(index) {
+  if (index < 0 || index >= form.hero_image_urls.length) return;
+  form.hero_image_urls.splice(index, 1);
+  syncHeroFromUrls();
+}
+
+async function moveHeroImage({ index, direction }) {
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= form.hero_image_urls.length) return;
+
+  const urls = form.hero_image_urls;
+  [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
+  syncHeroFromUrls();
+
+  try {
+    await persistSettings();
+  } catch {
+    /* actionError set in persistSettings */
   }
 }
 
@@ -196,6 +237,7 @@ async function uploadFileForTarget(file) {
   actionError.value = '';
   try {
     const { image_url } = await uploadAdminImage(file);
+    console.log('[AdminHomePage] upload response image_url', image_url);
     setImageUrl(target, image_url);
     await persistSettings();
   } catch (e) {
@@ -215,7 +257,20 @@ function onPhotoCancel() {
 }
 
 async function clearImage(target) {
-  setImageUrl(target, '');
+  if (target.type === 'hero') {
+    const index = target.index != null ? target.index : 0;
+    removeHeroAt(index);
+    try {
+      await persistSettings();
+    } catch {
+      /* actionError set in persistSettings */
+    }
+    return;
+  }
+
+  if (target.type === 'about') {
+    form.about_image_url = '';
+  }
   try {
     await persistSettings();
   } catch {

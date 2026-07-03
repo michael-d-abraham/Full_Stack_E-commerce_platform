@@ -4,13 +4,12 @@
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
       </h2>
-      <div class="product-grid product-grid--cols-3">
+      <div class="product-grid product-grid--gallery">
         <GalleryProductCard
           v-for="p in visibleProducts"
           :key="p._id"
           :product="p"
-          :show-added="addedId === p._id"
-          @added="onProductAdded"
+          :show-add-to-cart="false"
         />
       </div>
     </div>
@@ -18,8 +17,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useCart } from '../../composables/useCart.js';
+import { computed } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
 
@@ -38,19 +36,6 @@ const isMobile = useMediaQuery(MOBILE_MQ);
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products
 );
-
-const { openDrawer } = useCart();
-const addedId = ref(null);
-
-function onProductAdded(p) {
-  openDrawer();
-  addedId.value = p._id;
-  window.setTimeout(() => {
-    if (addedId.value === p._id) {
-      addedId.value = null;
-    }
-  }, 1500);
-}
 </script>
 
 <style scoped>
@@ -61,14 +46,13 @@ function onProductAdded(p) {
 }
 
 .home-featured__container {
-  max-width: 1100px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 32px;
 }
 
 .home-featured__title {
-  margin: 0 0 var(--space-xl);
-  font-size: clamp(1.25rem, 3.25vw, 1.875rem);
+  margin: 0 0 2.5rem;
   text-align: center;
 }
 
@@ -79,10 +63,6 @@ function onProductAdded(p) {
 
   .home-featured__title {
     margin-top: 0;
-  }
-
-  .home-featured__container {
-    max-width: none;
   }
 }
 

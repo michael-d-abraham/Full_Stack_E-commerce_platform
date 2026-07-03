@@ -21,6 +21,7 @@ const homePageSchema = new mongoose.Schema(
         hero_title: { type: String, default: '' },
         hero_subtitle: { type: String, default: '' },
         hero_image_url: { type: String, default: '' },
+        hero_image_urls: { type: [String], default: () => [] },
         featured_title: { type: String, default: '' },
         featured_products: { type: [homeFeaturedProductSchema], default: () => [] },
         about_title: { type: String, default: '' },

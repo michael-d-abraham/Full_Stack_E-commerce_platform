@@ -6,13 +6,13 @@
         <div class="hero-display__stage admin-home-preview__hero-stage">
           <AdminHomePreviewImageSlot
             class="admin-home-preview__hero-image-wrap"
-            :image-url="form.hero_image_url"
+            :image-url="heroPrimaryUrl"
             :disabled="disabled"
             natural-display
             photo-class="hero-display__photo"
             aria-label="Hero image"
             @pick="$emit('pick-image', { type: 'hero' })"
-            @remove="$emit('remove-image', { type: 'hero' })"
+            @remove="$emit('remove-image', { type: 'hero', index: 0 })"
           />
           <div class="hero-display__overlay admin-home-preview__hero-overlay">
             <div class="hero-display__overlay-scrim" aria-hidden="true" />
@@ -22,6 +22,66 @@
               </span>
             </div>
           </div>
+        </div>
+
+        <div class="admin-home-preview__hero-manage">
+          <div
+            v-if="form.hero_image_urls.length"
+            class="admin-home-preview__hero-thumbs"
+            aria-label="Hero image list"
+          >
+            <div
+              v-for="(url, index) in form.hero_image_urls"
+              :key="'hero-thumb-' + index + '-' + url"
+              class="admin-home-preview__hero-thumb"
+              :class="{ 'admin-home-preview__hero-thumb--primary': index === 0 }"
+            >
+              <img
+                class="admin-home-preview__hero-thumb-photo"
+                :src="url"
+                :alt="index === 0 ? 'Primary hero image' : `Hero image ${index + 1}`"
+              />
+              <div class="admin-home-preview__hero-thumb-actions">
+                <button
+                  type="button"
+                  class="admin-home-preview__hero-thumb-btn"
+                  :disabled="disabled || index === 0"
+                  :aria-label="`Move hero image ${index + 1} up`"
+                  @click="$emit('move-hero-image', { index, direction: 'up' })"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="admin-home-preview__hero-thumb-btn"
+                  :disabled="disabled || index === form.hero_image_urls.length - 1"
+                  :aria-label="`Move hero image ${index + 1} down`"
+                  @click="$emit('move-hero-image', { index, direction: 'down' })"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  class="admin-home-preview__hero-thumb-btn admin-home-preview__hero-thumb-btn--remove"
+                  :disabled="disabled"
+                  :aria-label="`Remove hero image ${index + 1}`"
+                  @click="$emit('remove-image', { type: 'hero', index })"
+                >
+                  Remove
+                </button>
+              </div>
+              <span v-if="index === 0" class="admin-home-preview__hero-thumb-badge">Primary</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="admin-home-preview__hero-add"
+            :disabled="disabled"
+            @click="$emit('pick-image', { type: 'hero' })"
+          >
+            Add hero image
+          </button>
         </div>
       </div>
     </section>
@@ -117,7 +177,15 @@ const props = defineProps({
   disabled: { type: Boolean, default: false }
 });
 
-defineEmits(['pick-image', 'remove-image']);
+defineEmits(['pick-image', 'remove-image', 'move-hero-image']);
+
+const heroPrimaryUrl = computed(() => {
+  const urls = props.form.hero_image_urls;
+  if (Array.isArray(urls) && urls.length > 0) {
+    return String(urls[0]).trim();
+  }
+  return props.form.hero_image_url != null ? String(props.form.hero_image_url).trim() : '';
+});
 
 const takenFeaturedProductIds = computed(() =>
   props.form.featured_products
@@ -163,6 +231,109 @@ const takenFeaturedProductIds = computed(() =>
 .admin-home-preview__hero-image-wrap :deep(.admin-home-img-slot__hit:not(:has(.admin-home-img-slot__photo))) {
   aspect-ratio: 16 / 9;
   min-height: 200px;
+}
+
+.admin-home-preview__hero-manage {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.admin-home-preview__hero-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.admin-home-preview__hero-thumb {
+  position: relative;
+  width: 7.5rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.admin-home-preview__hero-thumb--primary {
+  border-color: var(--color-text);
+}
+
+.admin-home-preview__hero-thumb-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.admin-home-preview__hero-thumb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  padding: 0.35rem;
+}
+
+.admin-home-preview__hero-thumb-btn {
+  margin: 0;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: none;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.admin-home-preview__hero-thumb-btn:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+.admin-home-preview__hero-thumb-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-home-preview__hero-thumb-btn--remove {
+  flex: 1 1 100%;
+}
+
+.admin-home-preview__hero-thumb-badge {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-home-preview__hero-add {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px dashed var(--color-border-strong);
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.admin-home-preview__hero-add:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+.admin-home-preview__hero-add:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 /* —— Shared container —— */

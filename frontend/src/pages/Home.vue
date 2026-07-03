@@ -3,7 +3,10 @@
     <p v-if="loading" class="home-page__status">Loading…</p>
     <p v-else-if="error" class="error home-page__status">{{ error }}</p>
     <template v-else-if="content">
-      <HomeHero :image-url="content.hero_image_url" />
+      <HomeHero
+        :image-urls="heroImageUrls"
+        :image-url="content.hero_image_url"
+      />
       <HomeFeaturedProducts
         v-if="featuredProducts.length"
         :section-title="content.featured_title"
@@ -22,6 +25,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { getPublicHomePage, getProducts } from '../services/api.js';
+import { resolveHeroImageUrls } from '@shared/homePageDefaults.js';
 import HomeHero from '../components/home/HomeHero.vue';
 import HomeFeaturedProducts from '../components/home/HomeFeaturedProducts.vue';
 import HomeAboutSection from '../components/home/HomeAboutSection.vue';
@@ -39,6 +43,11 @@ const featuredProducts = computed(() => {
   return content.value.featured_products
     .map((slot) => (slot.product_id ? byId.get(String(slot.product_id)) : null))
     .filter(Boolean);
+});
+
+const heroImageUrls = computed(() => {
+  if (!content.value) return [];
+  return resolveHeroImageUrls(content.value);
 });
 
 onMounted(async () => {

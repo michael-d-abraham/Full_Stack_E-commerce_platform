@@ -16,6 +16,7 @@ const {
     FEATURED_PRODUCT_SLOTS,
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct,
+    resolveHeroImageUrls,
     mergeHomePageTextDefaults
 } = require('../utils/homePageDefaults');
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
@@ -448,6 +449,41 @@ function normalizeOptionalImageUrl(value, fieldName, errors) {
     return url;
 }
 
+function normalizeHeroImageUrlsInput(body, errors) {
+    if (body.hero_image_urls !== undefined) {
+        if (!Array.isArray(body.hero_image_urls)) {
+            errors.push('hero_image_urls must be an array');
+            return null;
+        }
+
+        const urls = [];
+        for (let i = 0; i < body.hero_image_urls.length; i++) {
+            const url = normalizeOptionalImageUrl(
+                body.hero_image_urls[i],
+                `hero_image_urls[${i}]`,
+                errors
+            );
+            if (url === null) {
+                return null;
+            }
+            if (url) {
+                urls.push(url);
+            }
+        }
+        return urls;
+    }
+
+    const hero_image_url = normalizeOptionalImageUrl(
+        body.hero_image_url,
+        'hero_image_url',
+        errors
+    );
+    if (hero_image_url === null) {
+        return null;
+    }
+    return hero_image_url ? [hero_image_url] : [];
+}
+
 function normalizeOptionalText(value) {
     if (value === undefined || value === null) {
         return '';
@@ -525,10 +561,13 @@ async function resolveFeaturedProductCards(slots) {
 
 function toAdminHomePagePayload(doc) {
     const base = doc.home_page || {};
+    const hero_image_urls = resolveHeroImageUrls(base);
+    const hero_image_url = hero_image_urls[0] || '';
     return {
         hero_title: normalizeOptionalText(base.hero_title),
         hero_subtitle: normalizeOptionalText(base.hero_subtitle),
-        hero_image_url: normalizeOptionalText(base.hero_image_url),
+        hero_image_url,
+        hero_image_urls,
         featured_title: normalizeOptionalText(base.featured_title),
         featured_products: padFeaturedProductIds(base.featured_products),
         about_title: normalizeOptionalText(base.about_title),
@@ -552,14 +591,11 @@ function normalizeHomePageInput(body) {
         return { errors: ['Request body is required'] };
     }
 
-    const hero_image_url = normalizeOptionalImageUrl(
-        body.hero_image_url,
-        'hero_image_url',
-        errors
-    );
-    if (hero_image_url === null) {
+    const hero_image_urls = normalizeHeroImageUrlsInput(body, errors);
+    if (hero_image_urls === null) {
         return { errors };
     }
+    const hero_image_url = hero_image_urls[0] || '';
 
     const about_image_url = normalizeOptionalImageUrl(
         body.about_image_url,
@@ -597,6 +633,7 @@ function normalizeHomePageInput(body) {
             hero_title: normalizeOptionalText(body.hero_title),
             hero_subtitle: normalizeOptionalText(body.hero_subtitle),
             hero_image_url,
+            hero_image_urls,
             featured_title: normalizeOptionalText(body.featured_title),
             featured_products,
             about_title: normalizeOptionalText(body.about_title),
