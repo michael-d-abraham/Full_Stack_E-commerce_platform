@@ -1,7 +1,7 @@
 <template>
   <aside class="admin-sidebar" aria-label="Admin navigation">
-    <router-link to="/admin/dashboard" class="admin-sidebar__brand" aria-label="PERM admin home">
-      PERM
+    <router-link to="/admin/dashboard" class="admin-sidebar__brand" :aria-label="brandAdminHomeAriaLabel">
+      {{ siteName }}
     </router-link>
     <nav class="admin-sidebar__nav">
       <router-link
@@ -20,8 +20,10 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { ADMIN_NAV_ITEMS, isAdminNavActive } from '../../constants/adminNavItems.js';
+import { useSiteBrand } from '../../composables/useSiteBrand.js';
 
 const route = useRoute();
+const { siteName, brandAdminHomeAriaLabel } = useSiteBrand();
 const navItems = ADMIN_NAV_ITEMS;
 
 function isNavActive(path) {

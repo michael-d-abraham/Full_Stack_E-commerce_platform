@@ -7,11 +7,15 @@ const {
     getAdminHomePageHandler,
     updateAdminHomePageHandler,
     getAdminBookPageHandler,
-    updateAdminBookPageHandler
+    updateAdminBookPageHandler,
+    getAdminSiteBrandingHandler,
+    updateAdminSiteBrandingHandler
 } = require('../controllers/siteSettingsController');
 
 const router = express.Router();
 
+router.get('/site-branding', getAdminSiteBrandingHandler);
+router.put('/site-branding', updateAdminSiteBrandingHandler);
 router.get('/social-links', getAdminSocialSettingsHandler);
 router.put('/social-links', updateAdminSocialSettingsHandler);
 router.get('/display-pictures', getAdminDisplayPicturesHandler);

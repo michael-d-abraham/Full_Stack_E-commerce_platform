@@ -21,24 +21,40 @@
         </div>
       </section>
 
-      <section class="admin-social__section" aria-labelledby="social-section-heading">
-        <h2 id="social-section-heading" class="admin-social__section-title">Social links</h2>
+      <section class="admin-social__section" aria-labelledby="footer-section-heading">
+        <h2 id="footer-section-heading" class="admin-social__section-title">Footer links</h2>
+        <p class="admin-social__section-hint">
+          Text and URLs shown in the site footer. Disabled links are hidden from visitors.
+        </p>
         <div
           v-for="platform in platforms"
           :key="platform.id"
           class="platform-row"
         >
-          <SocialPlatformIcon :platform="platform.id" class="platform-row__icon" />
           <div class="platform-row__fields">
-            <input
-              :id="'url-' + platform.id"
-              v-model="form[platform.id].url"
-              type="url"
-              class="platform-row__url"
-              :placeholder="platform.placeholder"
-              :aria-label="`${platform.label} URL`"
-              autocomplete="url"
-            />
+            <div class="platform-row__field">
+              <label :for="'label-' + platform.id" class="platform-row__label">Link text</label>
+              <input
+                :id="'label-' + platform.id"
+                v-model="form[platform.id].label"
+                type="text"
+                class="platform-row__label-input"
+                :placeholder="platform.label"
+                :aria-label="`${platform.label} link text`"
+              />
+            </div>
+            <div class="platform-row__field">
+              <label :for="'url-' + platform.id" class="platform-row__label">URL</label>
+              <input
+                :id="'url-' + platform.id"
+                v-model="form[platform.id].url"
+                type="url"
+                class="platform-row__url"
+                :placeholder="platform.placeholder"
+                :aria-label="`${platform.label} URL`"
+                autocomplete="url"
+              />
+            </div>
             <label class="platform-row__check" :for="'enabled-' + platform.id">
               <input
                 :id="'enabled-' + platform.id"
@@ -69,7 +85,6 @@
 import { reactive, ref, onMounted } from 'vue';
 
 import { getAdminSocialLinks, updateAdminSocialLinks } from '../services/api.js';
-import SocialPlatformIcon from '../components/social/SocialPlatformIcon.vue';
 import {
   PLATFORMS,
   DEFAULT_SOCIAL_LINKS,
@@ -91,7 +106,13 @@ const platforms = PLATFORMS.map((id) => ({
 
 const form = reactive(
   Object.fromEntries(
-    PLATFORMS.map((id) => [id, { ...DEFAULT_SOCIAL_LINKS[id] }])
+    PLATFORMS.map((id) => [
+      id,
+      {
+        ...DEFAULT_SOCIAL_LINKS[id],
+        label: DEFAULT_SOCIAL_LINKS[id].label || PLATFORM_LABELS[id]
+      }
+    ])
   )
 );
 
@@ -114,6 +135,10 @@ function applySettings(data) {
     const row = links[id] || {};
     form[id].url = row.url || form[id].url;
     form[id].enabled = row.enabled !== false;
+    form[id].label =
+      row.label != null && String(row.label).trim()
+        ? String(row.label).trim()
+        : DEFAULT_SOCIAL_LINKS[id].label || PLATFORM_LABELS[id];
   });
 }
 
@@ -137,6 +162,14 @@ function clearFieldErrors() {
   });
 }
 
+function buildSocialLinkPayload(id) {
+  return {
+    url: form[id].url,
+    enabled: form[id].enabled,
+    label: form[id].label
+  };
+}
+
 async function onSubmit() {
   submitError.value = '';
   saved.value = false;
@@ -146,12 +179,9 @@ async function onSubmit() {
   try {
     const data = await updateAdminSocialLinks({
       contact_email: contactEmail.value,
-      social_links: {
-        youtube: { url: form.youtube.url, enabled: form.youtube.enabled },
-        instagram: { url: form.instagram.url, enabled: form.instagram.enabled },
-        tiktok: { url: form.tiktok.url, enabled: form.tiktok.enabled },
-        facebook: { url: form.facebook.url, enabled: form.facebook.enabled }
-      }
+      social_links: Object.fromEntries(
+        PLATFORMS.map((id) => [id, buildSocialLinkPayload(id)])
+      )
     });
     applySettings(data);
     saved.value = true;
@@ -246,13 +276,10 @@ async function onSubmit() {
 }
 
 .platform-row {
-  display: grid;
-  grid-template-columns: 2rem 1fr;
-  grid-template-rows: auto auto;
-  column-gap: var(--space-sm);
-  row-gap: 0.25rem;
-  align-items: center;
-  padding: var(--space-sm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--space-md) 0;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -260,18 +287,29 @@ async function onSubmit() {
   border-bottom: none;
 }
 
-.platform-row__icon {
-  grid-row: 1 / span 2;
-  align-self: center;
-}
-
 .platform-row__fields {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-sm);
   min-width: 0;
 }
 
+.platform-row__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.platform-row__label {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.platform-row__label-input,
 .platform-row__url {
   width: 100%;
   min-height: 44px;
@@ -302,7 +340,6 @@ async function onSubmit() {
 }
 
 .platform-row__error {
-  grid-column: 2;
   margin: 0;
 }
 
@@ -328,35 +365,17 @@ async function onSubmit() {
 }
 
 @media (min-width: 640px) {
-  .platform-row {
-    grid-template-columns: 2rem 1fr auto;
-    grid-template-rows: auto;
-    column-gap: var(--space-md);
-    padding: 0.65rem 0;
-  }
-
-  .platform-row__icon {
-    grid-row: 1;
-  }
-
   .platform-row__fields {
-    flex-direction: row;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 2fr) auto;
+    align-items: end;
     gap: var(--space-md);
   }
 
-  .platform-row__url {
-    flex: 1;
-    min-width: 0;
-  }
-
   .platform-row__check {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-
-  .platform-row__error {
-    grid-column: 2 / -1;
+    min-height: 44px;
+    align-self: end;
+    padding-bottom: 0.65rem;
   }
 }
 

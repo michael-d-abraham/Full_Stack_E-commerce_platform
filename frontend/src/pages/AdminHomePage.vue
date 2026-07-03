@@ -46,8 +46,6 @@ import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct } from '@shared/homePageDe
 
 function createEmptyForm() {
   return {
-    hero_title: '',
-    hero_subtitle: '',
     hero_image_url: '',
     featured_title: '',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, emptyFeaturedProduct),
@@ -72,8 +70,6 @@ const photoFlowRef = ref(null);
 function applySettings(data) {
   const next = createEmptyForm();
   if (data && typeof data === 'object') {
-    next.hero_title = data.hero_title != null ? String(data.hero_title) : '';
-    next.hero_subtitle = data.hero_subtitle != null ? String(data.hero_subtitle) : '';
     next.hero_image_url = data.hero_image_url != null ? String(data.hero_image_url).trim() : '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
     next.about_title = data.about_title != null ? String(data.about_title) : '';
@@ -91,8 +87,6 @@ function applySettings(data) {
     }
   }
 
-  form.hero_title = next.hero_title;
-  form.hero_subtitle = next.hero_subtitle;
   form.hero_image_url = next.hero_image_url;
   form.featured_title = next.featured_title;
   form.about_title = next.about_title;
@@ -106,8 +100,8 @@ function applySettings(data) {
 
 function payloadFromForm() {
   return {
-    hero_title: form.hero_title,
-    hero_subtitle: form.hero_subtitle,
+    hero_title: '',
+    hero_subtitle: '',
     hero_image_url: form.hero_image_url,
     featured_title: form.featured_title,
     featured_products: form.featured_products.map((row) => ({

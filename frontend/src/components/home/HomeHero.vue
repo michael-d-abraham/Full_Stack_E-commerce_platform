@@ -1,31 +1,56 @@
 <template>
   <section class="home-hero hero-display" aria-label="Hero">
     <div class="home-hero__inner hero-display__inner">
-      <img
-        v-if="imageUrl"
-        class="home-hero__image hero-display__photo"
-        :src="imageUrl"
-        alt=""
-      />
-      <div
-        v-else
-        class="home-hero__image home-hero__image--placeholder"
-        role="img"
-        aria-label="Hero image placeholder"
-      />
+      <div class="hero-display__stage">
+        <img
+          v-if="imageUrl"
+          class="home-hero__image hero-display__photo"
+          :src="imageUrl"
+          alt=""
+        />
+        <div
+          v-else
+          class="home-hero__image home-hero__image--placeholder"
+          role="img"
+          aria-label="Hero image placeholder"
+        />
+
+        <div
+          v-if="showOverlay"
+          class="hero-display__overlay"
+          :aria-label="overlayAriaLabel"
+        >
+          <div class="hero-display__overlay-scrim" aria-hidden="true" />
+          <div class="hero-display__overlay-content">
+            <router-link
+              v-if="imageUrl"
+              to="/gallery"
+              class="hero-display__overlay-link"
+            >
+              View Collection →
+            </router-link>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   imageUrl: { type: String, default: '' }
 });
+
+const showOverlay = computed(() => Boolean(props.imageUrl));
+
+const overlayAriaLabel = 'View collection';
 </script>
 
 <style scoped>
 .home-hero {
-  padding: var(--space-lg) 0;
+  padding: 0;
   background: var(--color-bg);
   border: none;
   border-bottom: none;

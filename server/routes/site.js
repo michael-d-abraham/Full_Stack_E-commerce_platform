@@ -3,6 +3,7 @@ const {
     getPublicSocialLinksHandler,
     getPublicContactHeroHandler,
     getPublicContactEmailHandler,
+    getPublicSiteBrandingHandler,
     getPublicHomePageHandler,
     getPublicBookPageHandler,
     getPublicNavVisibilityHandler
@@ -10,6 +11,7 @@ const {
 
 const router = express.Router();
 
+router.get('/site-branding', getPublicSiteBrandingHandler);
 router.get('/social-links', getPublicSocialLinksHandler);
 router.get('/contact-hero', getPublicContactHeroHandler);
 router.get('/contact-email', getPublicContactEmailHandler);

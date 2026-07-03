@@ -3,19 +3,23 @@ const PLATFORMS = ['youtube', 'instagram', 'tiktok', 'facebook'];
 const DEFAULT_SOCIAL_LINKS = {
     youtube: {
         url: 'https://www.youtube.com/',
-        enabled: true
+        enabled: true,
+        label: 'YouTube'
     },
     instagram: {
         url: 'https://www.instagram.com/',
-        enabled: true
+        enabled: true,
+        label: 'Instagram'
     },
     tiktok: {
         url: 'https://www.tiktok.com/',
-        enabled: true
+        enabled: true,
+        label: 'TikTok'
     },
     facebook: {
         url: 'https://www.facebook.com/',
-        enabled: true
+        enabled: true,
+        label: 'Facebook'
     }
 };
 

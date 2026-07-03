@@ -15,7 +15,8 @@ describe('shared/socialLinksDefaults', () => {
             expect(DEFAULT_SOCIAL_LINKS[platform]).toEqual(
                 expect.objectContaining({
                     enabled: true,
-                    url: expect.stringMatching(/^https:\/\//)
+                    url: expect.stringMatching(/^https:\/\//),
+                    label: expect.any(String)
                 })
             );
             expect(PLATFORM_LABELS[platform].length).toBeGreaterThan(0);

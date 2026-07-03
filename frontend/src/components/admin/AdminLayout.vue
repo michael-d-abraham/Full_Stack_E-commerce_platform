@@ -19,9 +19,9 @@
           <router-link
             to="/admin/dashboard"
             class="admin-shell__mobile-brand"
-            aria-label="PERM admin home"
+            :aria-label="brandAdminHomeAriaLabel"
           >
-            PERM
+            {{ siteName }}
           </router-link>
         </div>
         <AdminNavDrawer />
@@ -40,8 +40,10 @@ import { useRoute } from 'vue-router';
 import AdminSidebar from './AdminSidebar.vue';
 import AdminNavDrawer from './AdminNavDrawer.vue';
 import { useAdminNav } from '../../composables/useAdminNav.js';
+import { useSiteBrand } from '../../composables/useSiteBrand.js';
 
 const route = useRoute();
+const { siteName, brandAdminHomeAriaLabel } = useSiteBrand();
 const { adminMenuOpen, toggleAdminMenu, closeAdminMenu } = useAdminNav();
 
 function setBodyMenuLock(open) {

@@ -17,7 +17,7 @@
           <span></span>
           <span></span>
         </button>
-        <router-link to="/" class="app-brand" aria-label="PERM home">PERM</router-link>
+        <router-link to="/" class="app-brand" :aria-label="brandHomeAriaLabel">{{ siteName }}</router-link>
         <nav class="app-nav app-nav--desktop" aria-label="Main">
           <router-link to="/" class="app-nav__link" exact-active-class="app-nav__link--active">
             Home
@@ -61,12 +61,7 @@
         <router-view />
       </div>
     </main>
-    <footer v-if="showSocialFooter" class="app-footer">
-      <div class="app-footer__inner">
-        <SocialIconLinks class="app-footer__social" />
-        <p class="app-footer__copyright">©2026&nbsp;PERM.COM</p>
-      </div>
-    </footer>
+    <SiteFooter v-if="showSocialFooter" />
   </div>
 </template>
 
@@ -76,16 +71,18 @@ import { useRoute } from 'vue-router';
 import CartIcon from './components/cart/CartIcon.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
 import MobileMenuDrawer from './components/mobile/MobileMenuDrawer.vue';
-import SocialIconLinks from './components/social/SocialIconLinks.vue';
+import SiteFooter from './components/layout/SiteFooter.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
 import { hydrateCartFromServer } from './utils/cart.js';
 import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
+import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.js';
 
 const MOBILE_HEADER_MQ = '(max-width: 640px)';
 
 const route = useRoute();
+const { siteName, brandHomeAriaLabel } = useSiteBrand();
 const { drawerOpen } = useCart();
 const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileNav();
 const isMobile = useMediaQuery(MOBILE_HEADER_MQ);
@@ -206,6 +203,7 @@ watch([mobileMenuOpen, drawerOpen], () => {
 onMounted(() => {
   hydrateCartFromServer();
   ensureStorefrontNavLoaded();
+  ensureSiteBrandLoaded();
   window.addEventListener('keydown', onEscape);
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', syncMobileHeaderOffset);
@@ -436,33 +434,6 @@ const showSocialFooter = computed(() => {
   overflow: hidden;
 }
 
-.app-footer {
-  flex-shrink: 0;
-  margin-top: auto;
-  padding: var(--space-sm) var(--space-lg) var(--space-sm);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-.app-footer__inner {
-  max-width: var(--max-width-page);
-  margin: 0 auto;
-  text-align: center;
-}
-
-.app-footer__social {
-  margin: 0 auto;
-}
-
-.app-footer__copyright {
-  margin: 0.5rem 0 0;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
 @media (max-width: 640px) {
   .site-header {
     position: fixed;
@@ -571,19 +542,13 @@ const showSocialFooter = computed(() => {
     padding-left: 0;
     padding-right: 0;
     padding-bottom: 0;
+    padding-top: var(--mobile-header-height, 72px);
   }
 
   .app-main--admin {
     padding: 0;
   }
 
-  .app-footer {
-    padding: var(--space-xs) var(--mobile-safe-inset-x) var(--space-xs);
-  }
-
-  .app-footer__copyright {
-    margin-top: var(--space-xs);
-  }
 }
 
 @media (max-width: 390px) {
@@ -602,8 +567,5 @@ const showSocialFooter = computed(() => {
     letter-spacing: 0.08em;
   }
 
-  .app-footer {
-    padding: 0.125rem var(--mobile-safe-inset-x) var(--space-xs);
-  }
 }
 </style>

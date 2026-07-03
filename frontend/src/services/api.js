@@ -71,6 +71,10 @@ export function getPublicNavVisibility() {
     return fetchJson('/api/site/nav-visibility');
 }
 
+export function getPublicSiteBranding() {
+    return fetchJson('/api/site/site-branding');
+}
+
 /** Contact form — returns { success, message }; throws on failure with message in Error. */
 export async function submitContactForm(body) {
     const res = await fetch('/api/contact', {
@@ -128,6 +132,17 @@ export function getAdminSocialLinks() {
 
 export function updateAdminSocialLinks(body) {
     return fetchJson('/api/admin/site/social-links', {
+        method: 'PUT',
+        body
+    });
+}
+
+export function getAdminSiteBranding() {
+    return fetchJson('/api/admin/site/site-branding');
+}
+
+export function updateAdminSiteBranding(body) {
+    return fetchJson('/api/admin/site/site-branding', {
         method: 'PUT',
         body
     });

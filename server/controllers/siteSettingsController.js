@@ -2,6 +2,9 @@ const {
     getAdminSocialSettings,
     getPublicSocialLinks,
     getPublicContactEmail,
+    getAdminSiteBranding,
+    getPublicSiteBranding,
+    updateSiteBranding,
     updateSocialSettings,
     getAdminDisplayPictures,
     getPublicContactHero,
@@ -22,6 +25,39 @@ const getPublicContactEmailHandler = async (_req, res) => {
     } catch (err) {
         console.error('getPublicContactEmail', err);
         return res.status(500).json({ error: 'Failed to load contact email' });
+    }
+};
+
+const getPublicSiteBrandingHandler = async (_req, res) => {
+    try {
+        const data = await getPublicSiteBranding();
+        return res.json(data);
+    } catch (err) {
+        console.error('getPublicSiteBranding', err);
+        return res.status(500).json({ error: 'Failed to load site branding' });
+    }
+};
+
+const getAdminSiteBrandingHandler = async (_req, res) => {
+    try {
+        const settings = await getAdminSiteBranding();
+        return res.json(settings);
+    } catch (err) {
+        console.error('getAdminSiteBranding', err);
+        return res.status(500).json({ error: 'Failed to load site branding' });
+    }
+};
+
+const updateAdminSiteBrandingHandler = async (req, res) => {
+    try {
+        const result = await updateSiteBranding(req.body);
+        if (!result.ok) {
+            return res.status(result.status || 400).json({ errors: result.errors });
+        }
+        return res.json(result.settings);
+    } catch (err) {
+        console.error('updateAdminSiteBranding', err);
+        return res.status(500).json({ error: 'Failed to save site branding' });
     }
 };
 
@@ -169,6 +205,9 @@ const updateAdminBookPageHandler = async (req, res) => {
 
 module.exports = {
     getPublicContactEmailHandler,
+    getPublicSiteBrandingHandler,
+    getAdminSiteBrandingHandler,
+    updateAdminSiteBrandingHandler,
     getPublicSocialLinksHandler,
     getAdminSocialSettingsHandler,
     updateAdminSocialSettingsHandler,

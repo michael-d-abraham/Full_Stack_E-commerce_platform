@@ -9,6 +9,7 @@ const {
 const {
     PLATFORMS,
     DEFAULT_SOCIAL_LINKS,
+    PLATFORM_LABELS,
     isValidHttpUrl
 } = require('../utils/socialLinksDefaults');
 const {
@@ -19,6 +20,11 @@ const {
 } = require('../utils/homePageDefaults');
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
 const { mergeBookPageLabels } = require('../utils/bookPageDefaults');
+const {
+    normalizeOptionalText: normalizeSiteNameText,
+    resolveSiteName,
+    normalizeSiteNameInput
+} = require('../utils/siteBrandDefaults');
 const { isValidEmail } = require('../../shared/email');
 
 const SETTINGS_KEY = 'default';
@@ -40,6 +46,12 @@ function normalizeSocialLinksInput(raw) {
 
         const enabled = Boolean(entry.enabled);
         const url = entry.url != null ? String(entry.url).trim() : '';
+        const defaultLabel =
+            DEFAULT_SOCIAL_LINKS[platform].label || PLATFORM_LABELS[platform] || platform;
+        const label =
+            entry.label != null && String(entry.label).trim()
+                ? String(entry.label).trim()
+                : defaultLabel;
 
         if (enabled && !isValidHttpUrl(url)) {
             errors.push(
@@ -48,9 +60,15 @@ function normalizeSocialLinksInput(raw) {
             continue;
         }
 
+        if (enabled && !label) {
+            errors.push(`social_links.${platform}.label cannot be empty when enabled`);
+            continue;
+        }
+
         social_links[platform] = {
             url: enabled ? url : url || DEFAULT_SOCIAL_LINKS[platform].url,
-            enabled
+            enabled,
+            label: enabled ? label : label || defaultLabel
         };
     }
 
@@ -91,9 +109,15 @@ function toAdminPayload(doc) {
     const social_links = {};
     PLATFORMS.forEach((platform) => {
         const row = links[platform] || DEFAULT_SOCIAL_LINKS[platform];
+        const defaultLabel =
+            DEFAULT_SOCIAL_LINKS[platform].label || PLATFORM_LABELS[platform] || platform;
         social_links[platform] = {
             url: row.url || DEFAULT_SOCIAL_LINKS[platform].url,
-            enabled: row.enabled !== false
+            enabled: row.enabled !== false,
+            label:
+                row.label != null && String(row.label).trim()
+                    ? String(row.label).trim()
+                    : defaultLabel
         };
     });
     const contact_email =
@@ -106,10 +130,19 @@ function toPublicPayload(doc) {
     return PLATFORMS.filter((platform) => {
         const row = links[platform];
         return row && row.enabled && isValidHttpUrl(row.url);
-    }).map((platform) => ({
-        platform,
-        url: String(links[platform].url).trim()
-    }));
+    }).map((platform) => {
+        const row = links[platform];
+        const defaultLabel =
+            DEFAULT_SOCIAL_LINKS[platform].label || PLATFORM_LABELS[platform] || platform;
+        return {
+            platform,
+            url: String(row.url).trim(),
+            label:
+                row.label != null && String(row.label).trim()
+                    ? String(row.label).trim()
+                    : defaultLabel
+        };
+    });
 }
 
 async function getAdminSocialSettings() {
@@ -126,6 +159,47 @@ async function getPublicContactEmail() {
     const doc = await ensureSiteSettingsDoc();
     const email = doc.contact_email != null ? String(doc.contact_email).trim() : '';
     return { email: email || null };
+}
+
+function toAdminSiteBrandingPayload(doc) {
+    return {
+        site_name: normalizeSiteNameText(doc.site_name)
+    };
+}
+
+function toPublicSiteBrandingPayload(doc) {
+    return {
+        site_name: resolveSiteName(doc.site_name)
+    };
+}
+
+async function getAdminSiteBranding() {
+    const doc = await ensureSiteSettingsDoc();
+    return toAdminSiteBrandingPayload(doc);
+}
+
+async function getPublicSiteBranding() {
+    const doc = await ensureSiteSettingsDoc();
+    return toPublicSiteBrandingPayload(doc);
+}
+
+async function updateSiteBranding(body) {
+    if (!body || typeof body !== 'object' || body.site_name === undefined) {
+        return { ok: false, status: 400, errors: ['site_name is required'] };
+    }
+
+    const parsed = normalizeSiteNameInput(body.site_name);
+    if (parsed.errors) {
+        return { ok: false, status: 400, errors: parsed.errors };
+    }
+
+    const doc = await SiteSettings.findOneAndUpdate(
+        { key: SETTINGS_KEY },
+        { $set: { site_name: parsed.site_name } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    return { ok: true, settings: toAdminSiteBrandingPayload(doc) };
 }
 
 function normalizeContactHeroImageUrl(value) {
@@ -626,6 +700,9 @@ module.exports = {
     getAdminSocialSettings,
     getPublicSocialLinks,
     getPublicContactEmail,
+    getAdminSiteBranding,
+    getPublicSiteBranding,
+    updateSiteBranding,
     updateSocialSettings,
     getAdminDisplayPictures,
     getPublicContactHero,

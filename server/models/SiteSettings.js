@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const socialLinkSchema = new mongoose.Schema(
     {
         url: { type: String, required: true, default: '' },
-        enabled: { type: Boolean, required: true, default: true }
+        enabled: { type: Boolean, required: true, default: true },
+        label: { type: String, default: '' }
     },
     { _id: false }
 );
@@ -59,6 +60,7 @@ const bookPageSchema = new mongoose.Schema(
 const siteSettingsSchema = new mongoose.Schema(
     {
         key: { type: String, required: true, unique: true, default: 'default' },
+        site_name: { type: String, default: '' },
         social_links: {
             youtube: { type: socialLinkSchema, default: () => ({}) },
             instagram: { type: socialLinkSchema, default: () => ({}) },
