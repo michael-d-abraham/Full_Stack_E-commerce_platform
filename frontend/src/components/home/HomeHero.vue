@@ -83,20 +83,13 @@
             />
           </div>
         </template>
-
-        <div
-          v-if="showOverlay"
-          class="hero-display__overlay"
-          :aria-label="overlayAriaLabel"
-        >
-          <div class="hero-display__overlay-scrim" aria-hidden="true" />
-          <div class="hero-display__overlay-content">
-            <router-link to="/gallery" class="hero-display__overlay-link">
-              View Collection →
-            </router-link>
-          </div>
-        </div>
       </div>
+
+      <p v-if="showOverlay" class="home-hero__cta">
+        <router-link to="/gallery" class="home-hero__cta-link">
+          View Collection
+        </router-link>
+      </p>
     </div>
   </section>
 </template>
@@ -130,8 +123,6 @@ const heroImages = computed(() => {
 });
 
 const showOverlay = computed(() => heroImages.value.length > 0);
-
-const overlayAriaLabel = 'View collection';
 
 function clearSlideTimer() {
   if (slideTimerId != null) {
@@ -209,7 +200,7 @@ onUnmounted(() => {
 <style scoped>
 .home-hero {
   padding: 0;
-  background: var(--color-bg);
+  background: #faf8f3;
   border: none;
   border-bottom: none;
 }
@@ -230,6 +221,8 @@ onUnmounted(() => {
 .home-hero__image--placeholder {
   width: 100%;
   max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
   aspect-ratio: 16 / 9;
   min-height: 180px;
   max-height: calc(var(--home-hero-max-height) - 2 * var(--space-lg));
@@ -238,8 +231,11 @@ onUnmounted(() => {
 
 .home-hero__slideshow {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: fit-content;
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   line-height: 0;
 }
 
@@ -250,9 +246,10 @@ onUnmounted(() => {
 
 .home-hero__slideshow-photo {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
   opacity: 0;
+  transform: translate(-50%, -50%);
   transition: opacity 0.8s ease;
 }
 
@@ -337,6 +334,45 @@ onUnmounted(() => {
   box-shadow: var(--focus-ring);
 }
 
+.home-hero__cta {
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  text-align: center;
+  line-height: normal;
+}
+
+.home-hero__cta-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 11rem;
+  min-height: 40px;
+  padding: 0 1.75rem;
+  border: 1px solid var(--color-text);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.home-hero__cta-link:hover {
+  background: var(--color-text);
+  color: #faf8f3;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.home-hero__cta-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 @media (min-width: 641px) {
   .home-hero {
     padding-bottom: var(--space-2xl);
@@ -385,8 +421,20 @@ onUnmounted(() => {
   }
 
   .home-hero__slideshow {
-    display: block;
     width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .home-hero__cta {
+    margin-top: var(--space-md);
+    padding: 0 var(--mobile-safe-inset-x, 20px);
+  }
+
+  .home-hero__cta-link {
+    width: 100%;
+    max-width: 320px;
+    min-height: 44px;
   }
 }
 

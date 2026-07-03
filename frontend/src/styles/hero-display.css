@@ -19,6 +19,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 .hero-display__photo {
@@ -27,19 +28,25 @@
   height: auto;
   max-width: 100%;
   max-height: calc(var(--home-hero-max-height) - 2 * var(--space-lg));
+  margin-left: auto;
+  margin-right: auto;
   border: none;
   border-bottom: none;
   background: none;
   box-shadow: none;
   outline: none;
   object-fit: contain;
+  object-position: center;
 }
 
 /* Stage wrapper — sizes to the image; overlay sits above without affecting layout */
 .hero-display__stage {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: fit-content;
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   line-height: 0;
 }
 
@@ -170,6 +177,7 @@
     max-width: none;
     max-height: calc(var(--home-hero-max-height) - var(--space-xl));
     object-fit: cover;
+    object-position: center;
   }
 }
 
