@@ -1,6 +1,6 @@
 <template>
   <section class="home-hero hero-display" aria-label="Hero">
-    <div class="home-hero__inner hero-display__inner mobile-safe-container">
+    <div class="home-hero__inner hero-display__inner">
       <img
         v-if="imageUrl"
         class="home-hero__image hero-display__photo"
@@ -71,23 +71,20 @@ defineProps({
 
 @media (max-width: 640px) {
   .home-hero {
-    padding: var(--space-md) 0 var(--space-xl);
+    padding: 0 0 var(--space-xl);
   }
 
   .home-hero__inner {
-    padding: 0 20px;
+    padding: 0;
+    max-width: none;
   }
 
   .home-hero__image--placeholder {
+    width: 100%;
+    max-width: none;
     aspect-ratio: 4 / 3;
     min-height: 160px;
-    max-height: calc(var(--home-hero-max-height) - var(--space-md) - var(--space-xl));
-  }
-}
-
-@media (max-width: 390px) {
-  .home-hero__inner {
-    padding: 0 16px;
+    max-height: calc(var(--home-hero-max-height) - var(--space-xl));
   }
 }
 </style>

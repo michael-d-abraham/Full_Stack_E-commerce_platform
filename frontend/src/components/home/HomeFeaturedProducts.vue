@@ -92,17 +92,12 @@ function onProductAdded(p) {
   }
 
   .home-featured__container {
-    padding: 0 20px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .home-featured__title {
     margin-bottom: var(--space-lg);
-  }
-}
-
-@media (max-width: 390px) {
-  .home-featured__container {
-    padding: 0 16px;
   }
 }
 </style>

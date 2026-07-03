@@ -40,7 +40,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
   width: 100%;
 }
 
@@ -48,11 +48,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   text-decoration: none;
   border-radius: var(--radius-sm);
   transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.social-icon-links__item :deep(.social-platform-icon) {
+  width: 30px;
+  height: 30px;
+  max-width: 30px;
+  max-height: 30px;
 }
 
 .social-icon-links__item:hover {
@@ -62,12 +69,19 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
   .social-icon-links {
-    gap: var(--space-md);
+    gap: var(--space-lg);
   }
 
   .social-icon-links__item {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .social-icon-links__item :deep(.social-platform-icon) {
+    width: 28px;
+    height: 28px;
+    max-width: 28px;
+    max-height: 28px;
   }
 }
 </style>

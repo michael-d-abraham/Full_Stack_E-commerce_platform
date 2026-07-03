@@ -439,7 +439,7 @@ const showSocialFooter = computed(() => {
 .app-footer {
   flex-shrink: 0;
   margin-top: auto;
-  padding: var(--space-md) var(--space-lg) 1.25rem;
+  padding: var(--space-sm) var(--space-lg) var(--space-sm);
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -455,7 +455,7 @@ const showSocialFooter = computed(() => {
 }
 
 .app-footer__copyright {
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
   font-size: 0.8125rem;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -483,7 +483,7 @@ const showSocialFooter = computed(() => {
   }
 
   .app-header__bar {
-    padding: 1rem 20px;
+    padding: 1rem var(--mobile-safe-inset-x);
     gap: 0;
     display: grid;
     grid-template-columns: 44px 1fr 44px;
@@ -563,7 +563,14 @@ const showSocialFooter = computed(() => {
 
   .app-main:not(.app-main--admin) {
     /* Fixed header is out of flow — offset top padding by measured bar height */
-    padding: calc(var(--mobile-header-height, 72px) + var(--space-lg)) 20px var(--space-lg);
+    padding: calc(var(--mobile-header-height, 72px) + var(--space-lg)) var(--mobile-safe-inset-x)
+      var(--space-lg);
+  }
+
+  .app-main.app-main--home {
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
   }
 
   .app-main--admin {
@@ -571,7 +578,7 @@ const showSocialFooter = computed(() => {
   }
 
   .app-footer {
-    padding: var(--space-xs) 20px var(--space-xs);
+    padding: var(--space-xs) var(--mobile-safe-inset-x) var(--space-xs);
   }
 
   .app-footer__copyright {
@@ -581,8 +588,8 @@ const showSocialFooter = computed(() => {
 
 @media (max-width: 390px) {
   .app-header__bar {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: var(--mobile-safe-inset-x);
+    padding-right: var(--mobile-safe-inset-x);
   }
 
   .app-brand {
@@ -595,13 +602,8 @@ const showSocialFooter = computed(() => {
     letter-spacing: 0.08em;
   }
 
-  .app-main {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
   .app-footer {
-    padding: 0.125rem 16px var(--space-xs);
+    padding: 0.125rem var(--mobile-safe-inset-x) var(--space-xs);
   }
 }
 </style>

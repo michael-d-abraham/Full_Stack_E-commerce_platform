@@ -43,8 +43,16 @@
 }
 
 @media (max-width: 640px) {
+  .hero-display__inner {
+    max-width: none;
+    padding: 0;
+  }
+
   .hero-display__photo {
-    max-height: calc(var(--home-hero-max-height) - var(--space-md) - var(--space-xl));
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--home-hero-max-height) - var(--space-xl));
+    object-fit: cover;
   }
 }
 

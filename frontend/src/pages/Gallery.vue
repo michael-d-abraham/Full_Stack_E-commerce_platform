@@ -1,6 +1,8 @@
 <template>
   <div class="gallery-page">
-    <h1 class="page-hero-title">Gallery</h1>
+    <header class="gallery-header">
+      <h1 class="page-hero-title gallery-header__title">Gallery</h1>
+    </header>
 
     <p v-if="loading" class="gallery-status">Loading…</p>
     <p v-else-if="error" class="error">{{ error }}</p>
@@ -106,11 +108,20 @@ onMounted(async () => {
 <style scoped>
 .gallery-page {
   width: 100%;
+  min-height: 100%;
+  margin-top: -0.75rem;
+  padding-bottom: 56px;
 }
 
-.page-hero-title {
-  margin: 0 0 var(--space-xl);
+.gallery-header {
   text-align: center;
+  padding: 0 32px;
+  margin: 0 auto 2.5rem;
+  max-width: 900px;
+}
+
+.gallery-header__title {
+  margin: 0;
 }
 
 .gallery-status {
@@ -122,14 +133,15 @@ onMounted(async () => {
 
 .gallery-section {
   width: 100%;
-  background: #fff;
-  padding: 40px 0 56px;
+  background: transparent;
+  padding: 0;
 }
 
 .gallery-container {
-  max-width: 960px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 32px;
+  background: transparent;
 }
 
 .load-more-wrap {
@@ -160,20 +172,24 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .page-hero-title {
-    margin-bottom: var(--space-lg);
+  .gallery-header {
+    margin-bottom: 1.75rem;
+    padding: 0 var(--mobile-safe-inset-x, 20px);
   }
 
   .gallery-section {
-    padding: 24px 0 48px;
+    padding: 0;
   }
 
-  .gallery-container,
-  .mobile-safe-container {
-    width: 100%;
+  .gallery-page {
+    padding-bottom: 48px;
+  }
+
+  .gallery-container {
     max-width: 100%;
-    padding: 0 20px;
-    box-sizing: border-box;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .load-more-wrap {
@@ -188,10 +204,4 @@ onMounted(async () => {
   }
 }
 
-@media (max-width: 390px) {
-  .gallery-container,
-  .mobile-safe-container {
-    padding: 0 16px;
-  }
-}
 </style>

@@ -34,7 +34,7 @@ defineProps({
 <style scoped>
 .home-about {
   width: 100%;
-  padding: 0 0 var(--space-3xl);
+  padding: 0;
   background: #f7f7f7;
   border-top: 1px solid var(--color-border);
 }
@@ -42,7 +42,7 @@ defineProps({
 .home-about__container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-xl) 32px 0;
+  padding: var(--space-xl) 32px var(--space-3xl);
 }
 
 .home-about__title {
@@ -100,7 +100,7 @@ defineProps({
 
 @media (max-width: 640px) {
   .home-about__container {
-    padding: var(--space-lg) 20px 0;
+    padding: var(--space-lg) var(--mobile-safe-inset-x) var(--space-3xl);
   }
 
   .home-about__title {
@@ -118,13 +118,6 @@ defineProps({
 
   .home-about__text {
     order: 1;
-  }
-}
-
-@media (max-width: 390px) {
-  .home-about__container {
-    padding-left: 16px;
-    padding-right: 16px;
   }
 }
 </style>

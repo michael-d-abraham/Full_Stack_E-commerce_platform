@@ -1,6 +1,33 @@
 /* Mobile storefront pass — max-width: 640px (phones), 390px (small phones) */
 
+:root {
+  --mobile-safe-inset-x: 20px;
+}
+
+@media (max-width: 390px) {
+  :root {
+    --mobile-safe-inset-x: 16px;
+  }
+}
+
 @media (max-width: 640px) {
+  /* Horizontal inset for text and grid content — not full-bleed media */
+  .mobile-safe-container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: var(--mobile-safe-inset-x);
+    padding-right: var(--mobile-safe-inset-x);
+    box-sizing: border-box;
+  }
+
+  /* Break out of a mobile-safe-container to span the full viewport width */
+  .mobile-safe-bleed {
+    width: calc(100% + 2 * var(--mobile-safe-inset-x));
+    max-width: 100vw;
+    margin-left: calc(-1 * var(--mobile-safe-inset-x));
+    margin-right: calc(-1 * var(--mobile-safe-inset-x));
+  }
+
   html,
   body {
     overflow-x: hidden;
