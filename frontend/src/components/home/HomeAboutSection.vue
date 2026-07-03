@@ -23,7 +23,6 @@
         <div v-else class="home-about__media home-about__media--empty" aria-hidden="true" />
 
         <div v-if="text" class="home-about__statement">
-          <p class="home-about__statement-label">Artist Statement</p>
           <p class="home-about__copy">{{ visibleStatement }}</p>
           <button
             v-if="canExpand"
@@ -168,15 +167,6 @@ const visibleStatement = computed(() => {
 .home-about__statement {
   grid-area: statement;
   max-width: 34rem;
-}
-
-.home-about__statement-label {
-  margin: 0 0 var(--space-sm);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 .home-about__copy {

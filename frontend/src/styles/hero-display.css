@@ -139,9 +139,13 @@
 }
 
 @media (min-width: 641px) {
+  .hero-display {
+    --home-hero-max-height: 88dvh;
+  }
+
   .hero-display__photo {
-    max-width: 75vw;
-    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-2xl));
+    max-width: 85vw;
+    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-xl));
   }
 }
 

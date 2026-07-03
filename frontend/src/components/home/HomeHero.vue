@@ -200,7 +200,7 @@ onUnmounted(() => {
 <style scoped>
 .home-hero {
   padding: 0;
-  background: #faf8f3;
+  background: var(--color-bg);
   border: none;
   border-bottom: none;
 }
@@ -363,7 +363,7 @@ onUnmounted(() => {
 
 .home-hero__cta-link:hover {
   background: var(--color-text);
-  color: #faf8f3;
+  color: var(--color-bg);
   opacity: 1;
   text-decoration: none;
 }
@@ -375,6 +375,7 @@ onUnmounted(() => {
 
 @media (min-width: 641px) {
   .home-hero {
+    padding-top: var(--space-sm);
     padding-bottom: var(--space-2xl);
   }
 
@@ -384,8 +385,8 @@ onUnmounted(() => {
   }
 
   .home-hero__image--placeholder {
-    max-width: 75vw;
-    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-2xl));
+    max-width: 85vw;
+    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-xl));
   }
 }
 
