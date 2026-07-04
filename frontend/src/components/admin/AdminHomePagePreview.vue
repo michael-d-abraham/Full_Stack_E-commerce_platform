@@ -3,7 +3,20 @@
     <!-- Hero (mirrors HomeHero) -->
     <section class="admin-home-preview__hero hero-display" aria-label="Hero preview">
       <div class="admin-home-preview__hero-inner hero-display__inner">
-        <div class="hero-display__stage admin-home-preview__hero-stage">
+        <div class="admin-home-preview__hero-presentation">
+          <label class="admin-home-preview__hero-quote-field">
+            <span class="admin-home-preview__about-text-label">Quote</span>
+            <textarea
+              v-model="form.about_header"
+              class="admin-home-preview__hero-quote-input"
+              rows="4"
+              placeholder="Art is how we decorate space. Music is how we decorate time."
+              aria-label="Hero quote"
+              :disabled="disabled"
+            />
+          </label>
+
+          <div class="hero-display__stage admin-home-preview__hero-stage">
           <AdminHomePreviewImageSlot
             class="admin-home-preview__hero-image-wrap"
             :image-url="heroPrimaryUrl"
@@ -22,6 +35,7 @@
               </span>
             </div>
           </div>
+        </div>
         </div>
 
         <div class="admin-home-preview__hero-manage">
@@ -203,7 +217,7 @@ const takenFeaturedProductIds = computed(() =>
 
 /* —— Hero (uses hero-display.css for image scale limits) —— */
 .admin-home-preview__hero {
-  padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+  padding: var(--space-sm) var(--space-lg) var(--space-2xl);
 }
 
 .admin-home-preview__hero-inner {
@@ -211,13 +225,61 @@ const takenFeaturedProductIds = computed(() =>
   margin: 0 auto;
 }
 
+.admin-home-preview__hero-presentation {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 9fr);
+  gap: clamp(var(--space-md), 2.5vw, var(--space-xl));
+  align-items: stretch;
+  width: 100%;
+}
+
+.admin-home-preview__hero-quote-field {
+  grid-column: 1;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.admin-home-preview__hero-quote-input {
+  width: 100%;
+  min-height: 8rem;
+  padding: var(--space-sm) 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  resize: vertical;
+}
+
+.admin-home-preview__hero-quote-input:hover,
+.admin-home-preview__hero-quote-input:focus {
+  border-color: var(--color-text);
+  outline: none;
+}
+
 .admin-home-preview__hero-image-wrap {
-  width: auto;
+  width: 100%;
   max-width: 100%;
 }
 
 .admin-home-preview__hero-stage {
+  grid-column: 2;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
   line-height: 0;
+}
+
+.admin-home-preview__hero-presentation .hero-display__photo {
+  max-width: 100%;
 }
 
 .admin-home-preview__hero-overlay {
@@ -379,12 +441,12 @@ const takenFeaturedProductIds = computed(() =>
 
 /* —— About —— */
 .admin-home-preview__about {
-  padding: 0 var(--space-lg) var(--space-3xl);
+  padding: var(--space-lg) var(--space-lg) var(--space-3xl);
   background: #faf8f3;
 }
 
 .admin-home-preview__about-inner {
-  padding-top: var(--space-xl);
+  padding-top: var(--space-lg);
 }
 
 .admin-home-preview__about-masthead {
@@ -514,6 +576,10 @@ const takenFeaturedProductIds = computed(() =>
     width: 100%;
   }
 
+  .admin-home-preview__hero-presentation {
+    width: 100%;
+  }
+
   .admin-home-preview__section-title {
     margin-top: 0;
   }
@@ -545,6 +611,11 @@ const takenFeaturedProductIds = computed(() =>
 
   .admin-home-preview__hero-image-wrap :deep(.admin-home-img-slot__hit:not(:has(.admin-home-img-slot__photo))) {
     aspect-ratio: 4 / 3;
+  }
+
+  .admin-home-preview__hero-presentation {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
   }
 
   .admin-home-preview__about-grid {

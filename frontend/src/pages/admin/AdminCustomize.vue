@@ -5,7 +5,7 @@
     </header>
 
     <section class="admin-float admin-float--padded">
-      <h2 class="admin-float-card__title">Site branding</h2>
+      <h2 class="admin-float-card__title">Site name</h2>
       <AdminSiteBranding />
     </section>
 

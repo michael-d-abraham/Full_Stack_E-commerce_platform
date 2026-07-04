@@ -4,39 +4,22 @@
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
       </h2>
-
-      <Transition name="gallery-content-reveal" mode="out-in">
-        <ProductGridLoadingScreen
-          v-if="!contentReady"
-          key="featured-loading"
-          variant="section"
-          message="Preparing gallery…"
-          :skeleton-count="skeletonCount"
+      <div class="product-grid product-grid--gallery home-featured__grid">
+        <GalleryProductCard
+          v-for="p in visibleProducts"
+          :key="p._id"
+          :product="p"
+          :show-add-to-cart="false"
         />
-        <div
-          v-else
-          key="featured-content"
-          class="product-grid product-grid--gallery"
-        >
-          <GalleryProductCard
-            v-for="(p, index) in visibleProducts"
-            :key="p._id"
-            :product="p"
-            :show-add-to-cart="false"
-            :image-loading="index < preloadCount ? 'eager' : 'lazy'"
-          />
-        </div>
-      </Transition>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue';
-import { useInitialImagePreload } from '../../composables/useInitialImagePreload.js';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
-import ProductGridLoadingScreen from '../product/ProductGridLoadingScreen.vue';
 
 const MOBILE_MQ = '(max-width: 640px)';
 
@@ -53,10 +36,6 @@ const isMobile = useMediaQuery(MOBILE_MQ);
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products
 );
-
-const { imagesReady, preloadCount } = useInitialImagePreload(visibleProducts);
-const contentReady = computed(() => imagesReady.value);
-const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
 </script>
 
 <style scoped>
@@ -77,23 +56,6 @@ const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
   text-align: center;
 }
 
-.gallery-content-reveal-enter-active,
-.gallery-content-reveal-leave-active {
-  transition: opacity 360ms ease;
-}
-
-.gallery-content-reveal-enter-from,
-.gallery-content-reveal-leave-to {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gallery-content-reveal-enter-active,
-  .gallery-content-reveal-leave-active {
-    transition: none;
-  }
-}
-
 @media (min-width: 641px) {
   .home-featured {
     padding-top: var(--space-lg);
@@ -102,11 +64,32 @@ const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
   .home-featured__title {
     margin-top: 0;
   }
+
+  .home-featured__container {
+    max-width: min(90vw, 75rem);
+    padding: 0 clamp(1rem, 2vw, 2rem);
+  }
+
+  .home-featured__grid.product-grid--gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    columns: auto;
+    width: 100%;
+    max-width: none;
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .home-featured__grid.product-grid--gallery .product-card {
+    margin: 0;
+    break-inside: auto;
+    -webkit-column-break-inside: auto;
+    page-break-inside: auto;
+  }
 }
 
 @media (max-width: 640px) {
   .home-featured {
-    padding: var(--space-lg) 0 var(--space-2xl);
+    padding: 0 0 var(--space-2xl);
   }
 
   .home-featured__container {
@@ -119,10 +102,68 @@ const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
   }
 }
 
-/* Touch devices: press feedback + view overlay on tap */
-@media (hover: none) and (pointer: coarse) {
+/* Stronger tap / click affordance for home featured cards */
+.home-featured :deep(.product-card-link) {
+  position: relative;
+  border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 160ms ease;
+}
+
+.home-featured :deep(.product-card-link::after) {
+  content: 'View piece →';
+  display: block;
+  margin-top: 0.65rem;
+  font-family: var(--gallery-meta-font, var(--font-sans));
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.home-featured :deep(.product-card-link:hover::after),
+.home-featured :deep(.product-card-link:focus-visible::after) {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.home-featured :deep(.product-card-link:hover .gallery-art-frame),
+.home-featured :deep(.product-card-link:focus-visible .gallery-art-frame) {
+  transform: translateY(-4px);
+  box-shadow: var(--gallery-frame-shadow-hover), var(--gallery-frame-inset);
+}
+
+.home-featured :deep(.product-card-link:active) {
+  transform: scale(0.985);
+}
+
+.home-featured :deep(.product-card-link:active .gallery-art-frame) {
+  transform: translateY(-1px);
+  box-shadow: var(--gallery-frame-shadow-hover), var(--gallery-frame-inset);
+}
+
+.home-featured :deep(.product-card-link:active::after) {
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-featured :deep(.product-card-link) {
+    transition: none;
+  }
+
+  .home-featured :deep(.product-card-link:active) {
+    transform: none;
+  }
+
+  .home-featured :deep(.product-card-link:hover .gallery-art-frame),
+  .home-featured :deep(.product-card-link:focus-visible .gallery-art-frame),
   .home-featured :deep(.product-card-link:active .gallery-art-frame) {
-    transform: scale(0.98);
+    transform: none;
+    box-shadow: var(--gallery-frame-shadow), var(--gallery-frame-inset);
   }
 }
 </style>

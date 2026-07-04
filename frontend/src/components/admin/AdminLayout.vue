@@ -16,12 +16,13 @@
             <span></span>
             <span></span>
           </button>
-          <SiteBrandMark
+          <router-link
             to="/admin/dashboard"
-            variant="admin"
             class="admin-shell__mobile-brand"
             :aria-label="brandAdminHomeAriaLabel"
-          />
+          >
+            {{ siteName }}
+          </router-link>
         </div>
         <AdminNavDrawer />
       </header>
@@ -40,10 +41,9 @@ import AdminSidebar from './AdminSidebar.vue';
 import AdminNavDrawer from './AdminNavDrawer.vue';
 import { useAdminNav } from '../../composables/useAdminNav.js';
 import { useSiteBrand } from '../../composables/useSiteBrand.js';
-import SiteBrandMark from '../layout/SiteBrandMark.vue';
 
 const route = useRoute();
-const { brandAdminHomeAriaLabel } = useSiteBrand();
+const { siteName, brandAdminHomeAriaLabel } = useSiteBrand();
 const { adminMenuOpen, toggleAdminMenu, closeAdminMenu } = useAdminNav();
 
 function setBodyMenuLock(open) {
@@ -160,6 +160,14 @@ onUnmounted(() => {
   grid-column: 2;
   justify-self: center;
   padding: 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #1a1a1a;
+  line-height: 1;
 }
 
 .admin-shell__main {

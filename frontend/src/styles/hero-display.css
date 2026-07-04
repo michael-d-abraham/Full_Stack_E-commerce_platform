@@ -147,6 +147,20 @@
     max-width: 85vw;
     max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-xl));
   }
+
+  /* Home hero: full viewport column layout beside the quote */
+  .home-hero__presentation .hero-display__stage {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  .home-hero__presentation .hero-display__photo {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+  }
 }
 
 @media (max-width: 640px) {

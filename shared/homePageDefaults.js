@@ -10,7 +10,7 @@ const DEFAULT_HOME_PAGE = {
         product_id: ''
     })),
     about_title: 'About',
-    about_header: '',
+    about_header: 'Art is how we decorate space. Music is how we decorate time.',
     about_text: '',
     about_image_url: ''
 };
@@ -54,7 +54,8 @@ function mergeHomePageTextDefaults(stored) {
             normalizeOptionalText(base.featured_title) || DEFAULT_HOME_PAGE.featured_title,
         about_title:
             normalizeOptionalText(base.about_title) || DEFAULT_HOME_PAGE.about_title,
-        about_header: normalizeOptionalText(base.about_header),
+        about_header:
+            normalizeOptionalText(base.about_header) || DEFAULT_HOME_PAGE.about_header,
         about_text: normalizeOptionalText(base.about_text),
         about_image_url: normalizeOptionalText(base.about_image_url)
     };

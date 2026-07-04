@@ -1,11 +1,8 @@
 <template>
   <aside class="admin-sidebar" aria-label="Admin navigation">
-    <SiteBrandMark
-      to="/admin/dashboard"
-      variant="admin"
-      class="admin-sidebar__brand"
-      :aria-label="brandAdminHomeAriaLabel"
-    />
+    <router-link to="/admin/dashboard" class="admin-sidebar__brand" :aria-label="brandAdminHomeAriaLabel">
+      {{ siteName }}
+    </router-link>
     <nav class="admin-sidebar__nav">
       <router-link
         v-for="item in navItems"
@@ -24,10 +21,9 @@
 import { useRoute } from 'vue-router';
 import { ADMIN_NAV_ITEMS, isAdminNavActive } from '../../constants/adminNavItems.js';
 import { useSiteBrand } from '../../composables/useSiteBrand.js';
-import SiteBrandMark from '../layout/SiteBrandMark.vue';
 
 const route = useRoute();
-const { brandAdminHomeAriaLabel } = useSiteBrand();
+const { siteName, brandAdminHomeAriaLabel } = useSiteBrand();
 const navItems = ADMIN_NAV_ITEMS;
 
 function isNavActive(path) {
@@ -50,6 +46,14 @@ function isNavActive(path) {
   display: block;
   margin: 0 0 2rem;
   padding: 0 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #1a1a1a;
+  line-height: 1;
 }
 
 .admin-sidebar__brand:hover {

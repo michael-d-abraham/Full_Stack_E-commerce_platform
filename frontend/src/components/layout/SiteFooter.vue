@@ -5,12 +5,9 @@
       :class="{ 'site-footer__main--two-cols': !links.length }"
     >
       <div class="site-footer__column site-footer__column--brand">
-        <SiteBrandMark
-          to="/"
-          variant="footer"
-          class="site-footer__brand"
-          :aria-label="brandHomeAriaLabel"
-        />
+        <router-link to="/" class="site-footer__brand" :aria-label="brandHomeAriaLabel">
+          {{ siteName }}
+        </router-link>
         <p class="site-footer__copyright site-footer__copyright--desktop">©{{ copyrightYear }}&nbsp;{{ siteName }}</p>
       </div>
 
@@ -67,7 +64,6 @@ import { getPublicSocialLinks } from '../../services/api.js';
 import { PLATFORM_LABELS } from '@shared/socialLinksDefaults.js';
 import { useStorefrontNav } from '../../composables/useStorefrontNav.js';
 import { useSiteBrand } from '../../composables/useSiteBrand.js';
-import SiteBrandMark from './SiteBrandMark.vue';
 
 const { showContactNav, showBookNav } = useStorefrontNav();
 const { siteName, brandHomeAriaLabel } = useSiteBrand();
@@ -122,6 +118,14 @@ onMounted(async () => {
 }
 
 .site-footer__brand {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-text);
+  line-height: 1.2;
   transition: opacity 0.2s ease;
 }
 

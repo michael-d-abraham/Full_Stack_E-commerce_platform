@@ -8,7 +8,12 @@
     @focusout="onHeroFocusOut"
   >
     <div class="home-hero__inner hero-display__inner">
-      <div class="hero-display__stage">
+      <div class="home-hero__presentation">
+        <blockquote v-if="formattedQuote" class="home-hero__quote home-quote">
+          {{ formattedQuote }}
+        </blockquote>
+
+        <div class="hero-display__stage home-hero__stage">
         <template v-if="heroImages.length === 0">
           <div
             class="home-hero__image home-hero__image--placeholder"
@@ -82,10 +87,11 @@
               role="tab"
               :aria-selected="index === currentIndex"
               :aria-label="`Go to slide ${index + 1}`"
-              @click="goToSlide(index)"
+              @click.stop="goTo(index)"
             />
           </div>
         </template>
+        </div>
       </div>
 
       <p v-if="showOverlay" class="home-hero__cta">
@@ -107,7 +113,8 @@ const HERO_CONTROL_SELECTOR = '.home-hero__nav, .home-hero__dot';
 
 const props = defineProps({
   imageUrls: { type: Array, default: () => [] },
-  imageUrl: { type: String, default: '' }
+  imageUrl: { type: String, default: '' },
+  quote: { type: String, default: '' }
 });
 
 const currentIndex = ref(0);
@@ -117,7 +124,6 @@ const isMobile = useMediaQuery('(max-width: 640px)');
 
 let slideTimerId = null;
 let swipeStartX = 0;
-let swipeStartY = 0;
 let touchSwipeActive = false;
 
 const heroImages = computed(() => {
@@ -131,16 +137,20 @@ const heroImages = computed(() => {
   return legacy ? [legacy] : [];
 });
 
-const canSwipe = computed(() => isMobile.value && heroImages.value.length > 1);
+const canSwipe = computed(() => isMobile.value && heroImages.value.length >= 2);
+
 const showOverlay = computed(() => heroImages.value.length > 0);
 
-function isControlTarget(target) {
-  return target instanceof Element && Boolean(target.closest(HERO_CONTROL_SELECTOR));
-}
-
-function wrapIndex(index, count) {
-  return ((index % count) + count) % count;
-}
+const formattedQuote = computed(() => {
+  const raw = props.quote.trim();
+  if (!raw) {
+    return '';
+  }
+  if (raw.startsWith('"') || raw.startsWith('“')) {
+    return raw;
+  }
+  return `"${raw}"`;
+});
 
 function clearSlideTimer() {
   if (slideTimerId != null) {
@@ -149,34 +159,39 @@ function clearSlideTimer() {
   }
 }
 
-function goTo(index) {
+function wrapIndex(index) {
   const count = heroImages.value.length;
-  if (count < 2) {
-    return;
-  }
-  currentIndex.value = wrapIndex(index, count);
+  if (count < 2) return 0;
+  return ((index % count) + count) % count;
 }
 
-function restartSlideTimer() {
-  if (isPaused.value || prefersReducedMotion.value || heroImages.value.length < 2) {
-    return;
+function goTo(index, { restartTimer = true } = {}) {
+  const count = heroImages.value.length;
+  if (count < 2) return;
+  currentIndex.value = wrapIndex(index);
+  if (restartTimer) {
+    restartSlideTimerAfterNav();
   }
-  startSlideTimer();
+}
+
+function advanceSlide() {
+  goTo(currentIndex.value + 1, { restartTimer: false });
 }
 
 function goNext() {
   goTo(currentIndex.value + 1);
-  restartSlideTimer();
 }
 
 function goPrev() {
   goTo(currentIndex.value - 1);
-  restartSlideTimer();
 }
 
-function goToSlide(index) {
-  goTo(index);
-  restartSlideTimer();
+function restartSlideTimerAfterNav() {
+  if (isPaused.value || prefersReducedMotion.value) {
+    return;
+  }
+  clearSlideTimer();
+  slideTimerId = window.setInterval(advanceSlide, SLIDE_INTERVAL_MS);
 }
 
 function startSlideTimer() {
@@ -188,7 +203,43 @@ function startSlideTimer() {
   ) {
     return;
   }
-  slideTimerId = window.setInterval(goNext, SLIDE_INTERVAL_MS);
+  slideTimerId = window.setInterval(advanceSlide, SLIDE_INTERVAL_MS);
+}
+
+function isControlTarget(target) {
+  return target instanceof Element && Boolean(target.closest(HERO_CONTROL_SELECTOR));
+}
+
+function applySwipeDelta(delta) {
+  if (!canSwipe.value || Math.abs(delta) < SWIPE_THRESHOLD_PX) {
+    return false;
+  }
+  if (delta < 0) {
+    goNext();
+  } else {
+    goPrev();
+  }
+  return true;
+}
+
+function onTouchStart(event) {
+  if (!canSwipe.value || isControlTarget(event.target)) {
+    return;
+  }
+  touchSwipeActive = true;
+  swipeStartX = event.touches[0]?.clientX ?? 0;
+}
+
+function onTouchEnd(event) {
+  if (!touchSwipeActive) {
+    return;
+  }
+  touchSwipeActive = false;
+  if (isControlTarget(event.target)) {
+    return;
+  }
+  const endX = event.changedTouches[0]?.clientX ?? 0;
+  applySwipeDelta(endX - swipeStartX);
 }
 
 function pauseSlideshow() {
@@ -208,48 +259,6 @@ function onHeroFocusOut(event) {
       resumeSlideshow();
     }
   });
-}
-
-function onTouchStart(event) {
-  if (!canSwipe.value) {
-    return;
-  }
-  if (isControlTarget(event.target)) {
-    return;
-  }
-  touchSwipeActive = true;
-  swipeStartX = event.touches[0]?.clientX ?? 0;
-  swipeStartY = event.touches[0]?.clientY ?? 0;
-}
-
-function onTouchEnd(event) {
-  if (!touchSwipeActive) {
-    return;
-  }
-  touchSwipeActive = false;
-
-  if (isControlTarget(event.target)) {
-    return;
-  }
-
-  const endX = event.changedTouches[0]?.clientX ?? 0;
-  const endY = event.changedTouches[0]?.clientY ?? 0;
-  const deltaX = endX - swipeStartX;
-  const deltaY = endY - swipeStartY;
-
-  if (Math.abs(deltaY) > Math.abs(deltaX)) {
-    return;
-  }
-
-  if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) {
-    return;
-  }
-
-  if (deltaX < 0) {
-    goNext();
-  } else {
-    goPrev();
-  }
 }
 
 watch(
@@ -289,9 +298,13 @@ onUnmounted(() => {
 }
 
 .home-hero__inner {
-  max-width: 1100px;
+  max-width: none;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .home-hero__image--placeholder {
@@ -307,42 +320,54 @@ onUnmounted(() => {
 
 .home-hero__slideshow {
   position: relative;
-  display: block;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 0;
-}
-
-.home-hero__slideshow--swipeable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  touch-action: pan-y;
-  -webkit-user-select: none;
-  user-select: none;
-  cursor: grab;
-}
-
-.home-hero__slideshow--swipeable:active {
-  cursor: grabbing;
+  max-width: 100%;
+  height: 100%;
+  margin: 0;
+  line-height: 0;
 }
 
 .home-hero__slideshow-sizer {
   visibility: hidden;
   pointer-events: none;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .home-hero__slideshow-photo {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
   opacity: 0;
   transform: translate(-50%, -50%);
   transition: opacity 0.8s ease;
+  object-fit: contain;
+  object-position: center;
 }
 
 .home-hero__slideshow-photo.is-active {
   opacity: 1;
+}
+
+.home-hero__slideshow--swipeable {
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.home-hero__slideshow--swipeable:active {
+  cursor: grabbing;
 }
 
 .home-hero__nav {
@@ -380,10 +405,12 @@ onUnmounted(() => {
 
 .home-hero__nav--prev {
   left: 0.5rem;
+  right: auto;
 }
 
 .home-hero__nav--next {
   right: 0.5rem;
+  left: auto;
 }
 
 .home-hero__dots {
@@ -423,29 +450,38 @@ onUnmounted(() => {
 }
 
 .home-hero__cta {
-  margin: var(--space-lg) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
   padding: 0;
+  width: 100%;
+  min-height: 5rem;
   text-align: center;
   line-height: normal;
+  flex-shrink: 0;
 }
 
 .home-hero__cta-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 11rem;
-  min-height: 40px;
-  padding: 0 1.75rem;
+  width: 50vw;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 0 3rem;
   border: 1px solid var(--color-text);
   background: transparent;
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
   box-shadow: none;
+  box-sizing: border-box;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -462,29 +498,30 @@ onUnmounted(() => {
 }
 
 @media (min-width: 641px) {
-  .home-hero {
-    padding-top: var(--space-sm);
-    padding-bottom: var(--space-2xl);
-  }
-
   .home-hero__inner {
     max-width: none;
     padding: 0;
   }
 
+  .home-hero__stage {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+  }
+
+  .home-hero__image,
   .home-hero__image--placeholder {
-    max-width: 85vw;
-    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-xl));
+    max-width: 100%;
+    width: auto;
+  }
+
+  .home-hero__image--placeholder {
+    margin: 0;
   }
 }
 
 @media (max-width: 640px) {
-  .home-hero {
-    padding: 0 0 var(--space-xl);
-  }
-
   .home-hero__inner {
-    padding: 0;
     max-width: none;
   }
 
@@ -503,27 +540,32 @@ onUnmounted(() => {
 
   .home-hero__nav--prev {
     left: 0.35rem;
+    right: auto;
   }
 
   .home-hero__nav--next {
     right: 0.35rem;
+    left: auto;
   }
 
   .home-hero__slideshow {
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0;
   }
 
   .home-hero__cta {
-    margin-top: var(--space-md);
-    padding: 0 var(--mobile-safe-inset-x, 20px);
+    margin: 0;
+    padding: 0;
+    min-height: 5rem;
+    text-align: center;
   }
 
   .home-hero__cta-link {
-    width: 100%;
-    max-width: 320px;
-    min-height: 44px;
+    width: 50vw;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    font-size: 0.875rem;
   }
 }
 

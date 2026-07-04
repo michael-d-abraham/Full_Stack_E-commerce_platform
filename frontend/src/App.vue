@@ -17,12 +17,7 @@
           <span></span>
           <span></span>
         </button>
-        <SiteBrandMark
-          to="/"
-          variant="header"
-          class="app-brand"
-          :aria-label="brandHomeAriaLabel"
-        />
+        <router-link to="/" class="app-brand" :aria-label="brandHomeAriaLabel">{{ siteName }}</router-link>
         <nav class="app-nav app-nav--desktop" aria-label="Main">
           <router-link to="/" class="app-nav__link" exact-active-class="app-nav__link--active">
             Home
@@ -77,7 +72,6 @@ import CartIcon from './components/cart/CartIcon.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
 import MobileMenuDrawer from './components/mobile/MobileMenuDrawer.vue';
 import SiteFooter from './components/layout/SiteFooter.vue';
-import SiteBrandMark from './components/layout/SiteBrandMark.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
@@ -88,7 +82,7 @@ import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.
 const MOBILE_HEADER_MQ = '(max-width: 640px)';
 
 const route = useRoute();
-const { brandHomeAriaLabel } = useSiteBrand();
+const { siteName, brandHomeAriaLabel } = useSiteBrand();
 const { drawerOpen } = useCart();
 const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileNav();
 const isMobile = useMediaQuery(MOBILE_HEADER_MQ);
@@ -278,6 +272,10 @@ const showSocialFooter = computed(() => {
 
 .app-brand {
   font-family: var(--font-sans);
+  font-size: 1.875rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   text-decoration: none;
   color: var(--color-text);
   line-height: 1;
@@ -475,6 +473,8 @@ const showSocialFooter = computed(() => {
     grid-column: 2;
     grid-row: 1;
     justify-self: center;
+    font-size: 1.375rem;
+    letter-spacing: 0.12em;
     max-width: 100%;
     min-width: 0;
     text-align: center;
@@ -555,6 +555,11 @@ const showSocialFooter = computed(() => {
   .app-header__bar {
     padding-left: var(--mobile-safe-inset-x);
     padding-right: var(--mobile-safe-inset-x);
+  }
+
+  .app-brand {
+    font-size: 1.25rem;
+    letter-spacing: 0.1em;
   }
 
   .app-nav--desktop .app-nav__link {

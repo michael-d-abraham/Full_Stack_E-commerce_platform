@@ -1,12 +1,7 @@
 const {
     DEFAULT_SITE_NAME,
-    BRAND_DISPLAY_TEXT,
-    BRAND_DISPLAY_IMAGE,
     resolveSiteName,
-    resolveBrandDisplayMode,
-    normalizeSiteNameInput,
-    normalizeBrandDisplayMode,
-    normalizeSiteLogoUrlInput
+    normalizeSiteNameInput
 } = require('../../shared/siteBrandDefaults');
 
 describe('siteBrandDefaults', () => {
@@ -27,24 +22,5 @@ describe('siteBrandDefaults', () => {
 
     it('normalizeSiteNameInput accepts empty string', () => {
         expect(normalizeSiteNameInput('')).toEqual({ site_name: '' });
-    });
-
-    it('normalizeBrandDisplayMode defaults to text', () => {
-        expect(normalizeBrandDisplayMode('')).toBe(BRAND_DISPLAY_TEXT);
-        expect(normalizeBrandDisplayMode('invalid')).toBe(BRAND_DISPLAY_TEXT);
-        expect(normalizeBrandDisplayMode('image')).toBe(BRAND_DISPLAY_IMAGE);
-    });
-
-    it('resolveBrandDisplayMode requires a logo URL for image mode', () => {
-        expect(resolveBrandDisplayMode('image', '')).toBe(BRAND_DISPLAY_TEXT);
-        expect(resolveBrandDisplayMode('image', 'https://cdn.example/logo.png')).toBe(
-            BRAND_DISPLAY_IMAGE
-        );
-    });
-
-    it('normalizeSiteLogoUrlInput trims values', () => {
-        expect(normalizeSiteLogoUrlInput('  https://cdn.example/logo.png  ')).toEqual({
-            site_logo_url: 'https://cdn.example/logo.png'
-        });
     });
 });

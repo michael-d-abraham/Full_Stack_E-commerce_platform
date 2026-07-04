@@ -9,7 +9,7 @@
       </header>
 
       <div class="home-about__grid">
-        <blockquote v-if="header" class="home-about__quote">
+        <blockquote v-if="header" class="home-about__quote home-quote">
           {{ formattedQuote }}
         </blockquote>
 
@@ -139,28 +139,6 @@ const visibleStatement = computed(() => {
 
 .home-about__quote {
   grid-area: quote;
-  margin: 0;
-  padding: 0;
-  border: none;
-  font-family: var(--font-sans);
-  font-size: clamp(2rem, 4.2vw, 3.25rem);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  color: var(--color-text);
-  white-space: pre-line;
-  quotes: none;
-}
-
-.home-about__quote::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  margin-top: var(--space-lg);
-  background: currentColor;
-  opacity: 0.2;
 }
 
 .home-about__statement {
@@ -234,10 +212,6 @@ const visibleStatement = computed(() => {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     column-gap: var(--space-lg);
   }
-
-  .home-about__quote {
-    font-size: clamp(1.75rem, 5vw, 2.5rem);
-  }
 }
 
 @media (max-width: 640px) {
@@ -272,15 +246,6 @@ const visibleStatement = computed(() => {
     min-height: 18rem;
     max-width: min(100%, 22rem);
     margin: 0 auto;
-  }
-
-  .home-about__quote {
-    font-size: clamp(1.625rem, 7.5vw, 2.25rem);
-    text-align: left;
-  }
-
-  .home-about__quote::after {
-    margin-top: var(--space-md);
   }
 
   .home-about__statement {
