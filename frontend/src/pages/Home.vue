@@ -6,7 +6,7 @@
       <HomeHero
         :image-urls="heroImageUrls"
         :image-url="content.hero_image_url"
-        :quote="content.about_header"
+        :quote="content.hero_quote"
       />
       <HomeFeaturedProducts
         v-if="featuredProducts.length"

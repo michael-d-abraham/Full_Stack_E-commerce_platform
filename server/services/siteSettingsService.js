@@ -571,6 +571,8 @@ function toAdminHomePagePayload(doc) {
         featured_title: normalizeOptionalText(base.featured_title),
         featured_products: padFeaturedProductIds(base.featured_products),
         about_title: normalizeOptionalText(base.about_title),
+        hero_quote:
+            normalizeOptionalText(base.hero_quote) || normalizeOptionalText(base.about_header),
         about_header: normalizeOptionalText(base.about_header),
         about_text: normalizeOptionalText(base.about_text),
         about_image_url: normalizeOptionalText(base.about_image_url)
@@ -637,6 +639,7 @@ function normalizeHomePageInput(body) {
             featured_title: normalizeOptionalText(body.featured_title),
             featured_products,
             about_title: normalizeOptionalText(body.about_title),
+            hero_quote: normalizeOptionalText(body.hero_quote),
             about_header: normalizeOptionalText(body.about_header),
             about_text: normalizeOptionalText(body.about_text),
             about_image_url

@@ -52,6 +52,7 @@ function createEmptyForm() {
     featured_title: '',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, emptyFeaturedProduct),
     about_title: '',
+    hero_quote: '',
     about_header: '',
     about_text: '',
     about_image_url: ''
@@ -80,6 +81,7 @@ function applySettings(data) {
     next.hero_image_url = next.hero_image_urls[0] || '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
     next.about_title = data.about_title != null ? String(data.about_title) : '';
+    next.hero_quote = data.hero_quote != null ? String(data.hero_quote) : '';
     next.about_header = data.about_header != null ? String(data.about_header) : '';
     next.about_text = data.about_text != null ? String(data.about_text) : '';
     next.about_image_url =
@@ -98,6 +100,7 @@ function applySettings(data) {
   form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
   form.featured_title = next.featured_title;
   form.about_title = next.about_title;
+  form.hero_quote = next.hero_quote;
   form.about_header = next.about_header;
   form.about_text = next.about_text;
   form.about_image_url = next.about_image_url;
@@ -120,6 +123,7 @@ function payloadFromForm() {
       product_id: row.product_id
     })),
     about_title: form.about_title,
+    hero_quote: form.hero_quote,
     about_header: form.about_header,
     about_text: form.about_text,
     about_image_url: form.about_image_url

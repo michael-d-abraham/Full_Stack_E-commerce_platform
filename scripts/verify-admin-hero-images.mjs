@@ -29,6 +29,7 @@ function payloadFromForm(hero_image_urls, formExtras = {}) {
         featured_title: '',
         featured_products: emptyFeaturedProducts(),
         about_title: '',
+        hero_quote: '',
         about_header: '',
         about_text: '',
         about_image_url: '',

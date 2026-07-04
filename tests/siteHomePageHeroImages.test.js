@@ -36,6 +36,7 @@ function homePageBody(overrides = {}) {
         featured_title: '',
         featured_products: emptyFeaturedProducts(),
         about_title: '',
+        hero_quote: '',
         about_header: '',
         about_text: '',
         about_image_url: '',
@@ -162,6 +163,30 @@ describe('home page hero_image_urls API', () => {
         expect(res.status).toBe(200);
         expect(res.body.hero_image_urls).toEqual([URL_ONE]);
         expect(res.body.hero_image_url).toBe(URL_ONE);
+    });
+
+    it('PUT stores hero_quote and about_header independently', async () => {
+        const cookie = await adminCookie();
+
+        const putRes = await request(app)
+            .put('/api/admin/site/home-page')
+            .set('Cookie', cookie)
+            .send(
+                homePageBody({
+                    hero_quote: 'Hero quote only',
+                    about_header: 'About quote only'
+                })
+            );
+
+        expect(putRes.status).toBe(200);
+        expect(putRes.body.hero_quote).toBe('Hero quote only');
+        expect(putRes.body.about_header).toBe('About quote only');
+
+        const publicGetRes = await request(app).get('/api/site/home-page');
+
+        expect(publicGetRes.status).toBe(200);
+        expect(publicGetRes.body.hero_quote).toBe('Hero quote only');
+        expect(publicGetRes.body.about_header).toBe('About quote only');
     });
 
     it('rejects invalid URLs in hero_image_urls', async () => {

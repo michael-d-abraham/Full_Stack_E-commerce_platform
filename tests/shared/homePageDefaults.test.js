@@ -51,14 +51,20 @@ describe('shared/homePageDefaults', () => {
         ).toEqual(['https://example.com/one.jpg', 'https://example.com/two.jpg']);
     });
 
-    it('mergeHomePageTextDefaults sets hero_image_url to first hero_image_urls item', () => {
+    it('mergeHomePageTextDefaults keeps hero_quote and about_header independent', () => {
         const merged = mergeHomePageTextDefaults({
-            hero_image_urls: ['https://example.com/first.jpg', 'https://example.com/second.jpg']
+            hero_quote: 'Hero line',
+            about_header: 'About line'
         });
-        expect(merged.hero_image_urls).toEqual([
-            'https://example.com/first.jpg',
-            'https://example.com/second.jpg'
-        ]);
-        expect(merged.hero_image_url).toBe('https://example.com/first.jpg');
+        expect(merged.hero_quote).toBe('Hero line');
+        expect(merged.about_header).toBe('About line');
+    });
+
+    it('mergeHomePageTextDefaults falls back hero_quote to about_header when unset', () => {
+        const merged = mergeHomePageTextDefaults({
+            about_header: 'Shared legacy quote'
+        });
+        expect(merged.hero_quote).toBe('Shared legacy quote');
+        expect(merged.about_header).toBe('Shared legacy quote');
     });
 });

@@ -25,6 +25,7 @@ const homePageSchema = new mongoose.Schema(
         featured_title: { type: String, default: '' },
         featured_products: { type: [homeFeaturedProductSchema], default: () => [] },
         about_title: { type: String, default: '' },
+        hero_quote: { type: String, default: '' },
         about_header: { type: String, default: '' },
         about_text: { type: String, default: '' },
         about_image_url: { type: String, default: '' }

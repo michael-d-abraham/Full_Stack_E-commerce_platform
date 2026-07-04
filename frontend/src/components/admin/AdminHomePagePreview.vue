@@ -7,7 +7,7 @@
           <label class="admin-home-preview__hero-quote-field">
             <span class="admin-home-preview__about-text-label">Quote</span>
             <textarea
-              v-model="form.about_header"
+              v-model="form.hero_quote"
               class="admin-home-preview__hero-quote-input"
               rows="4"
               placeholder="Art is how we decorate space. Music is how we decorate time."
