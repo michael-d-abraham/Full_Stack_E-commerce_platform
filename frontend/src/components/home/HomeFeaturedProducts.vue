@@ -12,6 +12,13 @@
       :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
       aria-hidden="true"
     />
+    <div
+      v-if="backgroundImageUrl"
+      ref="overlayRef"
+      class="home-featured__background-overlay home-section__background-overlay"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-featured__container mobile-safe-container">
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
@@ -52,10 +59,11 @@ const props = defineProps({
 
 const sectionRef = ref(null);
 const backgroundRef = ref(null);
+const overlayRef = ref(null);
 const isMobile = useMediaQuery(MOBILE_MQ);
 
 const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
-useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground);
+useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
 
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products

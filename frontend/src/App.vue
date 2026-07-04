@@ -162,16 +162,13 @@ const showSocialFooter = computed(() => {
   z-index: 1000;
   transform: translateY(0);
   will-change: transform;
-  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.04),
     0 6px 20px -6px rgba(0, 0, 0, 0.1);
   transition:
     transform 960ms cubic-bezier(0.18, 1, 0.22, 1),
-    background-color 960ms ease,
     box-shadow 960ms ease,
     border-color 960ms ease;
 }

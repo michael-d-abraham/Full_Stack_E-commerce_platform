@@ -16,13 +16,21 @@
       :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
       aria-hidden="true"
     />
+    <div
+      v-if="backgroundImageUrl"
+      ref="overlayRef"
+      class="home-hero__background-overlay home-section__background-overlay"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-hero__inner hero-display__inner">
       <div class="home-hero__presentation">
-        <blockquote v-if="formattedQuote" class="home-hero__quote home-quote">
+        <blockquote v-if="formattedQuote" ref="quoteRef" class="home-hero__quote home-quote">
           {{ formattedQuote }}
         </blockquote>
 
         <div class="hero-display__stage home-hero__stage">
+        <div ref="photoParallaxRef" class="home-hero__photo-parallax">
         <template v-if="heroImages.length === 0">
           <div
             class="home-hero__image home-hero__image--placeholder"
@@ -101,6 +109,7 @@
           </div>
         </template>
         </div>
+        </div>
       </div>
     </div>
   </section>
@@ -110,6 +119,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
+import { useScrollParallax } from '../../composables/useScrollParallax.js';
 
 const SLIDE_INTERVAL_MS = 6000;
 const SWIPE_THRESHOLD_PX = 40;
@@ -126,11 +136,14 @@ const currentIndex = ref(0);
 const isPaused = ref(false);
 const heroSectionRef = ref(null);
 const backgroundRef = ref(null);
+const overlayRef = ref(null);
+const photoParallaxRef = ref(null);
+const quoteRef = ref(null);
 const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 const isMobile = useMediaQuery('(max-width: 640px)');
 
 const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
-useSectionBackgroundParallax(heroSectionRef, backgroundRef, hasBackground);
+useSectionBackgroundParallax(heroSectionRef, backgroundRef, hasBackground, overlayRef);
 
 let slideTimerId = null;
 let swipeStartX = 0;
@@ -147,6 +160,12 @@ const heroImages = computed(() => {
   return legacy ? [legacy] : [];
 });
 
+const hasHeroPhotos = computed(() => heroImages.value.length > 0);
+useScrollParallax(heroSectionRef, photoParallaxRef, hasHeroPhotos, {
+  desktop: 0.16,
+  mobile: 0.11
+});
+
 const canSwipe = computed(() => isMobile.value && heroImages.value.length >= 2);
 
 const formattedQuote = computed(() => {
@@ -158,6 +177,14 @@ const formattedQuote = computed(() => {
     return raw;
   }
   return `"${raw}"`;
+});
+
+const hasQuote = computed(() => Boolean(formattedQuote.value));
+useScrollParallax(heroSectionRef, quoteRef, hasQuote, {
+  desktop: 0.14,
+  mobile: 0,
+  axis: 'x',
+  desktopOnly: true
 });
 
 function clearSlideTimer() {
@@ -303,6 +330,12 @@ onUnmounted(() => {
 .home-hero__inner {
   position: relative;
   z-index: 1;
+}
+
+.home-hero__photo-parallax {
+  position: relative;
+  width: 100%;
+  will-change: transform;
 }
 
 .home-hero__image {
@@ -529,6 +562,10 @@ onUnmounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-hero__photo-parallax {
+    will-change: auto;
+  }
+
   .home-hero__slideshow-photo {
     transition: none;
   }

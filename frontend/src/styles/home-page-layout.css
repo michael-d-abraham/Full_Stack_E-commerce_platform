@@ -37,11 +37,41 @@
   pointer-events: none;
 }
 
+/* Mobile-only overlay layer — duplicate texture with faster parallax for depth */
+.home-section__background-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
 @media (min-width: 641px) {
   .home-section--has-background .home-section__background {
     height: 118%;
     top: -9%;
     will-change: transform;
+  }
+
+  .home-section__background-overlay {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-section--has-background .home-section__background,
+  .home-section--has-background .home-section__background-overlay {
+    height: 112%;
+    top: -6%;
+    will-change: transform;
+  }
+
+  /* Slight scale/position offset so overlay and background do not stack identically at rest */
+  .home-section__background-overlay {
+    background-size: 106%;
+    background-position: center 46%;
   }
 }
 
@@ -104,10 +134,13 @@
     margin: 0;
     padding: 0 var(--home-hero-edge-x);
     box-sizing: border-box;
+    position: relative;
   }
 
   .home-hero__quote {
     grid-column: 1;
+    position: relative;
+    z-index: 2;
     min-width: 0;
     max-width: 100%;
     align-self: stretch;
@@ -115,6 +148,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    will-change: transform;
   }
 
   .home-hero__quote.home-quote::after {
@@ -131,7 +165,7 @@
     min-height: 0;
     margin: 0;
     position: relative;
-    isolation: isolate;
+    z-index: 1;
     display: flex;
     align-items: flex-start;
     justify-content: center;

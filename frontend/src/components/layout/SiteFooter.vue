@@ -204,8 +204,8 @@ onMounted(async () => {
     justify-items: center;
     text-align: center;
     gap: var(--space-lg) var(--space-xl);
-    padding: var(--space-xl) var(--mobile-safe-inset-x)
-      calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+    padding: var(--space-md) var(--mobile-safe-inset-x)
+      calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   }
 
   .site-footer__main--two-cols {

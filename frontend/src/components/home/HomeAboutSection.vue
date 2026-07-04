@@ -12,6 +12,13 @@
       :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
       aria-hidden="true"
     />
+    <div
+      v-if="backgroundImageUrl"
+      ref="overlayRef"
+      class="home-about__background-overlay home-section__background-overlay"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-about__container mobile-safe-container">
       <header class="home-about__masthead">
         <h2 id="home-about-heading" class="home-about__title">
@@ -25,7 +32,7 @@
           {{ formattedQuote }}
         </blockquote>
 
-        <figure v-if="imageUrl" class="home-about__media">
+        <figure v-if="imageUrl" ref="photoParallaxRef" class="home-about__media">
           <img
             class="home-about__image"
             :src="imageUrl"
@@ -53,6 +60,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
+import { useScrollParallax } from '../../composables/useScrollParallax.js';
 
 const STATEMENT_PREVIEW_CHARS = 320;
 
@@ -66,10 +74,18 @@ const props = defineProps({
 
 const sectionRef = ref(null);
 const backgroundRef = ref(null);
+const overlayRef = ref(null);
+const photoParallaxRef = ref(null);
 const expanded = ref(false);
 
 const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
-useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground);
+useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
+
+const hasPortrait = computed(() => Boolean(String(props.imageUrl || '').trim()));
+useScrollParallax(sectionRef, photoParallaxRef, hasPortrait, {
+  desktop: 0.16,
+  mobile: 0.11
+});
 
 const formattedQuote = computed(() => {
   const raw = props.header.trim();
@@ -205,6 +221,7 @@ const visibleStatement = computed(() => {
   align-self: stretch;
   display: flex;
   justify-content: flex-end;
+  will-change: transform;
 }
 
 .home-about__image {
@@ -273,6 +290,11 @@ const visibleStatement = computed(() => {
 
   .home-about__statement {
     max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-about__media {
+    will-change: auto;
   }
 }
 </style>
