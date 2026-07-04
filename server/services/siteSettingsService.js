@@ -577,8 +577,7 @@ function toAdminHomePagePayload(doc) {
         featured_title: normalizeOptionalText(base.featured_title),
         featured_products: padFeaturedProductIds(base.featured_products),
         about_title: normalizeOptionalText(base.about_title),
-        hero_quote:
-            normalizeOptionalText(base.hero_quote) || normalizeOptionalText(base.about_header),
+        hero_quote: normalizeOptionalText(base.hero_quote),
         about_header: normalizeOptionalText(base.about_header),
         about_text: normalizeOptionalText(base.about_text),
         about_image_url: normalizeOptionalText(base.about_image_url)

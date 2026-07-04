@@ -60,11 +60,11 @@ describe('shared/homePageDefaults', () => {
         expect(merged.about_header).toBe('About line');
     });
 
-    it('mergeHomePageTextDefaults falls back hero_quote to about_header when unset', () => {
+    it('mergeHomePageTextDefaults does not copy about_header into hero_quote', () => {
         const merged = mergeHomePageTextDefaults({
-            about_header: 'Shared legacy quote'
+            about_header: 'About only'
         });
-        expect(merged.hero_quote).toBe('Shared legacy quote');
-        expect(merged.about_header).toBe('Shared legacy quote');
+        expect(merged.hero_quote).toBe(DEFAULT_HOME_PAGE.hero_quote);
+        expect(merged.about_header).toBe('About only');
     });
 });

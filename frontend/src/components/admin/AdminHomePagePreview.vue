@@ -3,9 +3,10 @@
     <!-- Hero (mirrors HomeHero) -->
     <section class="admin-home-preview__hero hero-display" aria-label="Hero preview">
       <div class="admin-home-preview__hero-inner hero-display__inner">
+        <h3 class="admin-home-preview__block-title">Hero section</h3>
         <div class="admin-home-preview__hero-presentation">
           <label class="admin-home-preview__hero-quote-field">
-            <span class="admin-home-preview__about-text-label">Quote</span>
+            <span class="admin-home-preview__field-label">Hero quote</span>
             <textarea
               v-model="form.hero_quote"
               class="admin-home-preview__hero-quote-input"
@@ -95,6 +96,7 @@
     <!-- Featured (mirrors HomeFeaturedProducts) -->
     <section class="admin-home-preview__featured" aria-label="Featured products preview">
       <div class="admin-home-preview__container">
+        <h3 class="admin-home-preview__block-title">Featured section</h3>
         <input
           v-model="form.featured_title"
           type="text"
@@ -124,6 +126,7 @@
     <!-- About (mirrors HomeAboutSection) -->
     <section class="admin-home-preview__about" aria-label="About preview">
       <div class="admin-home-preview__container admin-home-preview__about-inner">
+        <h3 class="admin-home-preview__block-title">About section</h3>
         <header class="admin-home-preview__about-masthead">
           <input
             v-model="form.about_title"
@@ -137,13 +140,13 @@
         </header>
         <div class="admin-home-preview__about-grid">
           <label class="admin-home-preview__about-quote-field">
-            <span class="admin-home-preview__about-text-label">Quote</span>
+            <span class="admin-home-preview__field-label">About quote</span>
             <textarea
               v-model="form.about_header"
               class="admin-home-preview__about-quote-input"
               rows="4"
               placeholder="A bold quote that defines the artist"
-              aria-label="Artist quote"
+              aria-label="About quote"
               :disabled="disabled"
             />
           </label>
@@ -208,6 +211,24 @@ const takenFeaturedProductIds = computed(() =>
   width: 100%;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
+}
+
+.admin-home-preview__block-title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.admin-home-preview__field-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
 }
 
 /* —— Hero (uses hero-display.css for image scale limits) —— */

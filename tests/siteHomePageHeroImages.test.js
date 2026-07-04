@@ -189,6 +189,27 @@ describe('home page hero_image_urls API', () => {
         expect(publicGetRes.body.about_header).toBe('About quote only');
     });
 
+    it('admin GET returns hero_quote without copying about_header', async () => {
+        const cookie = await adminCookie();
+
+        await request(app)
+            .put('/api/admin/site/home-page')
+            .set('Cookie', cookie)
+            .send(
+                homePageBody({
+                    about_header: 'About quote only'
+                })
+            );
+
+        const adminGetRes = await request(app)
+            .get('/api/admin/site/home-page')
+            .set('Cookie', cookie);
+
+        expect(adminGetRes.status).toBe(200);
+        expect(adminGetRes.body.about_header).toBe('About quote only');
+        expect(adminGetRes.body.hero_quote).toBe('');
+    });
+
     it('rejects invalid URLs in hero_image_urls', async () => {
         const cookie = await adminCookie();
 

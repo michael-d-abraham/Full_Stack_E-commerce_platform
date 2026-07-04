@@ -11,7 +11,7 @@ const DEFAULT_HOME_PAGE = {
     })),
     about_title: 'About',
     hero_quote: 'Art is how we decorate space. Music is how we decorate time.',
-    about_header: 'Art is how we decorate space. Music is how we decorate time.',
+    about_header: '',
     about_text: '',
     about_image_url: ''
 };
@@ -56,9 +56,7 @@ function mergeHomePageTextDefaults(stored) {
         about_title:
             normalizeOptionalText(base.about_title) || DEFAULT_HOME_PAGE.about_title,
         hero_quote:
-            normalizeOptionalText(base.hero_quote) ||
-            normalizeOptionalText(base.about_header) ||
-            DEFAULT_HOME_PAGE.hero_quote,
+            normalizeOptionalText(base.hero_quote) || DEFAULT_HOME_PAGE.hero_quote,
         about_header:
             normalizeOptionalText(base.about_header) || DEFAULT_HOME_PAGE.about_header,
         about_text: normalizeOptionalText(base.about_text),

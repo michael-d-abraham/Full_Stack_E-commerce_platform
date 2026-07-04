@@ -85,7 +85,8 @@ const linkProps = computed(() => {
 }
 
 .site-brand-mark--header .site-brand-mark__logo {
-  max-height: 2.25rem;
+  max-height: 3.25rem;
+  max-width: min(18rem, 60vw);
 }
 
 .site-brand-mark--footer .site-brand-mark__text {
@@ -116,8 +117,8 @@ const linkProps = computed(() => {
   }
 
   .site-brand-mark--header .site-brand-mark__logo {
-    max-height: 1.75rem;
-    max-width: min(10rem, 58vw);
+    max-height: 2.5rem;
+    max-width: min(14rem, 68vw);
   }
 }
 </style>
