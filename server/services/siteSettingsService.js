@@ -22,9 +22,9 @@ const {
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
 const { mergeBookPageLabels } = require('../utils/bookPageDefaults');
 const {
-    normalizeOptionalText: normalizeSiteNameText,
-    resolveSiteName,
-    normalizeSiteNameInput
+    resolveSiteBranding,
+    toAdminSiteBranding,
+    normalizeSiteBrandingInput
 } = require('../utils/siteBrandDefaults');
 const { isValidEmail } = require('../../shared/email');
 
@@ -163,15 +163,19 @@ async function getPublicContactEmail() {
 }
 
 function toAdminSiteBrandingPayload(doc) {
-    return {
-        site_name: normalizeSiteNameText(doc.site_name)
-    };
+    return toAdminSiteBranding({
+        site_name: doc.site_name,
+        site_name_mode: doc.site_name_mode,
+        site_name_logo_url: doc.site_name_logo_url
+    });
 }
 
 function toPublicSiteBrandingPayload(doc) {
-    return {
-        site_name: resolveSiteName(doc.site_name)
-    };
+    return resolveSiteBranding({
+        site_name: doc.site_name,
+        site_name_mode: doc.site_name_mode,
+        site_name_logo_url: doc.site_name_logo_url
+    });
 }
 
 async function getAdminSiteBranding() {
@@ -185,18 +189,20 @@ async function getPublicSiteBranding() {
 }
 
 async function updateSiteBranding(body) {
-    if (!body || typeof body !== 'object' || body.site_name === undefined) {
-        return { ok: false, status: 400, errors: ['site_name is required'] };
-    }
-
-    const parsed = normalizeSiteNameInput(body.site_name);
+    const parsed = normalizeSiteBrandingInput(body, { isValidHttpUrl });
     if (parsed.errors) {
         return { ok: false, status: 400, errors: parsed.errors };
     }
 
     const doc = await SiteSettings.findOneAndUpdate(
         { key: SETTINGS_KEY },
-        { $set: { site_name: parsed.site_name } },
+        {
+            $set: {
+                site_name: parsed.site_name,
+                site_name_mode: parsed.site_name_mode,
+                site_name_logo_url: parsed.site_name_logo_url
+            }
+        },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
