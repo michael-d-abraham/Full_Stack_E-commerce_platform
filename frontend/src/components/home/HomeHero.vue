@@ -28,8 +28,11 @@
         <template v-else>
           <div
             class="home-hero__slideshow"
+            :class="{ 'home-hero__slideshow--swipeable': canSwipe }"
             role="group"
             :aria-label="`Hero slideshow, slide ${currentIndex + 1} of ${heroImages.length}`"
+            @touchstart.passive="onTouchStart"
+            @touchend.passive="onTouchEnd"
           >
             <img
               :src="heroImages[0]"
@@ -52,7 +55,7 @@
             type="button"
             class="home-hero__nav home-hero__nav--prev"
             aria-label="Previous hero image"
-            @click="goPrev"
+            @click.stop="goPrev"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
@@ -62,7 +65,7 @@
             type="button"
             class="home-hero__nav home-hero__nav--next"
             aria-label="Next hero image"
-            @click="goNext"
+            @click.stop="goNext"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
@@ -79,7 +82,7 @@
               role="tab"
               :aria-selected="index === currentIndex"
               :aria-label="`Go to slide ${index + 1}`"
-              @click="goTo(index)"
+              @click="goToSlide(index)"
             />
           </div>
         </template>
@@ -99,6 +102,8 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 
 const SLIDE_INTERVAL_MS = 6000;
+const SWIPE_THRESHOLD_PX = 40;
+const HERO_CONTROL_SELECTOR = '.home-hero__nav, .home-hero__dot';
 
 const props = defineProps({
   imageUrls: { type: Array, default: () => [] },
@@ -108,8 +113,12 @@ const props = defineProps({
 const currentIndex = ref(0);
 const isPaused = ref(false);
 const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+const isMobile = useMediaQuery('(max-width: 640px)');
 
 let slideTimerId = null;
+let swipeStartX = 0;
+let swipeStartY = 0;
+let touchSwipeActive = false;
 
 const heroImages = computed(() => {
   const fromArray = Array.isArray(props.imageUrls)
@@ -122,7 +131,16 @@ const heroImages = computed(() => {
   return legacy ? [legacy] : [];
 });
 
+const canSwipe = computed(() => isMobile.value && heroImages.value.length > 1);
 const showOverlay = computed(() => heroImages.value.length > 0);
+
+function isControlTarget(target) {
+  return target instanceof Element && Boolean(target.closest(HERO_CONTROL_SELECTOR));
+}
+
+function wrapIndex(index, count) {
+  return ((index % count) + count) % count;
+}
 
 function clearSlideTimer() {
   if (slideTimerId != null) {
@@ -133,16 +151,32 @@ function clearSlideTimer() {
 
 function goTo(index) {
   const count = heroImages.value.length;
-  if (count < 2) return;
-  currentIndex.value = ((index % count) + count) % count;
+  if (count < 2) {
+    return;
+  }
+  currentIndex.value = wrapIndex(index, count);
+}
+
+function restartSlideTimer() {
+  if (isPaused.value || prefersReducedMotion.value || heroImages.value.length < 2) {
+    return;
+  }
+  startSlideTimer();
 }
 
 function goNext() {
   goTo(currentIndex.value + 1);
+  restartSlideTimer();
 }
 
 function goPrev() {
   goTo(currentIndex.value - 1);
+  restartSlideTimer();
+}
+
+function goToSlide(index) {
+  goTo(index);
+  restartSlideTimer();
 }
 
 function startSlideTimer() {
@@ -174,6 +208,48 @@ function onHeroFocusOut(event) {
       resumeSlideshow();
     }
   });
+}
+
+function onTouchStart(event) {
+  if (!canSwipe.value) {
+    return;
+  }
+  if (isControlTarget(event.target)) {
+    return;
+  }
+  touchSwipeActive = true;
+  swipeStartX = event.touches[0]?.clientX ?? 0;
+  swipeStartY = event.touches[0]?.clientY ?? 0;
+}
+
+function onTouchEnd(event) {
+  if (!touchSwipeActive) {
+    return;
+  }
+  touchSwipeActive = false;
+
+  if (isControlTarget(event.target)) {
+    return;
+  }
+
+  const endX = event.changedTouches[0]?.clientX ?? 0;
+  const endY = event.changedTouches[0]?.clientY ?? 0;
+  const deltaX = endX - swipeStartX;
+  const deltaY = endY - swipeStartY;
+
+  if (Math.abs(deltaY) > Math.abs(deltaX)) {
+    return;
+  }
+
+  if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) {
+    return;
+  }
+
+  if (deltaX < 0) {
+    goNext();
+  } else {
+    goPrev();
+  }
 }
 
 watch(
@@ -237,6 +313,18 @@ onUnmounted(() => {
   margin-left: auto;
   margin-right: auto;
   line-height: 0;
+}
+
+.home-hero__slideshow--swipeable {
+  width: 100%;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.home-hero__slideshow--swipeable:active {
+  cursor: grabbing;
 }
 
 .home-hero__slideshow-sizer {

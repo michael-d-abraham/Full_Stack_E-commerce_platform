@@ -62,6 +62,8 @@ const siteSettingsSchema = new mongoose.Schema(
     {
         key: { type: String, required: true, unique: true, default: 'default' },
         site_name: { type: String, default: '' },
+        brand_display_mode: { type: String, default: 'text' },
+        site_logo_url: { type: String, default: '' },
         social_links: {
             youtube: { type: socialLinkSchema, default: () => ({}) },
             instagram: { type: socialLinkSchema, default: () => ({}) },

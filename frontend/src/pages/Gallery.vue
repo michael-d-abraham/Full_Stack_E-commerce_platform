@@ -4,19 +4,30 @@
       <h1 class="page-hero-title gallery-header__title">Gallery</h1>
     </header>
 
-    <p v-if="loading" class="gallery-status">Loading…</p>
-    <p v-else-if="error" class="error">{{ error }}</p>
-    <p v-else-if="!products.length" class="gallery-status">No products yet.</p>
+    <p v-if="error" class="error gallery-status">{{ error }}</p>
+    <p v-else-if="showEmptyState" class="gallery-status">No products yet.</p>
 
-    <template v-else>
-      <section class="gallery-section" aria-label="Product gallery">
+    <Transition v-else name="gallery-content-reveal" mode="out-in">
+      <ProductGridLoadingScreen
+        v-if="!contentReady"
+        key="gallery-loading"
+        variant="page"
+        :skeleton-count="skeletonCount"
+      />
+      <section
+        v-else
+        key="gallery-content"
+        class="gallery-section"
+        aria-label="Product gallery"
+      >
         <div class="gallery-container mobile-safe-container">
           <div class="product-grid product-grid--gallery">
             <GalleryProductCard
-              v-for="p in visibleProducts"
+              v-for="(p, index) in visibleProducts"
               :key="p._id"
               :product="p"
               :show-add-to-cart="false"
+              :image-loading="index < preloadCount ? 'eager' : 'lazy'"
               navigation-mode="emit"
               @open="openProduct"
             />
@@ -29,7 +40,7 @@
           </div>
         </div>
       </section>
-    </template>
+    </Transition>
 
     <ProductDetailOverlay
       v-if="activeProductSlug"
@@ -44,8 +55,10 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getProducts } from '../services/api.js';
+import { useInitialImagePreload } from '../composables/useInitialImagePreload.js';
 import GalleryProductCard from '../components/product/GalleryProductCard.vue';
 import ProductDetailOverlay from '../components/product/ProductDetailOverlay.vue';
+import ProductGridLoadingScreen from '../components/product/ProductGridLoadingScreen.vue';
 
 const PAGE_SIZE = 8;
 
@@ -53,12 +66,22 @@ const route = useRoute();
 const router = useRouter();
 
 const products = ref([]);
-const loading = ref(true);
+const fetchLoading = ref(true);
 const error = ref('');
 const visibleCount = ref(PAGE_SIZE);
 
 const visibleProducts = computed(() => products.value.slice(0, visibleCount.value));
 const hasMore = computed(() => visibleCount.value < products.value.length);
+
+const { imagesReady, preloadCount, isMobile } = useInitialImagePreload(products, {
+  enabled: computed(() => !fetchLoading.value && !error.value && products.value.length > 0)
+});
+
+const contentReady = computed(() => !fetchLoading.value && imagesReady.value);
+const showEmptyState = computed(
+  () => contentReady.value && !error.value && !products.value.length
+);
+const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
 
 // Future prev/next in overlay: pass visibleProducts (or products) slugs into
 // ProductDetailOverlay and navigate with router.push({ query: { product: nextSlug } }).
@@ -92,7 +115,7 @@ function loadMore() {
 }
 
 onMounted(async () => {
-  loading.value = true;
+  fetchLoading.value = true;
   error.value = '';
   try {
     products.value = await getProducts();
@@ -100,7 +123,7 @@ onMounted(async () => {
   } catch (e) {
     error.value = e.message || 'Failed to load products';
   } finally {
-    loading.value = false;
+    fetchLoading.value = false;
   }
 });
 </script>
@@ -169,6 +192,23 @@ onMounted(async () => {
   background: #000;
   color: #fff;
   opacity: 1;
+}
+
+.gallery-content-reveal-enter-active,
+.gallery-content-reveal-leave-active {
+  transition: opacity 360ms ease;
+}
+
+.gallery-content-reveal-enter-from,
+.gallery-content-reveal-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-content-reveal-enter-active,
+  .gallery-content-reveal-leave-active {
+    transition: none;
+  }
 }
 
 @media (max-width: 640px) {

@@ -12,15 +12,22 @@
         <div class="gallery-art-frame" :class="galleryArtOrientationClass">
           <div class="gallery-art-mat">
             <img
-              v-if="primaryProductImageUrl(product)"
+              v-if="primaryProductImageUrl(product) && !galleryImageFailed"
               ref="galleryImageRef"
               class="product-image gallery-art-image"
+              :class="{ 'gallery-art-image--loaded': galleryImageLoaded }"
               :src="primaryProductImageUrl(product)"
               :alt="thumbAlt(product)"
-              loading="lazy"
+              :loading="imageLoading"
+              decoding="async"
               @load="onGalleryImageLoad"
+              @error="onGalleryImageError"
             />
-            <span v-else class="product-image product-image--placeholder gallery-art-image">No image</span>
+            <span
+              v-else
+              class="product-image product-image--placeholder gallery-art-image gallery-art-image--loaded"
+            >No image</span>
+            <span class="gallery-art-view-hint" aria-hidden="true">View</span>
           </div>
         </div>
       </div>
@@ -38,13 +45,17 @@
       >
         <div class="product-image-frame">
           <img
-            v-if="primaryProductImageUrl(product)"
+            v-if="primaryProductImageUrl(product) && !cartImageFailed"
             class="product-image"
+            :class="{ 'product-image--loaded': cartImageLoaded }"
             :src="primaryProductImageUrl(product)"
             :alt="thumbAlt(product)"
-            loading="lazy"
+            :loading="imageLoading"
+            decoding="async"
+            @load="onCartImageLoad"
+            @error="onCartImageError"
           />
-          <span v-else class="product-image product-image--placeholder">No image</span>
+          <span v-else class="product-image product-image--placeholder product-image--loaded">No image</span>
         </div>
       </router-link>
 
@@ -92,6 +103,11 @@ const props = defineProps({
   showAdded: { type: Boolean, default: false },
   previewOnly: { type: Boolean, default: false },
   showAddToCart: { type: Boolean, default: true },
+  imageLoading: {
+    type: String,
+    default: 'lazy',
+    validator: (value) => value === 'lazy' || value === 'eager'
+  },
   navigationMode: {
     type: String,
     default: 'route',
@@ -103,6 +119,10 @@ const emit = defineEmits(['added', 'open']);
 
 const galleryArtOrientation = ref('gallery-art--square');
 const galleryImageRef = ref(null);
+const galleryImageLoaded = ref(false);
+const galleryImageFailed = ref(false);
+const cartImageLoaded = ref(false);
+const cartImageFailed = ref(false);
 
 const galleryArtOrientationClass = computed(() => galleryArtOrientation.value);
 
@@ -122,14 +142,37 @@ function applyGalleryArtOrientation(img) {
   galleryArtOrientation.value = 'gallery-art--square';
 }
 
+function markGalleryImageLoaded(img) {
+  galleryImageLoaded.value = true;
+  applyGalleryArtOrientation(img);
+}
+
 function onGalleryImageLoad(event) {
-  applyGalleryArtOrientation(event.target);
+  markGalleryImageLoaded(event.target);
+}
+
+function onGalleryImageError() {
+  galleryImageFailed.value = true;
+  galleryImageLoaded.value = true;
+}
+
+function onCartImageLoad() {
+  cartImageLoaded.value = true;
+}
+
+function onCartImageError() {
+  cartImageFailed.value = true;
+  cartImageLoaded.value = true;
 }
 
 onMounted(() => {
   nextTick(() => {
     if (galleryImageRef.value?.complete) {
-      applyGalleryArtOrientation(galleryImageRef.value);
+      if (galleryImageRef.value.naturalWidth) {
+        markGalleryImageLoaded(galleryImageRef.value);
+      } else {
+        onGalleryImageError();
+      }
     }
   });
 });

@@ -1,83 +1,5 @@
 <template>
   <div class="admin-home-preview">
-    <!-- About (mirrors HomeAboutSection) -->
-    <section class="admin-home-preview__about" aria-label="About preview">
-      <div class="admin-home-preview__container admin-home-preview__about-inner">
-        <header class="admin-home-preview__about-masthead">
-          <input
-            v-model="form.about_title"
-            type="text"
-            class="admin-home-preview__about-name"
-            placeholder="Artist name"
-            aria-label="Artist name"
-            :disabled="disabled"
-          />
-          <div class="admin-home-preview__about-divider" aria-hidden="true" />
-        </header>
-        <div class="admin-home-preview__about-grid">
-          <label class="admin-home-preview__about-quote-field">
-            <span class="admin-home-preview__about-text-label">Quote</span>
-            <textarea
-              v-model="form.about_header"
-              class="admin-home-preview__about-quote-input"
-              rows="4"
-              placeholder="A bold quote that defines the artist"
-              aria-label="Artist quote"
-              :disabled="disabled"
-            />
-          </label>
-
-          <AdminHomePreviewImageSlot
-            class="admin-home-preview__about-image-wrap"
-            :image-url="form.about_image_url"
-            :disabled="disabled"
-            natural-display
-            aria-label="Artist portrait"
-            @pick="$emit('pick-image', { type: 'about' })"
-            @remove="$emit('remove-image', { type: 'about' })"
-          />
-
-          <label class="admin-home-preview__about-text-field">
-            <span class="admin-home-preview__about-text-label">Artist statement</span>
-            <textarea
-              v-model="form.about_text"
-              class="admin-home-preview__about-text-input"
-              rows="5"
-              placeholder="A concise artist statement (3–5 sentences)"
-              aria-label="Artist statement"
-              :disabled="disabled"
-            />
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured (mirrors HomeFeaturedProducts) -->
-    <section class="admin-home-preview__featured" aria-label="Featured products preview">
-      <div class="admin-home-preview__container">
-        <input
-          v-model="form.featured_title"
-          type="text"
-          class="admin-home-preview__section-title page-hero-title"
-          placeholder="Featured products"
-          aria-label="Featured section title"
-        />
-        <div class="admin-home-preview__featured-grid">
-          <AdminHomeFeaturedSlot
-            v-for="(item, index) in form.featured_products"
-            :key="'preview-featured-' + index"
-            :product-id="item.product_id"
-            :slot-number="index + 1"
-            :mobile-only="index < 3"
-            :catalog-products="catalogProducts"
-            :taken-product-ids="takenFeaturedProductIds"
-            :disabled="disabled"
-            @update:product-id="item.product_id = $event"
-          />
-        </div>
-      </div>
-    </section>
-
     <!-- Hero (mirrors HomeHero) -->
     <section class="admin-home-preview__hero hero-display" aria-label="Hero preview">
       <div class="admin-home-preview__hero-inner hero-display__inner">
@@ -160,6 +82,84 @@
           >
             Add hero image
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured (mirrors HomeFeaturedProducts) -->
+    <section class="admin-home-preview__featured" aria-label="Featured products preview">
+      <div class="admin-home-preview__container">
+        <input
+          v-model="form.featured_title"
+          type="text"
+          class="admin-home-preview__section-title page-hero-title"
+          placeholder="Featured products"
+          aria-label="Featured section title"
+        />
+        <div class="admin-home-preview__featured-grid">
+          <AdminHomeFeaturedSlot
+            v-for="(item, index) in form.featured_products"
+            :key="'preview-featured-' + index"
+            :product-id="item.product_id"
+            :slot-number="index + 1"
+            :mobile-only="index < 3"
+            :catalog-products="catalogProducts"
+            :taken-product-ids="takenFeaturedProductIds"
+            :disabled="disabled"
+            @update:product-id="item.product_id = $event"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- About (mirrors HomeAboutSection) -->
+    <section class="admin-home-preview__about" aria-label="About preview">
+      <div class="admin-home-preview__container admin-home-preview__about-inner">
+        <header class="admin-home-preview__about-masthead">
+          <input
+            v-model="form.about_title"
+            type="text"
+            class="admin-home-preview__about-name"
+            placeholder="Artist name"
+            aria-label="Artist name"
+            :disabled="disabled"
+          />
+          <div class="admin-home-preview__about-divider" aria-hidden="true" />
+        </header>
+        <div class="admin-home-preview__about-grid">
+          <label class="admin-home-preview__about-quote-field">
+            <span class="admin-home-preview__about-text-label">Quote</span>
+            <textarea
+              v-model="form.about_header"
+              class="admin-home-preview__about-quote-input"
+              rows="4"
+              placeholder="A bold quote that defines the artist"
+              aria-label="Artist quote"
+              :disabled="disabled"
+            />
+          </label>
+
+          <AdminHomePreviewImageSlot
+            class="admin-home-preview__about-image-wrap"
+            :image-url="form.about_image_url"
+            :disabled="disabled"
+            natural-display
+            aria-label="Artist portrait"
+            @pick="$emit('pick-image', { type: 'about' })"
+            @remove="$emit('remove-image', { type: 'about' })"
+          />
+
+          <label class="admin-home-preview__about-text-field">
+            <span class="admin-home-preview__about-text-label">Artist statement</span>
+            <textarea
+              v-model="form.about_text"
+              class="admin-home-preview__about-text-input"
+              rows="5"
+              placeholder="A concise artist statement (3–5 sentences)"
+              aria-label="Artist statement"
+              :disabled="disabled"
+            />
+          </label>
         </div>
       </div>
     </section>

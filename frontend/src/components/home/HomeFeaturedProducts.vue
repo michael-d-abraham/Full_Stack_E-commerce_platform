@@ -4,22 +4,39 @@
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
       </h2>
-      <div class="product-grid product-grid--gallery">
-        <GalleryProductCard
-          v-for="p in visibleProducts"
-          :key="p._id"
-          :product="p"
-          :show-add-to-cart="false"
+
+      <Transition name="gallery-content-reveal" mode="out-in">
+        <ProductGridLoadingScreen
+          v-if="!contentReady"
+          key="featured-loading"
+          variant="section"
+          message="Preparing gallery…"
+          :skeleton-count="skeletonCount"
         />
-      </div>
+        <div
+          v-else
+          key="featured-content"
+          class="product-grid product-grid--gallery"
+        >
+          <GalleryProductCard
+            v-for="(p, index) in visibleProducts"
+            :key="p._id"
+            :product="p"
+            :show-add-to-cart="false"
+            :image-loading="index < preloadCount ? 'eager' : 'lazy'"
+          />
+        </div>
+      </Transition>
     </div>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue';
+import { useInitialImagePreload } from '../../composables/useInitialImagePreload.js';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
+import ProductGridLoadingScreen from '../product/ProductGridLoadingScreen.vue';
 
 const MOBILE_MQ = '(max-width: 640px)';
 
@@ -36,6 +53,10 @@ const isMobile = useMediaQuery(MOBILE_MQ);
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products
 );
+
+const { imagesReady, preloadCount } = useInitialImagePreload(visibleProducts);
+const contentReady = computed(() => imagesReady.value);
+const skeletonCount = computed(() => (isMobile.value ? 2 : 3));
 </script>
 
 <style scoped>
@@ -56,6 +77,23 @@ const visibleProducts = computed(() =>
   text-align: center;
 }
 
+.gallery-content-reveal-enter-active,
+.gallery-content-reveal-leave-active {
+  transition: opacity 360ms ease;
+}
+
+.gallery-content-reveal-enter-from,
+.gallery-content-reveal-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-content-reveal-enter-active,
+  .gallery-content-reveal-leave-active {
+    transition: none;
+  }
+}
+
 @media (min-width: 641px) {
   .home-featured {
     padding-top: var(--space-lg);
@@ -68,7 +106,7 @@ const visibleProducts = computed(() =>
 
 @media (max-width: 640px) {
   .home-featured {
-    padding: 0 0 var(--space-2xl);
+    padding: var(--space-lg) 0 var(--space-2xl);
   }
 
   .home-featured__container {
@@ -78,6 +116,13 @@ const visibleProducts = computed(() =>
 
   .home-featured__title {
     margin-bottom: var(--space-lg);
+  }
+}
+
+/* Touch devices: press feedback + view overlay on tap */
+@media (hover: none) and (pointer: coarse) {
+  .home-featured :deep(.product-card-link:active .gallery-art-frame) {
+    transform: scale(0.98);
   }
 }
 </style>

@@ -24,7 +24,11 @@ const { mergeBookPageLabels } = require('../utils/bookPageDefaults');
 const {
     normalizeOptionalText: normalizeSiteNameText,
     resolveSiteName,
-    normalizeSiteNameInput
+    normalizeSiteNameInput,
+    normalizeBrandDisplayMode,
+    resolveBrandDisplayMode,
+    normalizeSiteLogoUrlInput,
+    BRAND_DISPLAY_IMAGE
 } = require('../utils/siteBrandDefaults');
 const { isValidEmail } = require('../../shared/email');
 
@@ -164,13 +168,20 @@ async function getPublicContactEmail() {
 
 function toAdminSiteBrandingPayload(doc) {
     return {
-        site_name: normalizeSiteNameText(doc.site_name)
+        site_name: normalizeSiteNameText(doc.site_name),
+        brand_display_mode: normalizeBrandDisplayMode(doc.brand_display_mode),
+        site_logo_url: normalizeSiteNameText(doc.site_logo_url)
     };
 }
 
 function toPublicSiteBrandingPayload(doc) {
+    const site_logo_url = normalizeSiteNameText(doc.site_logo_url);
+    const brand_display_mode = resolveBrandDisplayMode(doc.brand_display_mode, site_logo_url);
+
     return {
-        site_name: resolveSiteName(doc.site_name)
+        site_name: resolveSiteName(doc.site_name),
+        brand_display_mode,
+        site_logo_url: brand_display_mode === BRAND_DISPLAY_IMAGE ? site_logo_url : ''
     };
 }
 
@@ -185,18 +196,44 @@ async function getPublicSiteBranding() {
 }
 
 async function updateSiteBranding(body) {
-    if (!body || typeof body !== 'object' || body.site_name === undefined) {
+    if (!body || typeof body !== 'object') {
+        return { ok: false, status: 400, errors: ['Request body is required'] };
+    }
+
+    if (body.site_name === undefined) {
         return { ok: false, status: 400, errors: ['site_name is required'] };
     }
 
-    const parsed = normalizeSiteNameInput(body.site_name);
-    if (parsed.errors) {
-        return { ok: false, status: 400, errors: parsed.errors };
+    const parsedName = normalizeSiteNameInput(body.site_name);
+    if (parsedName.errors) {
+        return { ok: false, status: 400, errors: parsedName.errors };
+    }
+
+    const brand_display_mode = normalizeBrandDisplayMode(body.brand_display_mode);
+    const parsedLogo = normalizeSiteLogoUrlInput(body.site_logo_url);
+    const site_logo_url = parsedLogo.site_logo_url;
+
+    if (site_logo_url && !isValidHttpUrl(site_logo_url)) {
+        return { ok: false, status: 400, errors: ['site_logo_url must be a valid http or https URL'] };
+    }
+
+    if (brand_display_mode === BRAND_DISPLAY_IMAGE && !site_logo_url) {
+        return {
+            ok: false,
+            status: 400,
+            errors: ['site_logo_url is required when brand display mode is image']
+        };
     }
 
     const doc = await SiteSettings.findOneAndUpdate(
         { key: SETTINGS_KEY },
-        { $set: { site_name: parsed.site_name } },
+        {
+            $set: {
+                site_name: parsedName.site_name,
+                brand_display_mode,
+                site_logo_url: brand_display_mode === BRAND_DISPLAY_IMAGE ? site_logo_url : ''
+            }
+        },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
