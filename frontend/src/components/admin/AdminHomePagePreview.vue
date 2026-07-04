@@ -615,7 +615,19 @@ const takenFeaturedProductIds = computed(() =>
 
   .admin-home-preview__hero-presentation {
     grid-template-columns: 1fr;
-    gap: var(--space-lg);
+    gap: var(--space-md);
+  }
+
+  .admin-home-preview__hero-stage {
+    order: 1;
+  }
+
+  .admin-home-preview__hero-quote-field {
+    order: 2;
+  }
+
+  .admin-home-preview__hero {
+    padding-bottom: var(--space-lg);
   }
 
   .admin-home-preview__about-grid {

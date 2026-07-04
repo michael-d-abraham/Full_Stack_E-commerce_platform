@@ -54,41 +54,41 @@
               alt=""
               :aria-hidden="index !== currentIndex"
             />
-          </div>
 
-          <button
-            type="button"
-            class="home-hero__nav home-hero__nav--prev"
-            aria-label="Previous hero image"
-            @click.stop="goPrev"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="home-hero__nav home-hero__nav--next"
-            aria-label="Next hero image"
-            @click.stop="goNext"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
-            </svg>
-          </button>
-
-          <div class="home-hero__dots" role="tablist" aria-label="Hero slides">
             <button
-              v-for="(_, index) in heroImages"
-              :key="'hero-dot-' + index"
               type="button"
-              class="home-hero__dot"
-              :class="{ 'is-active': index === currentIndex }"
-              role="tab"
-              :aria-selected="index === currentIndex"
-              :aria-label="`Go to slide ${index + 1}`"
-              @click.stop="goTo(index)"
-            />
+              class="home-hero__nav home-hero__nav--prev"
+              aria-label="Previous hero image"
+              @click.stop="goPrev"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="home-hero__nav home-hero__nav--next"
+              aria-label="Next hero image"
+              @click.stop="goNext"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.75" />
+              </svg>
+            </button>
+
+            <div class="home-hero__dots" role="tablist" aria-label="Hero slides">
+              <button
+                v-for="(_, index) in heroImages"
+                :key="'hero-dot-' + index"
+                type="button"
+                class="home-hero__dot"
+                :class="{ 'is-active': index === currentIndex }"
+                role="tab"
+                :aria-selected="index === currentIndex"
+                :aria-label="`Go to slide ${index + 1}`"
+                @click.stop="goTo(index)"
+              />
+            </div>
           </div>
         </template>
         </div>
@@ -530,7 +530,7 @@ onUnmounted(() => {
     max-width: none;
     aspect-ratio: 4 / 3;
     min-height: 160px;
-    max-height: calc(var(--home-hero-max-height) - var(--space-xl));
+    max-height: none;
   }
 
   .home-hero__nav {
@@ -549,14 +549,21 @@ onUnmounted(() => {
   }
 
   .home-hero__slideshow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    max-width: 100%;
+    height: auto;
     margin: 0;
+    line-height: 0;
   }
 
   .home-hero__cta {
     margin: 0;
     padding: 0;
-    min-height: 5rem;
+    min-height: 0;
     text-align: center;
   }
 
