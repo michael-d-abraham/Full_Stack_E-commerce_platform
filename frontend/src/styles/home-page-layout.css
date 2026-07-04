@@ -196,7 +196,7 @@
     --home-hero-edge-x: clamp(0.75rem, 2vw, 1.25rem);
     min-height: auto;
     max-height: none;
-    padding: 0 var(--home-hero-edge-x);
+    padding: var(--space-lg) var(--home-hero-edge-x) var(--space-xl);
     box-sizing: border-box;
   }
 

@@ -650,7 +650,12 @@ const takenFeaturedProductIds = computed(() =>
   }
 
   .admin-home-preview__hero {
-    padding-bottom: var(--space-lg);
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-xl);
+  }
+
+  .admin-home-preview__featured {
+    padding-top: var(--space-xl);
   }
 
   .admin-home-preview__about-grid {

@@ -140,7 +140,7 @@ const visibleProducts = computed(() =>
 
 @media (max-width: 640px) {
   .home-featured {
-    padding: 0 0 var(--space-2xl);
+    padding: var(--space-xl) 0 var(--space-2xl);
   }
 
   .home-featured__container {

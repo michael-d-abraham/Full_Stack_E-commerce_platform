@@ -25,12 +25,12 @@
         <div v-if="text" class="home-about__statement">
           <p class="home-about__copy">{{ visibleStatement }}</p>
           <button
-            v-if="canExpand"
+            v-if="isTruncatable"
             type="button"
             class="home-about__read-more"
-            @click="expanded = true"
+            @click="expanded = !expanded"
           >
-            Read more
+            {{ expanded ? 'Read less' : 'Read more' }}
           </button>
         </div>
       </div>
@@ -68,8 +68,8 @@ const portraitAlt = computed(() => {
   return name ? `Portrait of ${name}` : 'Artist portrait';
 });
 
-const canExpand = computed(
-  () => !expanded.value && props.text.trim().length > STATEMENT_PREVIEW_CHARS
+const isTruncatable = computed(
+  () => props.text.trim().length > STATEMENT_PREVIEW_CHARS
 );
 
 const visibleStatement = computed(() => {
