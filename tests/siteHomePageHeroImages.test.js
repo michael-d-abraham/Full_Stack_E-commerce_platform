@@ -79,6 +79,8 @@ describe('home page hero_image_urls API', () => {
         expect(Array.isArray(res.body.hero_image_urls)).toBe(true);
         expect(res.body.hero_image_urls).toEqual([]);
         expect(res.body.hero_image_url).toBe('');
+        expect(res.body.hero_image_file_ids).toEqual([]);
+        expect(res.body.about_image_file_id).toBe('');
     });
 
     it('PUT then GET admin and public return matching hero_image_urls', async () => {

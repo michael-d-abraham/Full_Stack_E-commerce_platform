@@ -2,7 +2,7 @@
   <div class="app">
     <header
       v-if="!isAdminRoute"
-      class="app-header site-header is-visible"
+      class="app-header site-header"
       :class="headerHidden ? 'is-hidden' : 'is-visible'"
     >
       <div ref="headerBarRef" class="app-header__bar">
@@ -76,19 +76,19 @@ import SiteBrandMark from './components/brand/SiteBrandMark.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
+import { useAutoHideSiteHeader } from './composables/useAutoHideSiteHeader.js';
 import { hydrateCartFromServer } from './utils/cart.js';
 import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
 import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.js';
 
-const MOBILE_HEADER_MQ = '(max-width: 640px)';
+const MOBILE_LAYOUT_MQ = '(max-width: 640px)';
 
 const route = useRoute();
-const { siteName, brandHomeAriaLabel } = useSiteBrand();
+const { brandHomeAriaLabel } = useSiteBrand();
 const { drawerOpen } = useCart();
 const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileNav();
-const isMobile = useMediaQuery(MOBILE_HEADER_MQ);
+const isMobile = useMediaQuery(MOBILE_LAYOUT_MQ);
 const headerBarRef = ref(null);
-const headerHidden = ref(false);
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isHomeRoute = computed(() => route.name === 'home');
@@ -99,10 +99,11 @@ const isProductMobile = computed(
   () => isMobile.value && (route.name === 'product-detail' || isGalleryProductOpen.value)
 );
 
-let lastScrollY = 0;
-let scrollTicking = false;
-let mobileMq = null;
-let headerBarResizeObserver = null;
+const { headerHidden, resetHeader, syncSiteHeaderOffset } = useAutoHideSiteHeader({
+  isActive: () => !isAdminRoute.value,
+  isScrollLocked: () => mobileMenuOpen.value || drawerOpen.value,
+  headerBarRef
+});
 
 function onEscape(event) {
   if (event.key === 'Escape' && mobileMenuOpen.value) {
@@ -110,95 +111,23 @@ function onEscape(event) {
   }
 }
 
-function isMobileHeaderMode() {
-  return mobileMq?.matches ?? window.matchMedia(MOBILE_HEADER_MQ).matches;
-}
-
 function syncBodyHeaderClasses() {
   document.body.classList.toggle('mobile-menu-open', mobileMenuOpen.value);
   document.body.classList.toggle('cart-open', drawerOpen.value);
-}
-
-/** Reserve space for fixed mobile header so page content is not covered. */
-function syncMobileHeaderOffset() {
-  const bar = headerBarRef.value;
-  if (!bar || !isMobileHeaderMode() || isAdminRoute.value) {
-    document.documentElement.style.removeProperty('--mobile-header-height');
-    document.documentElement.classList.remove('has-fixed-mobile-header');
-    return;
-  }
-
-  const height = Math.ceil(bar.getBoundingClientRect().height);
-  document.documentElement.style.setProperty('--mobile-header-height', `${height}px`);
-  document.documentElement.classList.add('has-fixed-mobile-header');
-}
-
-function updateHeaderOnScroll() {
-  if (!isMobileHeaderMode()) {
-    headerHidden.value = false;
-    lastScrollY = window.scrollY;
-    scrollTicking = false;
-    return;
-  }
-
-  if (mobileMenuOpen.value || drawerOpen.value) {
-    headerHidden.value = false;
-    lastScrollY = window.scrollY;
-    scrollTicking = false;
-    return;
-  }
-
-  const currentScrollY = window.scrollY;
-  const delta = currentScrollY - lastScrollY;
-
-  if (Math.abs(delta) < 6) {
-    scrollTicking = false;
-    return;
-  }
-
-  // Scrolling down the page: show header
-  if (delta > 0) {
-    headerHidden.value = false;
-  }
-
-  // Scrolling up the page: hide header
-  if (delta < 0 && currentScrollY > 40) {
-    headerHidden.value = true;
-  }
-
-  // Always show at very top
-  if (currentScrollY <= 10) {
-    headerHidden.value = false;
-  }
-
-  lastScrollY = currentScrollY;
-  scrollTicking = false;
-}
-
-function onScroll() {
-  if (!scrollTicking) {
-    window.requestAnimationFrame(updateHeaderOnScroll);
-    scrollTicking = true;
-  }
-}
-
-function onMobileMqChange() {
-  headerHidden.value = false;
-  lastScrollY = window.scrollY;
-  nextTick(syncMobileHeaderOffset);
 }
 
 watch(
   () => route.fullPath,
   () => {
     closeMobileMenu();
-    nextTick(syncMobileHeaderOffset);
+    resetHeader();
+    nextTick(() => syncSiteHeaderOffset());
   }
 );
 
 watch([mobileMenuOpen, drawerOpen], () => {
   syncBodyHeaderClasses();
-  headerHidden.value = false;
+  resetHeader();
 });
 
 onMounted(() => {
@@ -206,37 +135,12 @@ onMounted(() => {
   ensureStorefrontNavLoaded();
   ensureSiteBrandLoaded();
   window.addEventListener('keydown', onEscape);
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', syncMobileHeaderOffset);
-
-  mobileMq = window.matchMedia(MOBILE_HEADER_MQ);
-  mobileMq.addEventListener('change', onMobileMqChange);
-
-  lastScrollY = window.scrollY;
   syncBodyHeaderClasses();
-
-  nextTick(() => {
-    requestAnimationFrame(() => {
-      syncMobileHeaderOffset();
-      if (headerBarRef.value) {
-        headerBarResizeObserver = new ResizeObserver(() => {
-          syncMobileHeaderOffset();
-        });
-        headerBarResizeObserver.observe(headerBarRef.value);
-      }
-    });
-  });
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onEscape);
-  window.removeEventListener('scroll', onScroll);
-  window.removeEventListener('resize', syncMobileHeaderOffset);
-  mobileMq?.removeEventListener('change', onMobileMqChange);
-  headerBarResizeObserver?.disconnect();
   document.body.classList.remove('mobile-menu-open', 'cart-open');
-  document.documentElement.classList.remove('has-fixed-mobile-header');
-  document.documentElement.style.removeProperty('--mobile-header-height');
 });
 
 const showSocialFooter = computed(() => {
@@ -247,17 +151,44 @@ const showSocialFooter = computed(() => {
 
 <style>
 .app-header {
-  position: sticky;
-  top: 0;
   z-index: 1000;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  transform: translateY(0);
+  will-change: transform;
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 6px 20px -6px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 960ms cubic-bezier(0.18, 1, 0.22, 1),
+    background-color 960ms ease,
+    box-shadow 960ms ease,
+    border-color 960ms ease;
+}
+
+.site-header.is-hidden {
+  transform: translateY(-110%);
+  pointer-events: none;
+}
+
+.site-header.is-visible {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header {
+    transition: none;
+  }
 }
 
 .app-header__bar {
@@ -364,7 +295,7 @@ const showSocialFooter = computed(() => {
 
 .app-main {
   flex: 1;
-  padding: var(--space-xl) var(--space-lg) var(--space-3xl);
+  padding: calc(var(--site-header-height, 76px) + var(--space-xl)) var(--space-lg) var(--space-3xl);
 }
 
 .app-main--admin {
@@ -403,6 +334,7 @@ const showSocialFooter = computed(() => {
 
 .app-main--home {
   padding: 0;
+  padding-top: var(--site-header-height, 76px);
 }
 
 .app-main--home .app-main__inner {
@@ -436,24 +368,6 @@ const showSocialFooter = computed(() => {
 }
 
 @media (max-width: 640px) {
-  .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    transform: translateY(0);
-    transition: transform 220ms ease;
-    will-change: transform;
-  }
-
-  .site-header.is-hidden {
-    transform: translateY(-100%);
-  }
-
-  .site-header.is-visible {
-    transform: translateY(0);
-  }
-
   .app-header__bar {
     padding: 1rem var(--mobile-safe-inset-x);
     gap: 0;
@@ -533,7 +447,7 @@ const showSocialFooter = computed(() => {
 
   .app-main:not(.app-main--admin) {
     /* Fixed header is out of flow — offset top padding by measured bar height */
-    padding: calc(var(--mobile-header-height, 72px) + var(--space-lg)) var(--mobile-safe-inset-x)
+    padding: calc(var(--site-header-height, 72px) + var(--space-lg)) var(--mobile-safe-inset-x)
       var(--space-lg);
   }
 
@@ -541,7 +455,7 @@ const showSocialFooter = computed(() => {
     padding-left: 0;
     padding-right: 0;
     padding-bottom: 0;
-    padding-top: var(--mobile-header-height, 72px);
+    padding-top: var(--site-header-height, 72px);
   }
 
   .app-main--admin {

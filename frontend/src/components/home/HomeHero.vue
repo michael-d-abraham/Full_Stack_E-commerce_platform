@@ -1,12 +1,21 @@
 <template>
   <section
+    ref="heroSectionRef"
     class="home-hero hero-display"
+    :class="{ 'home-hero--has-background home-section--has-background': Boolean(backgroundImageUrl) }"
     aria-label="Hero"
     @mouseenter="pauseSlideshow"
     @mouseleave="resumeSlideshow"
     @focusin="pauseSlideshow"
     @focusout="onHeroFocusOut"
   >
+    <div
+      v-if="backgroundImageUrl"
+      ref="backgroundRef"
+      class="home-hero__background home-section__background"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-hero__inner hero-display__inner">
       <div class="home-hero__presentation">
         <blockquote v-if="formattedQuote" class="home-hero__quote home-quote">
@@ -100,6 +109,7 @@
 <script setup>
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
+import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 
 const SLIDE_INTERVAL_MS = 6000;
 const SWIPE_THRESHOLD_PX = 40;
@@ -108,13 +118,19 @@ const HERO_CONTROL_SELECTOR = '.home-hero__nav, .home-hero__dot';
 const props = defineProps({
   imageUrls: { type: Array, default: () => [] },
   imageUrl: { type: String, default: '' },
+  backgroundImageUrl: { type: String, default: '' },
   quote: { type: String, default: '' }
 });
 
 const currentIndex = ref(0);
 const isPaused = ref(false);
+const heroSectionRef = ref(null);
+const backgroundRef = ref(null);
 const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 const isMobile = useMediaQuery('(max-width: 640px)');
+
+const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
+useSectionBackgroundParallax(heroSectionRef, backgroundRef, hasBackground);
 
 let slideTimerId = null;
 let swipeStartX = 0;
@@ -280,6 +296,13 @@ onUnmounted(() => {
   background: var(--color-bg);
   border: none;
   border-bottom: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero__inner {
+  position: relative;
+  z-index: 1;
 }
 
 .home-hero__image {

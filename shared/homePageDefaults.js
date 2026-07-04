@@ -5,6 +5,8 @@ const DEFAULT_HOME_PAGE = {
     hero_subtitle: '',
     hero_image_url: '',
     hero_image_urls: [],
+    hero_background_image_url: '',
+    featured_background_image_url: '',
     featured_title: 'Featured products',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, () => ({
         product_id: ''
@@ -41,6 +43,24 @@ function resolveHeroImageUrls(stored) {
     return legacyUrl ? [legacyUrl] : [];
 }
 
+function resolveHeroImageFileIds(stored) {
+    const base = stored && typeof stored === 'object' ? stored : {};
+    const urls = resolveHeroImageUrls(base);
+    if (!urls.length) {
+        return [];
+    }
+
+    const fromArray = Array.isArray(base.hero_image_file_ids)
+        ? base.hero_image_file_ids.map((id) => normalizeOptionalText(id))
+        : [];
+    const result = urls.map((_, index) => fromArray[index] || '');
+    const legacyId = normalizeOptionalText(base.hero_image_file_id);
+    if (legacyId && !result[0]) {
+        result[0] = legacyId;
+    }
+    return result;
+}
+
 function mergeHomePageTextDefaults(stored) {
     const base = stored && typeof stored === 'object' ? stored : {};
     const hero_image_urls = resolveHeroImageUrls(base);
@@ -60,7 +80,10 @@ function mergeHomePageTextDefaults(stored) {
         about_header:
             normalizeOptionalText(base.about_header) || DEFAULT_HOME_PAGE.about_header,
         about_text: normalizeOptionalText(base.about_text),
-        about_image_url: normalizeOptionalText(base.about_image_url)
+        about_image_url: normalizeOptionalText(base.about_image_url),
+        hero_background_image_url: normalizeOptionalText(base.hero_background_image_url),
+        featured_background_image_url: normalizeOptionalText(base.featured_background_image_url),
+        about_background_image_url: normalizeOptionalText(base.about_background_image_url)
     };
 }
 
@@ -69,5 +92,6 @@ module.exports = {
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct,
     resolveHeroImageUrls,
+    resolveHeroImageFileIds,
     mergeHomePageTextDefaults
 };

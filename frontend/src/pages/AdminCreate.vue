@@ -49,6 +49,7 @@
           <AdminProductImages
             v-model="imageRows"
             v-model:primary-index="primaryImageIndex"
+            upload-folder="products"
             :disabled="submitting"
           />
         </div>

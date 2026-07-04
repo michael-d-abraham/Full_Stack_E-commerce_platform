@@ -259,10 +259,14 @@ export function toggleAdminProductActive(id) {
     });
 }
 
-/** Upload a product image to R2 (admin session required). Returns { image_url }. */
-export function uploadAdminImage(file) {
+/** Upload an image to ImageKit (admin session required). Returns { image_url, file_id? }. */
+export function uploadAdminImage(file, folder) {
     const formData = new FormData();
     formData.append('image', file);
+    const folderValue = folder != null ? String(folder).trim() : '';
+    if (folderValue) {
+        formData.append('folder', folderValue);
+    }
     return fetchJson('/api/admin/upload-image', {
         method: 'POST',
         body: formData

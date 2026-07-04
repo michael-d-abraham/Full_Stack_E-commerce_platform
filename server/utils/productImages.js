@@ -1,4 +1,10 @@
 const { ProductImage } = require('../db');
+const { deleteImageKitFilesBestEffort } = require('../services/imageKitStorageService');
+const {
+    incomingProductImageProviderIds,
+    removedProductImageProviderIds,
+    normalizeImageKitFileId
+} = require('./imageKitFileIds');
 
 function normalizeImages(images) {
     let primarySet = false;
@@ -43,7 +49,7 @@ async function createImagesForProduct(productId, images, session = null) {
         const doc = {
             product_id: productId,
             image_url: String(img.image_url).trim(),
-            image_provider_id: img.image_provider_id == null ? null : String(img.image_provider_id).trim(),
+            image_provider_id: normalizeImageKitFileId(img.image_provider_id),
             alt_text: img.alt_text == null ? null : String(img.alt_text).trim(),
             sort_order: sortOrder,
             is_primary: img.is_primary === true,
@@ -61,20 +67,59 @@ async function createImagesForProduct(productId, images, session = null) {
 
 async function syncImagesForProduct(productId, rawImages, session = null) {
     const images = Array.isArray(rawImages) ? normalizeImages(rawImages) : [];
+
+    let existingQuery = ProductImage.find({ product_id: productId, deleted_at: null })
+        .select('image_provider_id')
+        .lean();
+    if (session) existingQuery = existingQuery.session(session);
+    const existing = await existingQuery;
+
+    const incomingIds = incomingProductImageProviderIds(images);
+    const removedFileIds = removedProductImageProviderIds(existing, incomingIds);
+
     let softDelete = ProductImage.updateMany(
         { product_id: productId, deleted_at: null },
         { $set: { deleted_at: new Date() } }
     );
     if (session) softDelete = softDelete.session(session);
     await softDelete;
+
     if (images.length) {
         await createImagesForProduct(productId, images, session);
     }
+
+    if (!session && removedFileIds.length) {
+        await deleteImageKitFilesBestEffort(removedFileIds);
+    }
+
     return images;
+}
+
+/**
+ * Soft-delete active product images and delete their ImageKit files (best-effort).
+ * @param {import('mongoose').Types.ObjectId|string} productId
+ * @param {Date} [deletedAt]
+ */
+async function softDeleteProductImagesWithCleanup(productId, deletedAt = new Date()) {
+    const activeImages = await ProductImage.find({ product_id: productId, deleted_at: null })
+        .select('image_provider_id')
+        .lean();
+
+    const fileIds = removedProductImageProviderIds(activeImages, new Set());
+
+    await ProductImage.updateMany(
+        { product_id: productId, deleted_at: null },
+        { $set: { deleted_at: deletedAt } }
+    );
+
+    if (fileIds.length) {
+        await deleteImageKitFilesBestEffort(fileIds);
+    }
 }
 
 module.exports = {
     normalizeImages,
     createImagesForProduct,
-    syncImagesForProduct
+    syncImagesForProduct,
+    softDeleteProductImagesWithCleanup
 };

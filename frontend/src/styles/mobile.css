@@ -33,11 +33,11 @@
     overflow-x: hidden;
   }
 
-  html.has-fixed-mobile-header {
-    scroll-padding-top: var(--mobile-header-height, 72px);
-  }
-
   #app {
     overflow-x: hidden;
   }
+}
+
+html.has-fixed-site-header {
+  scroll-padding-top: var(--site-header-height, 76px);
 }

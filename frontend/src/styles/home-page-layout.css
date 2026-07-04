@@ -26,15 +26,36 @@
   opacity: 0.2;
 }
 
+/* Shared full-bleed section background texture (hero, featured, about) */
+.home-section__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+@media (min-width: 641px) {
+  .home-section--has-background .home-section__background {
+    height: 118%;
+    top: -9%;
+    will-change: transform;
+  }
+}
+
 /* Home hero fills the viewport; overrides shared .hero-display band */
 .home-hero.hero-display {
   max-height: none;
   align-items: stretch;
+  justify-content: flex-start;
 }
 
 .home-hero .hero-display__inner {
   align-items: stretch;
   text-align: left;
+  justify-content: flex-start;
 }
 
 /* Hero quote — larger than about-section quote */
@@ -43,26 +64,27 @@
 }
 
 @media (min-width: 641px) {
-  /* —— Hero: full viewport band —— */
+  /* —— Hero: full viewport band, flush to top behind sticky header —— */
   .home-hero {
-    --home-hero-edge-x: clamp(0.75rem, 2vw, 1.25rem);
+    --home-hero-edge-x: clamp(1.25rem, 2.5vw, 2rem);
     width: 100%;
     margin-left: 0;
+    margin-top: calc(-1 * var(--site-header-height, 76px));
     min-height: 100dvh;
     max-height: none;
-    padding: 0 var(--home-hero-edge-x);
+    padding: var(--site-header-height, 76px) 0 0;
     border: none;
     border-bottom: none;
     display: flex;
     align-items: stretch;
-    justify-content: center;
+    justify-content: flex-start;
     box-sizing: border-box;
   }
 
   .home-hero__inner {
     max-width: none;
     width: 100%;
-    min-height: 100dvh;
+    min-height: calc(100dvh - var(--site-header-height, 76px));
     flex: 1;
     padding: 0;
     display: flex;
@@ -75,12 +97,12 @@
     display: grid;
     grid-template-columns: minmax(0, 4fr) minmax(0, 9fr);
     gap: clamp(var(--space-md), 2.5vw, var(--space-xl));
-    align-items: stretch;
+    align-items: center;
     flex: 1;
     width: 100%;
-    min-height: 0;
+    min-height: calc(100dvh - var(--site-header-height, 76px));
     margin: 0;
-    padding: 0;
+    padding: 0 var(--home-hero-edge-x);
     box-sizing: border-box;
   }
 
@@ -130,7 +152,7 @@
   }
 
   .home-hero__presentation .hero-display__photo {
-    max-height: 100%;
+    max-height: calc(100dvh - var(--site-header-height, 76px) - 2rem);
     height: 100%;
     width: auto;
     object-fit: contain;

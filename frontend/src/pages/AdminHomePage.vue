@@ -43,19 +43,28 @@ import {
 } from '../services/api.js';
 import AdminHomePagePreview from '../components/admin/AdminHomePagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
-import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls } from '@shared/homePageDefaults.js';
+import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls, resolveHeroImageFileIds } from '@shared/homePageDefaults.js';
 
 function createEmptyForm() {
   return {
     hero_image_url: '',
     hero_image_urls: [],
+    hero_image_file_id: '',
+    hero_image_file_ids: [],
+    hero_background_image_url: '',
+    hero_background_image_file_id: '',
+    featured_background_image_url: '',
+    featured_background_image_file_id: '',
     featured_title: '',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, emptyFeaturedProduct),
     about_title: '',
     hero_quote: '',
     about_header: '',
     about_text: '',
-    about_image_url: ''
+    about_image_url: '',
+    about_image_file_id: '',
+    about_background_image_url: '',
+    about_background_image_file_id: ''
   };
 }
 
@@ -72,6 +81,18 @@ const photoFlowRef = ref(null);
 
 function syncHeroFromUrls() {
   form.hero_image_url = form.hero_image_urls[0] || '';
+  form.hero_image_file_id = form.hero_image_file_ids[0] || '';
+}
+
+function alignHeroFileIdsToUrls() {
+  const targetLength = form.hero_image_urls.length;
+  while (form.hero_image_file_ids.length < targetLength) {
+    form.hero_image_file_ids.push('');
+  }
+  if (form.hero_image_file_ids.length > targetLength) {
+    form.hero_image_file_ids.splice(targetLength);
+  }
+  syncHeroFromUrls();
 }
 
 function applySettings(data) {
@@ -79,6 +100,8 @@ function applySettings(data) {
   if (data && typeof data === 'object') {
     next.hero_image_urls = resolveHeroImageUrls(data);
     next.hero_image_url = next.hero_image_urls[0] || '';
+    next.hero_image_file_ids = resolveHeroImageFileIds(data);
+    next.hero_image_file_id = next.hero_image_file_ids[0] || '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
     next.about_title = data.about_title != null ? String(data.about_title) : '';
     next.hero_quote = data.hero_quote != null ? String(data.hero_quote) : '';
@@ -86,6 +109,30 @@ function applySettings(data) {
     next.about_text = data.about_text != null ? String(data.about_text) : '';
     next.about_image_url =
       data.about_image_url != null ? String(data.about_image_url).trim() : '';
+    next.about_image_file_id =
+      data.about_image_file_id != null ? String(data.about_image_file_id).trim() : '';
+    next.hero_background_image_url =
+      data.hero_background_image_url != null ? String(data.hero_background_image_url).trim() : '';
+    next.hero_background_image_file_id =
+      data.hero_background_image_file_id != null
+        ? String(data.hero_background_image_file_id).trim()
+        : '';
+    next.featured_background_image_url =
+      data.featured_background_image_url != null
+        ? String(data.featured_background_image_url).trim()
+        : '';
+    next.featured_background_image_file_id =
+      data.featured_background_image_file_id != null
+        ? String(data.featured_background_image_file_id).trim()
+        : '';
+    next.about_background_image_url =
+      data.about_background_image_url != null
+        ? String(data.about_background_image_url).trim()
+        : '';
+    next.about_background_image_file_id =
+      data.about_background_image_file_id != null
+        ? String(data.about_background_image_file_id).trim()
+        : '';
 
     const featured = Array.isArray(data.featured_products) ? data.featured_products : [];
     for (let i = 0; i < FEATURED_PRODUCT_SLOTS; i++) {
@@ -98,12 +145,21 @@ function applySettings(data) {
 
   form.hero_image_url = next.hero_image_url;
   form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
+  form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, ...next.hero_image_file_ids);
+  form.hero_image_file_id = next.hero_image_file_id;
   form.featured_title = next.featured_title;
   form.about_title = next.about_title;
   form.hero_quote = next.hero_quote;
   form.about_header = next.about_header;
   form.about_text = next.about_text;
   form.about_image_url = next.about_image_url;
+  form.about_image_file_id = next.about_image_file_id;
+  form.hero_background_image_url = next.hero_background_image_url;
+  form.hero_background_image_file_id = next.hero_background_image_file_id;
+  form.featured_background_image_url = next.featured_background_image_url;
+  form.featured_background_image_file_id = next.featured_background_image_file_id;
+  form.about_background_image_url = next.about_background_image_url;
+  form.about_background_image_file_id = next.about_background_image_file_id;
   for (let i = 0; i < FEATURED_PRODUCT_SLOTS; i++) {
     Object.assign(form.featured_products[i], next.featured_products[i]);
   }
@@ -112,12 +168,18 @@ function applySettings(data) {
 }
 
 function payloadFromForm() {
+  alignHeroFileIdsToUrls();
   const hero_image_urls = form.hero_image_urls.map((url) => String(url).trim()).filter(Boolean);
+  const hero_image_file_ids = form.hero_image_file_ids
+    .slice(0, hero_image_urls.length)
+    .map((id) => String(id || '').trim());
   return {
     hero_title: '',
     hero_subtitle: '',
     hero_image_url: hero_image_urls[0] || '',
     hero_image_urls,
+    hero_image_file_id: hero_image_file_ids[0] || '',
+    hero_image_file_ids,
     featured_title: form.featured_title,
     featured_products: form.featured_products.map((row) => ({
       product_id: row.product_id
@@ -126,7 +188,14 @@ function payloadFromForm() {
     hero_quote: form.hero_quote,
     about_header: form.about_header,
     about_text: form.about_text,
-    about_image_url: form.about_image_url
+    about_image_url: form.about_image_url,
+    about_image_file_id: form.about_image_file_id,
+    hero_background_image_url: form.hero_background_image_url,
+    hero_background_image_file_id: form.hero_background_image_file_id,
+    featured_background_image_url: form.featured_background_image_url,
+    featured_background_image_file_id: form.featured_background_image_file_id,
+    about_background_image_url: form.about_background_image_url,
+    about_background_image_file_id: form.about_background_image_file_id
   };
 }
 
@@ -183,13 +252,38 @@ function editorOptionsForTarget(target) {
   if (target?.type === 'hero') {
     return {
       editorTitle: 'Hero image',
-      outputFileName: 'hero.jpg'
+      outputFileName: 'hero.jpg',
+      outputMime: 'image/jpeg',
+      preserveSourceFormat: false
     };
   }
   if (target?.type === 'about') {
     return {
       editorTitle: 'About image',
-      outputFileName: 'about.jpg'
+      outputFileName: 'about.jpg',
+      outputMime: 'image/jpeg',
+      preserveSourceFormat: false
+    };
+  }
+  if (target?.type === 'hero-background') {
+    return {
+      editorTitle: 'Hero background texture',
+      outputBaseName: 'hero-background',
+      preserveSourceFormat: true
+    };
+  }
+  if (target?.type === 'featured-background') {
+    return {
+      editorTitle: 'Featured section background texture',
+      outputBaseName: 'featured-background',
+      preserveSourceFormat: true
+    };
+  }
+  if (target?.type === 'about-background') {
+    return {
+      editorTitle: 'About section background texture',
+      outputBaseName: 'about-background',
+      preserveSourceFormat: true
     };
   }
   return {};
@@ -201,20 +295,35 @@ function openFilePicker(target) {
   photoFlowRef.value?.openPicker(editorOptionsForTarget(target));
 }
 
-function setImageUrl(target, url) {
+function setImageUrl(target, url, fileId = '') {
   if (target.type === 'hero') {
     form.hero_image_urls.push(url);
+    form.hero_image_file_ids.push(fileId || '');
     syncHeroFromUrls();
     return;
   }
   if (target.type === 'about') {
     form.about_image_url = url;
+    form.about_image_file_id = fileId || '';
+  }
+  if (target.type === 'hero-background') {
+    form.hero_background_image_url = url;
+    form.hero_background_image_file_id = fileId || '';
+  }
+  if (target.type === 'featured-background') {
+    form.featured_background_image_url = url;
+    form.featured_background_image_file_id = fileId || '';
+  }
+  if (target.type === 'about-background') {
+    form.about_background_image_url = url;
+    form.about_background_image_file_id = fileId || '';
   }
 }
 
 function removeHeroAt(index) {
   if (index < 0 || index >= form.hero_image_urls.length) return;
   form.hero_image_urls.splice(index, 1);
+  form.hero_image_file_ids.splice(index, 1);
   syncHeroFromUrls();
 }
 
@@ -223,7 +332,9 @@ async function moveHeroImage({ index, direction }) {
   if (targetIndex < 0 || targetIndex >= form.hero_image_urls.length) return;
 
   const urls = form.hero_image_urls;
+  const fileIds = form.hero_image_file_ids;
   [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
+  [fileIds[index], fileIds[targetIndex]] = [fileIds[targetIndex], fileIds[index]];
   syncHeroFromUrls();
 
   try {
@@ -233,6 +344,15 @@ async function moveHeroImage({ index, direction }) {
   }
 }
 
+function uploadFolderForTarget(target) {
+  if (target?.type === 'hero') return 'site/hero';
+  if (target?.type === 'hero-background') return 'site/hero-background';
+  if (target?.type === 'featured-background') return 'site/featured-background';
+  if (target?.type === 'about') return 'site/about';
+  if (target?.type === 'about-background') return 'site/about-background';
+  return undefined;
+}
+
 async function uploadFileForTarget(file) {
   const target = uploadTarget.value;
   if (!target || !file) return;
@@ -240,9 +360,9 @@ async function uploadFileForTarget(file) {
   uploading.value = true;
   actionError.value = '';
   try {
-    const { image_url } = await uploadAdminImage(file);
+    const { image_url, file_id } = await uploadAdminImage(file, uploadFolderForTarget(target));
     console.log('[AdminHomePage] upload response image_url', image_url);
-    setImageUrl(target, image_url);
+    setImageUrl(target, image_url, file_id);
     await persistSettings();
   } catch (e) {
     actionError.value = e.message || 'Upload failed';
@@ -274,6 +394,19 @@ async function clearImage(target) {
 
   if (target.type === 'about') {
     form.about_image_url = '';
+    form.about_image_file_id = '';
+  }
+  if (target.type === 'hero-background') {
+    form.hero_background_image_url = '';
+    form.hero_background_image_file_id = '';
+  }
+  if (target.type === 'featured-background') {
+    form.featured_background_image_url = '';
+    form.featured_background_image_file_id = '';
+  }
+  if (target.type === 'about-background') {
+    form.about_background_image_url = '';
+    form.about_background_image_file_id = '';
   }
   try {
     await persistSettings();

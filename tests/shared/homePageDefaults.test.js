@@ -3,6 +3,7 @@ const {
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct,
     resolveHeroImageUrls,
+    resolveHeroImageFileIds,
     mergeHomePageTextDefaults
 } = require('../../shared/homePageDefaults');
 
@@ -49,6 +50,32 @@ describe('shared/homePageDefaults', () => {
                 hero_image_urls: ['https://example.com/one.jpg', 'https://example.com/two.jpg']
             })
         ).toEqual(['https://example.com/one.jpg', 'https://example.com/two.jpg']);
+    });
+
+    it('resolveHeroImageFileIds aligns file IDs to hero URLs', () => {
+        expect(
+            resolveHeroImageFileIds({
+                hero_image_urls: ['https://example.com/one.jpg', 'https://example.com/two.jpg'],
+                hero_image_file_ids: ['file_one', 'file_two']
+            })
+        ).toEqual(['file_one', 'file_two']);
+    });
+
+    it('resolveHeroImageFileIds falls back to legacy hero_image_file_id', () => {
+        expect(
+            resolveHeroImageFileIds({
+                hero_image_url: 'https://example.com/legacy.jpg',
+                hero_image_file_id: 'file_legacy'
+            })
+        ).toEqual(['file_legacy']);
+    });
+
+    it('resolveHeroImageFileIds returns empty strings when file IDs are missing', () => {
+        expect(
+            resolveHeroImageFileIds({
+                hero_image_urls: ['https://example.com/one.jpg']
+            })
+        ).toEqual(['']);
     });
 
     it('mergeHomePageTextDefaults keeps hero_quote and about_header independent', () => {

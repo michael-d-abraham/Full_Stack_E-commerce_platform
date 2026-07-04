@@ -8,7 +8,7 @@ const {
     validateProductUpdateBody
 } = require('../utils/productValidation');
 const { applyProductRelations } = require('../utils/productPopulate');
-const { normalizeImages, createImagesForProduct, syncImagesForProduct } = require('../utils/productImages');
+const { normalizeImages, createImagesForProduct, syncImagesForProduct, softDeleteProductImagesWithCleanup } = require('../utils/productImages');
 
 function isDuplicateKeyError(err) {
     return err && err.code === 11000;
@@ -256,6 +256,8 @@ const softDeleteAdminProduct = async (req, res) => {
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
+
+        await softDeleteProductImagesWithCleanup(product._id, now);
 
         res.json(product);
     } catch (err) {

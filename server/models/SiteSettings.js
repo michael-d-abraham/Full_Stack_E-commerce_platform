@@ -22,13 +22,22 @@ const homePageSchema = new mongoose.Schema(
         hero_subtitle: { type: String, default: '' },
         hero_image_url: { type: String, default: '' },
         hero_image_urls: { type: [String], default: () => [] },
+        hero_image_file_id: { type: String, default: '' },
+        hero_image_file_ids: { type: [String], default: () => [] },
+        hero_background_image_url: { type: String, default: '' },
+        hero_background_image_file_id: { type: String, default: '' },
+        featured_background_image_url: { type: String, default: '' },
+        featured_background_image_file_id: { type: String, default: '' },
         featured_title: { type: String, default: '' },
         featured_products: { type: [homeFeaturedProductSchema], default: () => [] },
         about_title: { type: String, default: '' },
         hero_quote: { type: String, default: '' },
         about_header: { type: String, default: '' },
         about_text: { type: String, default: '' },
-        about_image_url: { type: String, default: '' }
+        about_image_url: { type: String, default: '' },
+        about_image_file_id: { type: String, default: '' },
+        about_background_image_url: { type: String, default: '' },
+        about_background_image_file_id: { type: String, default: '' }
     },
     { _id: false }
 );
@@ -65,6 +74,7 @@ const siteSettingsSchema = new mongoose.Schema(
         site_name: { type: String, default: '' },
         site_name_mode: { type: String, default: 'text' },
         site_name_logo_url: { type: String, default: '' },
+        site_name_logo_file_id: { type: String, default: '' },
         social_links: {
             youtube: { type: socialLinkSchema, default: () => ({}) },
             instagram: { type: socialLinkSchema, default: () => ({}) },
@@ -72,6 +82,7 @@ const siteSettingsSchema = new mongoose.Schema(
             facebook: { type: socialLinkSchema, default: () => ({}) }
         },
         contact_hero_image_url: { type: String, default: '' },
+        contact_hero_image_file_id: { type: String, default: '' },
         contact_page: { type: contactPageSchema, default: () => ({}) },
         contact_email: { type: String, default: '' },
         home_page: { type: homePageSchema, default: () => ({}) },

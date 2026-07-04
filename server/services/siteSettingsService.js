@@ -17,6 +17,7 @@ const {
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct,
     resolveHeroImageUrls,
+    resolveHeroImageFileIds,
     mergeHomePageTextDefaults
 } = require('../utils/homePageDefaults');
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
@@ -27,6 +28,13 @@ const {
     normalizeSiteBrandingInput
 } = require('../utils/siteBrandDefaults');
 const { isValidEmail } = require('../../shared/email');
+const { deleteImageKitFilesBestEffort } = require('../services/imageKitStorageService');
+const {
+    collectFileIdsFromValues,
+    fileIdsRemoved,
+    collectStoredHomePageFileIds,
+    collectParsedHomePageFileIds
+} = require('../utils/imageKitFileIds');
 
 const SETTINGS_KEY = 'default';
 
@@ -166,7 +174,8 @@ function toAdminSiteBrandingPayload(doc) {
     return toAdminSiteBranding({
         site_name: doc.site_name,
         site_name_mode: doc.site_name_mode,
-        site_name_logo_url: doc.site_name_logo_url
+        site_name_logo_url: doc.site_name_logo_url,
+        site_name_logo_file_id: doc.site_name_logo_file_id
     });
 }
 
@@ -194,17 +203,27 @@ async function updateSiteBranding(body) {
         return { ok: false, status: 400, errors: parsed.errors };
     }
 
+    const existing = await ensureSiteSettingsDoc();
+    const previousIds = collectFileIdsFromValues(existing.site_name_logo_file_id);
+    const nextIds = collectFileIdsFromValues(parsed.site_name_logo_file_id);
+    const toDelete = fileIdsRemoved(previousIds, nextIds);
+
     const doc = await SiteSettings.findOneAndUpdate(
         { key: SETTINGS_KEY },
         {
             $set: {
                 site_name: parsed.site_name,
                 site_name_mode: parsed.site_name_mode,
-                site_name_logo_url: parsed.site_name_logo_url
+                site_name_logo_url: parsed.site_name_logo_url,
+                site_name_logo_file_id: parsed.site_name_logo_file_id
             }
         },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
+    if (toDelete.length) {
+        await deleteImageKitFilesBestEffort(toDelete);
+    }
 
     return { ok: true, settings: toAdminSiteBrandingPayload(doc) };
 }
@@ -245,10 +264,15 @@ function mergeContactPageStored(stored) {
 function toContactPageAdminPayload(doc) {
     const heroUrl =
         doc.contact_hero_image_url != null ? String(doc.contact_hero_image_url).trim() : '';
+    const heroFileId =
+        doc.contact_hero_image_file_id != null
+            ? String(doc.contact_hero_image_file_id).trim()
+            : '';
     const page = mergeContactPageStored(doc.contact_page);
 
     return {
         contact_hero_image_url: heroUrl,
+        contact_hero_image_file_id: heroFileId,
         ...page
     };
 }
@@ -392,6 +416,10 @@ function normalizeContactPageInput(body) {
         }
     }
 
+    if (body.contact_hero_image_file_id !== undefined) {
+        $set.contact_hero_image_file_id = normalizeOptionalText(body.contact_hero_image_file_id);
+    }
+
     const contactPage = {};
     let hasContactPageFields = false;
 
@@ -490,6 +518,45 @@ function normalizeHeroImageUrlsInput(body, errors) {
     return hero_image_url ? [hero_image_url] : [];
 }
 
+function normalizeFileIdArrayInput(raw, fieldName, errors) {
+    if (!Array.isArray(raw)) {
+        errors.push(`${fieldName} must be an array`);
+        return null;
+    }
+    const ids = [];
+    for (let i = 0; i < raw.length; i++) {
+        const value = raw[i];
+        if (value !== undefined && value !== null && typeof value !== 'string') {
+            errors.push(`${fieldName}[${i}] must be a string`);
+            return null;
+        }
+        ids.push(normalizeOptionalText(value));
+    }
+    return ids;
+}
+
+function alignHeroFileIdsToUrls(urls, rawIds) {
+    const ids = Array.isArray(rawIds) ? rawIds.map((id) => normalizeOptionalText(id)) : [];
+    return urls.map((_, index) => ids[index] || '');
+}
+
+function normalizeHeroImageFileIdsInput(body, hero_image_urls, errors) {
+    if (body.hero_image_file_ids !== undefined) {
+        const ids = normalizeFileIdArrayInput(body.hero_image_file_ids, 'hero_image_file_ids', errors);
+        if (ids === null) {
+            return null;
+        }
+        return alignHeroFileIdsToUrls(hero_image_urls, ids);
+    }
+
+    if (body.hero_image_file_id !== undefined) {
+        const single = normalizeOptionalText(body.hero_image_file_id);
+        return hero_image_urls.map((_, index) => (index === 0 ? single : ''));
+    }
+
+    return hero_image_urls.map(() => '');
+}
+
 function normalizeOptionalText(value) {
     if (value === undefined || value === null) {
         return '';
@@ -569,18 +636,29 @@ function toAdminHomePagePayload(doc) {
     const base = doc.home_page || {};
     const hero_image_urls = resolveHeroImageUrls(base);
     const hero_image_url = hero_image_urls[0] || '';
+    const hero_image_file_ids = resolveHeroImageFileIds(base);
+    const hero_image_file_id = hero_image_file_ids[0] || '';
     return {
         hero_title: normalizeOptionalText(base.hero_title),
         hero_subtitle: normalizeOptionalText(base.hero_subtitle),
         hero_image_url,
         hero_image_urls,
+        hero_image_file_id,
+        hero_image_file_ids,
+        hero_background_image_url: normalizeOptionalText(base.hero_background_image_url),
+        hero_background_image_file_id: normalizeOptionalText(base.hero_background_image_file_id),
+        featured_background_image_url: normalizeOptionalText(base.featured_background_image_url),
+        featured_background_image_file_id: normalizeOptionalText(base.featured_background_image_file_id),
         featured_title: normalizeOptionalText(base.featured_title),
         featured_products: padFeaturedProductIds(base.featured_products),
         about_title: normalizeOptionalText(base.about_title),
         hero_quote: normalizeOptionalText(base.hero_quote),
         about_header: normalizeOptionalText(base.about_header),
         about_text: normalizeOptionalText(base.about_text),
-        about_image_url: normalizeOptionalText(base.about_image_url)
+        about_image_url: normalizeOptionalText(base.about_image_url),
+        about_image_file_id: normalizeOptionalText(base.about_image_file_id),
+        about_background_image_url: normalizeOptionalText(base.about_background_image_url),
+        about_background_image_file_id: normalizeOptionalText(base.about_background_image_file_id)
     };
 }
 
@@ -603,6 +681,11 @@ function normalizeHomePageInput(body) {
         return { errors };
     }
     const hero_image_url = hero_image_urls[0] || '';
+    const hero_image_file_ids = normalizeHeroImageFileIdsInput(body, hero_image_urls, errors);
+    if (hero_image_file_ids === null) {
+        return { errors };
+    }
+    const hero_image_file_id = hero_image_file_ids[0] || '';
 
     const about_image_url = normalizeOptionalImageUrl(
         body.about_image_url,
@@ -612,6 +695,39 @@ function normalizeHomePageInput(body) {
     if (about_image_url === null) {
         return { errors };
     }
+    const about_image_file_id = normalizeOptionalText(body.about_image_file_id);
+
+    const hero_background_image_url = normalizeOptionalImageUrl(
+        body.hero_background_image_url,
+        'hero_background_image_url',
+        errors
+    );
+    if (hero_background_image_url === null) {
+        return { errors };
+    }
+    const hero_background_image_file_id = normalizeOptionalText(body.hero_background_image_file_id);
+
+    const featured_background_image_url = normalizeOptionalImageUrl(
+        body.featured_background_image_url,
+        'featured_background_image_url',
+        errors
+    );
+    if (featured_background_image_url === null) {
+        return { errors };
+    }
+    const featured_background_image_file_id = normalizeOptionalText(
+        body.featured_background_image_file_id
+    );
+
+    const about_background_image_url = normalizeOptionalImageUrl(
+        body.about_background_image_url,
+        'about_background_image_url',
+        errors
+    );
+    if (about_background_image_url === null) {
+        return { errors };
+    }
+    const about_background_image_file_id = normalizeOptionalText(body.about_background_image_file_id);
 
     const featured_products = [];
     const rawFeatured = Array.isArray(body.featured_products) ? body.featured_products : [];
@@ -641,13 +757,22 @@ function normalizeHomePageInput(body) {
             hero_subtitle: normalizeOptionalText(body.hero_subtitle),
             hero_image_url,
             hero_image_urls,
+            hero_image_file_id,
+            hero_image_file_ids,
             featured_title: normalizeOptionalText(body.featured_title),
             featured_products,
             about_title: normalizeOptionalText(body.about_title),
             hero_quote: normalizeOptionalText(body.hero_quote),
             about_header: normalizeOptionalText(body.about_header),
             about_text: normalizeOptionalText(body.about_text),
-            about_image_url
+            about_image_url,
+            about_image_file_id,
+            hero_background_image_url,
+            hero_background_image_file_id,
+            featured_background_image_url,
+            featured_background_image_file_id,
+            about_background_image_url,
+            about_background_image_file_id
         }
     };
 }
@@ -668,11 +793,20 @@ async function updateHomePage(body) {
         return { ok: false, status: 400, errors: parsed.errors };
     }
 
+    const existing = await ensureSiteSettingsDoc();
+    const previousIds = collectStoredHomePageFileIds(existing.home_page);
+    const nextIds = collectParsedHomePageFileIds(parsed.home_page);
+    const toDelete = fileIdsRemoved(previousIds, nextIds);
+
     const doc = await SiteSettings.findOneAndUpdate(
         { key: SETTINGS_KEY },
         { $set: { home_page: parsed.home_page } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
+    if (toDelete.length) {
+        await deleteImageKitFilesBestEffort(toDelete);
+    }
 
     return { ok: true, settings: toAdminHomePagePayload(doc) };
 }
@@ -684,6 +818,14 @@ async function updateDisplayPictures(body) {
     }
 
     const doc = await ensureSiteSettingsDoc();
+    const previousIds = collectFileIdsFromValues(doc.contact_hero_image_file_id);
+    const nextContactFileId =
+        parsed.$set.contact_hero_image_file_id !== undefined
+            ? parsed.$set.contact_hero_image_file_id
+            : doc.contact_hero_image_file_id;
+    const nextIds = collectFileIdsFromValues(nextContactFileId);
+    const toDelete = fileIdsRemoved(previousIds, nextIds);
+
     const $set = { ...parsed.$set };
 
     if (parsed.partialContactPage && parsed.$set.contact_page) {
@@ -698,6 +840,10 @@ async function updateDisplayPictures(body) {
         { $set },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
+    if (toDelete.length) {
+        await deleteImageKitFilesBestEffort(toDelete);
+    }
 
     return { ok: true, settings: toContactPageAdminPayload(updated) };
 }

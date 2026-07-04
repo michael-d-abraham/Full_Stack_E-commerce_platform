@@ -1,5 +1,17 @@
 <template>
-  <section class="home-featured" aria-labelledby="home-featured-heading">
+  <section
+    ref="sectionRef"
+    class="home-featured home-section"
+    :class="{ 'home-section--has-background': Boolean(backgroundImageUrl) }"
+    aria-labelledby="home-featured-heading"
+  >
+    <div
+      v-if="backgroundImageUrl"
+      ref="backgroundRef"
+      class="home-featured__background home-section__background"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-featured__container mobile-safe-container">
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
@@ -22,21 +34,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
+import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
 
 const MOBILE_MQ = '(max-width: 640px)';
 
 const props = defineProps({
   sectionTitle: { type: String, required: true },
+  backgroundImageUrl: { type: String, default: '' },
   products: {
     type: Array,
     required: true
   }
 });
 
+const sectionRef = ref(null);
+const backgroundRef = ref(null);
 const isMobile = useMediaQuery(MOBILE_MQ);
+
+const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
+useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground);
 
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products
@@ -45,12 +64,16 @@ const visibleProducts = computed(() =>
 
 <style scoped>
 .home-featured {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   padding: var(--space-md) 0 var(--space-3xl);
   background: var(--color-bg);
 }
 
 .home-featured__container {
+  position: relative;
+  z-index: 1;
   max-width: 900px;
   margin: 0 auto;
   padding: 0 32px;

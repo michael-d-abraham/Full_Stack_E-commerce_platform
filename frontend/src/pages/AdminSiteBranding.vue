@@ -102,7 +102,8 @@
       editor-title="Site logo"
       free-aspect
       show-orientation-tools
-      output-file-name="site-logo.png"
+      output-base-name="site-logo"
+      preserve-source-format
       :disabled="uploading || submitting"
       @file="onLogoFile"
       @cancel="onPhotoCancel"
@@ -121,6 +122,7 @@ const defaultSiteName = DEFAULT_SITE_NAME;
 const siteNameInput = ref('');
 const siteNameMode = ref('text');
 const siteNameLogoUrl = ref('');
+const siteNameLogoFileId = ref('');
 const fieldError = ref('');
 const loading = ref(true);
 const loadError = ref('');
@@ -137,6 +139,8 @@ function applySettings(data) {
   siteNameMode.value = data?.site_name_mode === 'image' ? 'image' : 'text';
   siteNameLogoUrl.value =
     data?.site_name_logo_url != null ? String(data.site_name_logo_url).trim() : '';
+  siteNameLogoFileId.value =
+    data?.site_name_logo_file_id != null ? String(data.site_name_logo_file_id).trim() : '';
 }
 
 async function load() {
@@ -156,7 +160,8 @@ function brandingPayload() {
   return {
     site_name: siteNameInput.value,
     site_name_mode: siteNameMode.value,
-    site_name_logo_url: siteNameLogoUrl.value
+    site_name_logo_url: siteNameLogoUrl.value,
+    site_name_logo_file_id: siteNameLogoFileId.value
   };
 }
 
@@ -198,7 +203,8 @@ function openLogoPicker() {
   fieldError.value = '';
   photoFlowRef.value?.openPicker({
     editorTitle: 'Site logo',
-    outputFileName: 'site-logo.png'
+    outputBaseName: 'site-logo',
+    preserveSourceFormat: true
   });
 }
 
@@ -210,8 +216,9 @@ async function onLogoFile(file) {
   fieldError.value = '';
 
   try {
-    const { image_url } = await uploadAdminImage(file);
+    const { image_url, file_id } = await uploadAdminImage(file, 'site/logo');
     siteNameLogoUrl.value = image_url;
+    siteNameLogoFileId.value = file_id || '';
     siteNameMode.value = 'image';
     await persistBranding();
     saved.value = true;
@@ -229,6 +236,7 @@ function onPhotoCancel() {}
 
 async function clearLogo() {
   siteNameLogoUrl.value = '';
+  siteNameLogoFileId.value = '';
   fieldError.value = '';
   try {
     await persistBranding();

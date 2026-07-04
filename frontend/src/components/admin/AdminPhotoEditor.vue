@@ -81,6 +81,7 @@
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
+import { mimeSupportsAlpha } from '@shared/imageOutputFormat.js';
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -261,11 +262,13 @@ async function onApply() {
   applying.value = true;
   applyError.value = '';
   try {
+    const preserveAlpha = mimeSupportsAlpha(props.outputMime);
     const canvas = cropper.getCroppedCanvas({
       maxWidth: 1600,
       maxHeight: 2000,
       imageSmoothingEnabled: true,
-      imageSmoothingQuality: 'high'
+      imageSmoothingQuality: 'high',
+      fillColor: preserveAlpha ? 'transparent' : '#ffffff'
     });
     if (!canvas) {
       throw new Error('Could not process image');

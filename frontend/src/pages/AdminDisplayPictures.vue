@@ -68,6 +68,7 @@ function applySettings(data, savedNavPreference) {
 function payloadFromForm() {
   return {
     contact_hero_image_url: form.contact_hero_image_url,
+    contact_hero_image_file_id: form.contact_hero_image_file_id,
     show_hero_image: form.show_hero_image,
     page_title: form.page_title,
     form_name_label: form.form_name_label,
@@ -129,8 +130,9 @@ async function uploadPortrait(file) {
   uploading.value = true;
   actionError.value = '';
   try {
-    const { image_url } = await uploadAdminImage(file);
+    const { image_url, file_id } = await uploadAdminImage(file, 'site/contact');
     form.contact_hero_image_url = image_url;
+    form.contact_hero_image_file_id = file_id || '';
     await persistSettings();
   } catch (e) {
     actionError.value = e.message || 'Upload failed';
@@ -149,6 +151,7 @@ function onPhotoCancel() {
 
 async function clearImage() {
   form.contact_hero_image_url = '';
+  form.contact_hero_image_file_id = '';
   try {
     await persistSettings();
   } catch {

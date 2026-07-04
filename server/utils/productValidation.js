@@ -68,6 +68,13 @@ function validateProductImagesArray(images, errors) {
         if (img.is_primary !== undefined && typeof img.is_primary !== 'boolean') {
             errors.push(`images[${i}].is_primary must be a boolean`);
         }
+        if (
+            img.image_provider_id !== undefined &&
+            img.image_provider_id !== null &&
+            typeof img.image_provider_id !== 'string'
+        ) {
+            errors.push(`images[${i}].image_provider_id must be a string or null`);
+        }
     });
 }
 

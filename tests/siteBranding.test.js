@@ -65,7 +65,8 @@ describe('site branding API', () => {
         expect(save.body).toEqual({
             site_name: 'Basquiat Gallery',
             site_name_mode: 'text',
-            site_name_logo_url: ''
+            site_name_logo_url: '',
+            site_name_logo_file_id: ''
         });
 
         const publicRes = await request(app).get('/api/site/site-branding');
@@ -96,7 +97,8 @@ describe('site branding API', () => {
         expect(save.body).toEqual({
             site_name: 'Basquiat',
             site_name_mode: 'image',
-            site_name_logo_url: LOGO_URL
+            site_name_logo_url: LOGO_URL,
+            site_name_logo_file_id: ''
         });
 
         const publicRes = await request(app).get('/api/site/site-branding');

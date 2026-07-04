@@ -54,7 +54,8 @@ function toAdminSiteBranding(stored) {
     return {
         site_name: normalizeOptionalText(base.site_name),
         site_name_mode: normalizeSiteNameMode(base.site_name_mode),
-        site_name_logo_url: normalizeOptionalText(base.site_name_logo_url)
+        site_name_logo_url: normalizeOptionalText(base.site_name_logo_url),
+        site_name_logo_file_id: normalizeOptionalText(base.site_name_logo_file_id)
     };
 }
 
@@ -87,7 +88,8 @@ function normalizeSiteBrandingInput(body, { isValidHttpUrl } = {}) {
     return {
         site_name: nameParsed.site_name,
         site_name_mode,
-        site_name_logo_url
+        site_name_logo_url,
+        site_name_logo_file_id: normalizeOptionalText(body.site_name_logo_file_id)
     };
 }
 

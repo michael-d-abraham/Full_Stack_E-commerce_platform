@@ -1,4 +1,4 @@
-const { uploadProductImage } = require('../services/r2StorageService');
+const { uploadImageToImageKit } = require('../services/imageKitStorageService');
 
 async function uploadImage(req, res) {
     try {
@@ -6,20 +6,28 @@ async function uploadImage(req, res) {
             return res.status(400).json({ error: 'No image file provided. Use field name "image".' });
         }
 
-        const imageUrl = await uploadProductImage({
+        const folder = req.body && req.body.folder !== undefined ? req.body.folder : undefined;
+
+        const uploaded = await uploadImageToImageKit({
             buffer: req.file.buffer,
             mimeType: req.file.mimetype,
-            originalName: req.file.originalname
+            originalName: req.file.originalname,
+            folder
         });
 
-        return res.json({ image_url: imageUrl });
+        const payload = { image_url: uploaded.url };
+        if (uploaded.fileId) {
+            payload.file_id = uploaded.fileId;
+        }
+
+        return res.json(payload);
     } catch (err) {
         console.error('admin upload-image', err);
 
-        if (err.code === 'R2_NOT_CONFIGURED') {
+        if (err.code === 'IMAGEKIT_NOT_CONFIGURED') {
             return res.status(503).json({ error: 'Image storage is not configured on the server.' });
         }
-        if (err.code === 'INVALID_IMAGE') {
+        if (err.code === 'INVALID_IMAGE' || err.code === 'INVALID_FOLDER') {
             return res.status(400).json({ error: err.message });
         }
 

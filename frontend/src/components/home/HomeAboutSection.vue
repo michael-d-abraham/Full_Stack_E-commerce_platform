@@ -1,5 +1,17 @@
 <template>
-  <section class="home-about" aria-labelledby="home-about-heading">
+  <section
+    ref="sectionRef"
+    class="home-about home-section"
+    :class="{ 'home-section--has-background': Boolean(backgroundImageUrl) }"
+    aria-labelledby="home-about-heading"
+  >
+    <div
+      v-if="backgroundImageUrl"
+      ref="backgroundRef"
+      class="home-about__background home-section__background"
+      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
+      aria-hidden="true"
+    />
     <div class="home-about__container mobile-safe-container">
       <header class="home-about__masthead">
         <h2 id="home-about-heading" class="home-about__title">
@@ -40,6 +52,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 
 const STATEMENT_PREVIEW_CHARS = 320;
 
@@ -47,10 +60,16 @@ const props = defineProps({
   sectionTitle: { type: String, required: true },
   header: { type: String, default: '' },
   text: { type: String, default: '' },
-  imageUrl: { type: String, default: '' }
+  imageUrl: { type: String, default: '' },
+  backgroundImageUrl: { type: String, default: '' }
 });
 
+const sectionRef = ref(null);
+const backgroundRef = ref(null);
 const expanded = ref(false);
+
+const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
+useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground);
 
 const formattedQuote = computed(() => {
   const raw = props.header.trim();
@@ -91,12 +110,16 @@ const visibleStatement = computed(() => {
 
 <style scoped>
 .home-about {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   padding: 0;
   background: #faf8f3;
 }
 
 .home-about__container {
+  position: relative;
+  z-index: 1;
   max-width: 72rem;
   margin: 0 auto;
   padding: var(--space-xl) 32px var(--space-2xl);

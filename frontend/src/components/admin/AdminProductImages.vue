@@ -50,15 +50,26 @@
 <script>
 export function buildProductImagesPayload(rows, primaryIndex) {
   const withIdx = (rows || [])
-    .map((r, i) => ({ url: String(r.url || '').trim(), i }))
+    .map((r, i) => ({
+      url: String(r.url || '').trim(),
+      image_provider_id:
+        r.image_provider_id != null ? String(r.image_provider_id).trim() : '',
+      i
+    }))
     .filter((x) => x.url);
   if (!withIdx.length) return [];
   let primaryPos = withIdx.findIndex((x) => x.i === primaryIndex);
   if (primaryPos < 0) primaryPos = 0;
-  return withIdx.map((xr, j) => ({
-    image_url: xr.url,
-    is_primary: j === primaryPos
-  }));
+  return withIdx.map((xr, j) => {
+    const payload = {
+      image_url: xr.url,
+      is_primary: j === primaryPos
+    };
+    if (xr.image_provider_id) {
+      payload.image_provider_id = xr.image_provider_id;
+    }
+    return payload;
+  });
 }
 </script>
 
@@ -84,6 +95,11 @@ const props = defineProps({
   offerPhotoEditor: {
     type: Boolean,
     default: true
+  },
+  /** ImageKit Media Library folder (default: products). */
+  uploadFolder: {
+    type: String,
+    default: 'products'
   }
 });
 
@@ -142,8 +158,8 @@ async function onPhotoFile(file) {
   uploading.value = true;
   uploadError.value = '';
   try {
-    const { image_url } = await uploadAdminImage(file);
-    const next = [...rows.value, { url: image_url }];
+    const { image_url, file_id } = await uploadAdminImage(file, props.uploadFolder);
+    const next = [...rows.value, { url: image_url, image_provider_id: file_id || '' }];
     rows.value = next;
     if (next.length === 1) {
       primaryIndex.value = 0;

@@ -145,7 +145,7 @@
 
   .hero-display__photo {
     max-width: 85vw;
-    max-height: calc(var(--home-hero-max-height) - var(--space-lg) - var(--space-xl));
+    max-height: calc(var(--home-hero-max-height) - var(--space-lg));
   }
 
   /* Home hero: full viewport column layout beside the quote */
@@ -160,6 +160,7 @@
     max-width: 100%;
     width: auto;
     height: auto;
+    max-height: calc(100dvh - var(--site-header-height, 76px) - 2rem);
   }
 }
 

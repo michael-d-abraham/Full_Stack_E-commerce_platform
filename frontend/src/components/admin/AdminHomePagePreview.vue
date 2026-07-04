@@ -1,9 +1,35 @@
 <template>
   <div class="admin-home-preview">
     <!-- Hero (mirrors HomeHero) -->
-    <section class="admin-home-preview__hero hero-display" aria-label="Hero preview">
+    <section
+      class="admin-home-preview__hero hero-display"
+      :class="{ 'admin-home-preview__hero--has-background': Boolean(form.hero_background_image_url) }"
+      aria-label="Hero preview"
+    >
+      <div
+        v-if="form.hero_background_image_url"
+        class="admin-home-preview__hero-background"
+        :style="{ backgroundImage: `url(${form.hero_background_image_url})` }"
+        aria-hidden="true"
+      />
       <div class="admin-home-preview__hero-inner hero-display__inner">
         <h3 class="admin-home-preview__block-title">Hero section</h3>
+
+        <div class="admin-home-preview__hero-background-field">
+          <span class="admin-home-preview__field-label">Hero background texture</span>
+          <p class="admin-home-preview__field-hint">
+            Full-bleed texture behind the hero section. PNG, WebP, and SVG transparency is preserved.
+          </p>
+          <AdminHomePreviewImageSlot
+            class="admin-home-preview__hero-background-slot"
+            :image-url="form.hero_background_image_url"
+            :disabled="disabled"
+            aria-label="Hero background texture"
+            @pick="$emit('pick-image', { type: 'hero-background' })"
+            @remove="$emit('remove-image', { type: 'hero-background' })"
+          />
+        </div>
+
         <div class="admin-home-preview__hero-presentation">
           <label class="admin-home-preview__hero-quote-field">
             <span class="admin-home-preview__field-label">Hero quote</span>
@@ -94,9 +120,35 @@
     </section>
 
     <!-- Featured (mirrors HomeFeaturedProducts) -->
-    <section class="admin-home-preview__featured" aria-label="Featured products preview">
+    <section
+      class="admin-home-preview__featured"
+      :class="{ 'admin-home-preview__section--has-background': Boolean(form.featured_background_image_url) }"
+      aria-label="Featured products preview"
+    >
+      <div
+        v-if="form.featured_background_image_url"
+        class="admin-home-preview__section-background"
+        :style="{ backgroundImage: `url(${form.featured_background_image_url})` }"
+        aria-hidden="true"
+      />
       <div class="admin-home-preview__container">
         <h3 class="admin-home-preview__block-title">Featured section</h3>
+
+        <div class="admin-home-preview__section-background-field">
+          <span class="admin-home-preview__field-label">Featured background texture</span>
+          <p class="admin-home-preview__field-hint">
+            Full-bleed texture behind the featured section.
+          </p>
+          <AdminHomePreviewImageSlot
+            class="admin-home-preview__section-background-slot"
+            :image-url="form.featured_background_image_url"
+            :disabled="disabled"
+            aria-label="Featured section background texture"
+            @pick="$emit('pick-image', { type: 'featured-background' })"
+            @remove="$emit('remove-image', { type: 'featured-background' })"
+          />
+        </div>
+
         <input
           v-model="form.featured_title"
           type="text"
@@ -124,9 +176,35 @@
     </section>
 
     <!-- About (mirrors HomeAboutSection) -->
-    <section class="admin-home-preview__about" aria-label="About preview">
+    <section
+      class="admin-home-preview__about"
+      :class="{ 'admin-home-preview__section--has-background': Boolean(form.about_background_image_url) }"
+      aria-label="About preview"
+    >
+      <div
+        v-if="form.about_background_image_url"
+        class="admin-home-preview__section-background"
+        :style="{ backgroundImage: `url(${form.about_background_image_url})` }"
+        aria-hidden="true"
+      />
       <div class="admin-home-preview__container admin-home-preview__about-inner">
         <h3 class="admin-home-preview__block-title">About section</h3>
+
+        <div class="admin-home-preview__section-background-field">
+          <span class="admin-home-preview__field-label">About background texture</span>
+          <p class="admin-home-preview__field-hint">
+            Full-bleed texture behind the about section.
+          </p>
+          <AdminHomePreviewImageSlot
+            class="admin-home-preview__section-background-slot"
+            :image-url="form.about_background_image_url"
+            :disabled="disabled"
+            aria-label="About section background texture"
+            @pick="$emit('pick-image', { type: 'about-background' })"
+            @remove="$emit('remove-image', { type: 'about-background' })"
+          />
+        </div>
+
         <header class="admin-home-preview__about-masthead">
           <input
             v-model="form.about_title"
@@ -233,10 +311,24 @@ const takenFeaturedProductIds = computed(() =>
 
 /* —— Hero (uses hero-display.css for image scale limits) —— */
 .admin-home-preview__hero {
+  position: relative;
+  overflow: hidden;
   padding: var(--space-sm) var(--space-lg) var(--space-2xl);
 }
 
+.admin-home-preview__hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
 .admin-home-preview__hero-inner {
+  position: relative;
+  z-index: 1;
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -247,6 +339,71 @@ const takenFeaturedProductIds = computed(() =>
   gap: clamp(var(--space-md), 2.5vw, var(--space-xl));
   align-items: stretch;
   width: 100%;
+}
+
+.admin-home-preview__hero-background-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.admin-home-preview__section-background-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.admin-home-preview__section-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.admin-home-preview__featured,
+.admin-home-preview__about {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-home-preview__featured .admin-home-preview__container,
+.admin-home-preview__about .admin-home-preview__about-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-home-preview__section-background-slot :deep(.admin-home-img-slot__hit) {
+  aspect-ratio: 21 / 9;
+  min-height: 120px;
+}
+
+.admin-home-preview__section-background-slot :deep(.admin-home-img-slot__photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-home-preview__field-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.admin-home-preview__hero-background-slot :deep(.admin-home-img-slot__hit) {
+  aspect-ratio: 21 / 9;
+  min-height: 120px;
+}
+
+.admin-home-preview__hero-background-slot :deep(.admin-home-img-slot__photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .admin-home-preview__hero-quote-field {

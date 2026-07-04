@@ -6,13 +6,31 @@ jest.mock('../server/ai/igGenerationGraph', () => ({
     setModelForTesting: jest.fn()
 }));
 
+jest.mock('@imagekit/nodejs', () => {
+    const mockUpload = jest.fn();
+    const mockDelete = jest.fn().mockResolvedValue(undefined);
+    const ImageKit = jest.fn().mockImplementation(() => ({
+        files: { upload: mockUpload, delete: mockDelete }
+    }));
+    ImageKit.toFile = jest.fn(async (buffer, name) => ({ buffer, name }));
+    ImageKit.__mockUpload = mockUpload;
+    ImageKit.__mockDelete = mockDelete;
+    return ImageKit;
+});
+
 const request = require('supertest');
+const ImageKit = require('@imagekit/nodejs');
+const mockImageKitUpload = ImageKit.__mockUpload;
 const { createApp } = require('../server/app');
 const { AdminUser } = require('../server/db');
 const { startTestDatabase, stopTestDatabase } = require('./helpers/mongo');
 const { hashPassword } = require('../server/utils/adminPassword');
 const { assertProductionConfig, REQUIRED_PRODUCTION_ENV } = require('../server/sessionConfig');
-const { detectImageMime, uploadProductImage } = require('../server/services/r2StorageService');
+const { detectImageMime, validateImageBuffer } = require('../server/utils/imageMime');
+const {
+    uploadImageToImageKit,
+    normalizeUploadFolder
+} = require('../server/services/imageKitStorageService');
 
 const app = createApp();
 
@@ -78,29 +96,233 @@ describe('upload image content validation (magic bytes)', () => {
         expect(detectImageMime(WEBP)).toBe('image/webp');
     });
 
+    it('detects SVG from XML content', () => {
+        const SVG = Buffer.from(
+            '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>',
+            'utf8'
+        );
+        expect(detectImageMime(SVG)).toBe('image/svg+xml');
+    });
+
     it('returns null for non-image content', () => {
         expect(detectImageMime(Buffer.from('<html>not an image</html>'))).toBeNull();
         expect(detectImageMime(Buffer.from('GIF', 'ascii'))).toBeNull();
     });
 
-    it('rejects a file whose bytes are not a real image even if MIME claims image/png', async () => {
-        await expect(
-            uploadProductImage({
-                buffer: Buffer.from('this is plain text, not a PNG'),
-                mimeType: 'image/png',
-                originalName: 'evil.png'
-            })
-        ).rejects.toMatchObject({ code: 'INVALID_IMAGE' });
+    it('rejects a file whose bytes are not a real image even if MIME claims image/png', () => {
+        expect(() =>
+            validateImageBuffer(Buffer.from('this is plain text, not a PNG'), 'image/png')
+        ).toThrow(expect.objectContaining({ code: 'INVALID_IMAGE' }));
     });
 
-    it('rejects a disallowed claimed MIME type', async () => {
+    it('accepts SVG when bytes match image/svg+xml', () => {
+        const SVG = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', 'utf8');
+        expect(validateImageBuffer(SVG, 'image/svg+xml')).toBe('image/svg+xml');
+    });
+
+    it('accepts image/jpg as an alias for JPEG', () => {
+        expect(validateImageBuffer(JPEG, 'image/jpg')).toBe('image/jpeg');
+    });
+
+    it('rejects a disallowed claimed MIME type', () => {
+        expect(() => validateImageBuffer(PNG, 'application/pdf')).toThrow(
+            expect.objectContaining({ code: 'INVALID_IMAGE' })
+        );
+    });
+});
+
+describe('ImageKit upload service', () => {
+    const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+
+    const savedEnv = {};
+
+    beforeEach(() => {
+        mockImageKitUpload.mockReset();
+        mockImageKitUpload.mockResolvedValue({
+            url: 'https://ik.imagekit.io/demo/products/test.png',
+            fileId: 'file_abc123',
+            name: 'test.png',
+            filePath: '/products/test.png',
+            thumbnailUrl: 'https://ik.imagekit.io/demo/tr:n-300/products/test.png',
+            width: 800,
+            height: 600,
+            size: 2048
+        });
+
+        for (const key of ['IMAGEKIT_PUBLIC_KEY', 'IMAGEKIT_PRIVATE_KEY', 'IMAGEKIT_URL_ENDPOINT']) {
+            savedEnv[key] = process.env[key];
+            process.env[key] = 'test-value';
+        }
+    });
+
+    afterEach(() => {
+        for (const key of Object.keys(savedEnv)) {
+            if (savedEnv[key] === undefined) {
+                delete process.env[key];
+            } else {
+                process.env[key] = savedEnv[key];
+            }
+        }
+    });
+
+    it('normalizes allowed upload folders', () => {
+        expect(normalizeUploadFolder(undefined)).toBe('products');
+        expect(normalizeUploadFolder('site/hero/')).toBe('site/hero');
+        expect(normalizeUploadFolder('/site/logo')).toBe('site/logo');
+    });
+
+    it('rejects unknown upload folders', () => {
+        expect(() => normalizeUploadFolder('other/path')).toThrow(
+            expect.objectContaining({ code: 'INVALID_FOLDER' })
+        );
+    });
+
+    it('uploads to ImageKit and returns normalized metadata', async () => {
+        const result = await uploadImageToImageKit({
+            buffer: PNG,
+            mimeType: 'image/png',
+            originalName: 'photo.png',
+            folder: 'site/about'
+        });
+
+        expect(mockImageKitUpload).toHaveBeenCalledWith(
+            expect.objectContaining({
+                fileName: expect.stringMatching(/\.png$/),
+                folder: '/site/about'
+            })
+        );
+        expect(result).toMatchObject({
+            url: 'https://ik.imagekit.io/demo/products/test.png',
+            fileId: 'file_abc123',
+            name: 'test.png',
+            filePath: '/products/test.png',
+            thumbnailUrl: 'https://ik.imagekit.io/demo/tr:n-300/products/test.png',
+            width: 800,
+            height: 600,
+            size: 2048
+        });
+    });
+
+    it('rejects invalid image bytes before calling ImageKit', async () => {
         await expect(
-            uploadProductImage({
-                buffer: PNG,
-                mimeType: 'image/svg+xml',
-                originalName: 'x.svg'
+            uploadImageToImageKit({
+                buffer: Buffer.from('not an image'),
+                mimeType: 'image/png',
+                originalName: 'bad.png'
             })
         ).rejects.toMatchObject({ code: 'INVALID_IMAGE' });
+
+        expect(mockImageKitUpload).not.toHaveBeenCalled();
+    });
+});
+
+describe('admin upload-image folder routing', () => {
+    const VALID_PNG = Buffer.from(
+        '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c63000100000500010d0a2db40000000049454e44ae426082',
+        'hex'
+    );
+
+    const savedEnv = {};
+
+    beforeAll(async () => {
+        await startTestDatabase();
+    });
+
+    afterAll(async () => {
+        await stopTestDatabase();
+    });
+
+    beforeEach(async () => {
+        await AdminUser.deleteMany({});
+        mockImageKitUpload.mockReset();
+        mockImageKitUpload.mockImplementation(async (params) => ({
+            url: `https://ik.imagekit.io/demo${params.folder}/test.png`,
+            fileId: 'file_test',
+            name: 'test.png',
+            filePath: `${params.folder}/test.png`,
+            thumbnailUrl: null,
+            width: 1,
+            height: 1,
+            size: 100
+        }));
+
+        for (const key of ['IMAGEKIT_PUBLIC_KEY', 'IMAGEKIT_PRIVATE_KEY', 'IMAGEKIT_URL_ENDPOINT']) {
+            savedEnv[key] = process.env[key];
+            process.env[key] = 'test-value';
+        }
+    });
+
+    afterEach(() => {
+        for (const key of Object.keys(savedEnv)) {
+            if (savedEnv[key] === undefined) {
+                delete process.env[key];
+            } else {
+                process.env[key] = savedEnv[key];
+            }
+        }
+    });
+
+    it.each([
+        ['products', '/products'],
+        ['site/hero', '/site/hero'],
+        ['site/hero-background', '/site/hero-background'],
+        ['site/featured-background', '/site/featured-background'],
+        ['site/about-background', '/site/about-background'],
+        ['site/about', '/site/about'],
+        ['site/contact', '/site/contact'],
+        ['site/logo', '/site/logo']
+    ])('POST /api/admin/upload-image passes folder %s', async (folder, imageKitFolder) => {
+        await createAdmin();
+        const agent = request.agent(app);
+        const login = await agent
+            .post(LOGIN_PATH)
+            .send({ username: ADMIN.username, plainPassword: ADMIN.password });
+        expect(login.status).toBe(200);
+
+        const res = await agent
+            .post('/api/admin/upload-image')
+            .field('folder', folder)
+            .attach('image', VALID_PNG, {
+                filename: 'test.png',
+                contentType: 'image/png'
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.body.image_url).toBeTruthy();
+        expect(res.body.file_id).toBe('file_test');
+        expect(mockImageKitUpload).toHaveBeenCalledWith(
+            expect.objectContaining({ folder: imageKitFolder })
+        );
+    });
+
+    it('POST /api/admin/upload-image accepts transparent SVG for background folders', async () => {
+        const SVG = Buffer.from(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="50" height="50" fill="red" opacity="0.5"/></svg>',
+            'utf8'
+        );
+        await createAdmin();
+        const agent = request.agent(app);
+        const login = await agent
+            .post(LOGIN_PATH)
+            .send({ username: ADMIN.username, plainPassword: ADMIN.password });
+        expect(login.status).toBe(200);
+
+        const res = await agent
+            .post('/api/admin/upload-image')
+            .field('folder', 'site/hero-background')
+            .attach('image', SVG, {
+                filename: 'texture.svg',
+                contentType: 'image/svg+xml'
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.body.image_url).toBeTruthy();
+        expect(mockImageKitUpload).toHaveBeenCalledWith(
+            expect.objectContaining({
+                folder: '/site/hero-background',
+                fileName: expect.stringMatching(/\.svg$/)
+            })
+        );
     });
 });
 

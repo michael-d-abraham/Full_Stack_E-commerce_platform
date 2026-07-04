@@ -43,6 +43,11 @@ function buildContentSecurityPolicyDirectives() {
         imgSrc.push(r2Origin);
     }
 
+    const imageKitOrigin = parseOrigin(process.env.IMAGEKIT_URL_ENDPOINT);
+    if (imageKitOrigin) {
+        imgSrc.push(imageKitOrigin);
+    }
+
     const extra = process.env.CSP_IMG_ORIGINS;
     if (extra) {
         for (const part of extra.split(',')) {

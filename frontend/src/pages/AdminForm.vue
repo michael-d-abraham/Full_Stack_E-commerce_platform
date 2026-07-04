@@ -46,6 +46,7 @@
           <AdminProductImages
             v-model="imageRows"
             v-model:primary-index="primaryImageIndex"
+            upload-folder="products"
             :disabled="submitting"
           />
         </div>
@@ -166,7 +167,8 @@ function populateFromProduct(p) {
   const imgs = Array.isArray(p.product_images) ? p.product_images : [];
   imageRows.value = imgs.map((img) => ({
     id: img._id,
-    url: img.image_url
+    url: img.image_url,
+    image_provider_id: img.image_provider_id || ''
   }));
   const primaryIdx = imgs.findIndex((img) => img.is_primary);
   primaryImageIndex.value = primaryIdx >= 0 ? primaryIdx : 0;

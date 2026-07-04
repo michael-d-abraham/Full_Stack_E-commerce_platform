@@ -2,7 +2,7 @@
   <input
     ref="inputRef"
     type="file"
-    accept="image/*"
+    :accept="ACCEPTED_IMAGE_TYPES"
     class="photo-flow__input"
     :disabled="disabled"
     @change="onFilePicked"
@@ -26,6 +26,10 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import AdminPhotoEditor from './AdminPhotoEditor.vue';
+import { resolveEditorOutputFromSource } from '@shared/imageOutputFormat.js';
+
+const ACCEPTED_IMAGE_TYPES =
+  'image/png,image/webp,image/svg+xml,image/jpeg,image/jpg';
 
 const props = defineProps({
   disabled: { type: Boolean, default: false },
@@ -37,7 +41,11 @@ const props = defineProps({
   showOrientationTools: { type: Boolean, default: true },
   outputFileName: { type: String, default: 'photo.jpg' },
   outputMime: { type: String, default: 'image/jpeg' },
-  outputQuality: { type: Number, default: 0.92 }
+  outputQuality: { type: Number, default: 0.92 },
+  /** When true, export format follows the picked file (PNG/WebP/SVG/JPEG). */
+  preserveSourceFormat: { type: Boolean, default: false },
+  /** Base name for exports when preserveSourceFormat is enabled (no extension). */
+  outputBaseName: { type: String, default: 'photo' }
 });
 
 const emit = defineEmits(['file', 'cancel']);
@@ -53,7 +61,9 @@ const session = reactive({
   showOrientationTools: props.showOrientationTools,
   outputFileName: props.outputFileName,
   outputMime: props.outputMime,
-  outputQuality: props.outputQuality
+  outputQuality: props.outputQuality,
+  outputBaseName: props.outputBaseName,
+  preserveSourceFormat: props.preserveSourceFormat
 });
 
 function syncSessionFromProps() {
@@ -64,6 +74,8 @@ function syncSessionFromProps() {
   session.outputFileName = props.outputFileName;
   session.outputMime = props.outputMime;
   session.outputQuality = props.outputQuality;
+  session.outputBaseName = props.outputBaseName;
+  session.preserveSourceFormat = props.preserveSourceFormat;
 }
 
 function revokePreview() {
@@ -98,6 +110,23 @@ function onFilePicked(event) {
   if (!props.offerEditor) {
     emit('file', file);
     return;
+  }
+
+  if (session.preserveSourceFormat) {
+    const resolved = resolveEditorOutputFromSource({
+      sourceMime: file.type,
+      sourceName: file.name,
+      outputBaseName: session.outputBaseName || props.outputBaseName
+    });
+    session.outputMime = resolved.outputMime;
+    session.outputFileName = resolved.outputFileName;
+    session.outputQuality =
+      resolved.outputQuality != null ? resolved.outputQuality : props.outputQuality;
+
+    if (resolved.skipEditor) {
+      emit('file', file);
+      return;
+    }
   }
 
   revokePreview();

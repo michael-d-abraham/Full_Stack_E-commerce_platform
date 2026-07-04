@@ -6,11 +6,13 @@
       <HomeHero
         :image-urls="heroImageUrls"
         :image-url="content.hero_image_url"
+        :background-image-url="content.hero_background_image_url"
         :quote="content.hero_quote"
       />
       <HomeFeaturedProducts
         v-if="featuredProducts.length"
         :section-title="content.featured_title"
+        :background-image-url="content.featured_background_image_url"
         :products="featuredProducts"
       />
       <HomeAboutSection
@@ -18,6 +20,7 @@
         :header="content.about_header"
         :text="content.about_text"
         :image-url="content.about_image_url"
+        :background-image-url="content.about_background_image_url"
       />
     </template>
   </div>
