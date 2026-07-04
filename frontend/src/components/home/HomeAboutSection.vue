@@ -28,7 +28,7 @@
       </header>
 
       <div class="home-about__grid">
-        <blockquote v-if="header" class="home-about__quote home-quote">
+        <blockquote v-if="header" ref="quoteRef" class="home-about__quote home-quote">
           {{ formattedQuote }}
         </blockquote>
 
@@ -59,10 +59,14 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 import { useScrollParallax } from '../../composables/useScrollParallax.js';
 
-const STATEMENT_PREVIEW_CHARS = 320;
+const STATEMENT_PREVIEW_CHARS_MOBILE = 320;
+const STATEMENT_PREVIEW_CHARS_DESKTOP = 640;
+const STATEMENT_MIN_SENTENCE_CHARS_MOBILE = 100;
+const STATEMENT_MIN_SENTENCE_CHARS_DESKTOP = 200;
 
 const props = defineProps({
   sectionTitle: { type: String, required: true },
@@ -76,7 +80,17 @@ const sectionRef = ref(null);
 const backgroundRef = ref(null);
 const overlayRef = ref(null);
 const photoParallaxRef = ref(null);
+const quoteRef = ref(null);
 const expanded = ref(false);
+const isDesktop = useMediaQuery('(min-width: 641px)');
+
+const statementPreviewChars = computed(() =>
+  isDesktop.value ? STATEMENT_PREVIEW_CHARS_DESKTOP : STATEMENT_PREVIEW_CHARS_MOBILE
+);
+
+const statementMinSentenceChars = computed(() =>
+  isDesktop.value ? STATEMENT_MIN_SENTENCE_CHARS_DESKTOP : STATEMENT_MIN_SENTENCE_CHARS_MOBILE
+);
 
 const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
 useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
@@ -98,25 +112,36 @@ const formattedQuote = computed(() => {
   return `"${raw}"`;
 });
 
+const hasQuote = computed(() => Boolean(formattedQuote.value));
+useScrollParallax(sectionRef, quoteRef, hasQuote, {
+  axis: 'x',
+  xMode: 'enter-from-right',
+  maxOffset: 160,
+  mobileMaxOffset: 80
+});
+
 const portraitAlt = computed(() => {
   const name = props.sectionTitle.trim();
   return name ? `Portrait of ${name}` : 'Artist portrait';
 });
 
 const isTruncatable = computed(
-  () => props.text.trim().length > STATEMENT_PREVIEW_CHARS
+  () => props.text.trim().length > statementPreviewChars.value
 );
 
 const visibleStatement = computed(() => {
   const body = props.text.trim();
-  if (!body || expanded.value || body.length <= STATEMENT_PREVIEW_CHARS) {
+  const previewChars = statementPreviewChars.value;
+  const minSentenceChars = statementMinSentenceChars.value;
+
+  if (!body || expanded.value || body.length <= previewChars) {
     return body;
   }
 
-  const slice = body.slice(0, STATEMENT_PREVIEW_CHARS);
+  const slice = body.slice(0, previewChars);
   const lastSentenceEnd = Math.max(slice.lastIndexOf('.'), slice.lastIndexOf('!'), slice.lastIndexOf('?'));
 
-  if (lastSentenceEnd > 100) {
+  if (lastSentenceEnd > minSentenceChars) {
     return body.slice(0, lastSentenceEnd + 1).trim();
   }
 
@@ -178,6 +203,23 @@ const visibleStatement = computed(() => {
 
 .home-about__quote {
   grid-area: quote;
+}
+
+@media (min-width: 641px) {
+  .home-about__grid {
+    position: relative;
+  }
+
+  .home-about__quote {
+    position: relative;
+    z-index: 2;
+    will-change: transform;
+  }
+
+  .home-about__media {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .home-about__statement {
@@ -270,11 +312,21 @@ const visibleStatement = computed(() => {
       'quote'
       'statement';
     row-gap: var(--space-xl);
+    position: relative;
   }
 
   .home-about__media {
     grid-row: auto;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .home-about__quote {
+    position: relative;
+    z-index: 2;
+    margin-top: calc(-1 * var(--space-xl));
+    will-change: transform;
   }
 
   .home-about__image {
@@ -293,7 +345,8 @@ const visibleStatement = computed(() => {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-about__media {
+  .home-about__media,
+  .home-about__quote {
     will-change: auto;
   }
 }

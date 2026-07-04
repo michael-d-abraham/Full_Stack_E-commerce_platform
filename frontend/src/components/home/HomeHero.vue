@@ -73,6 +73,7 @@
             />
 
             <button
+              v-if="!isMobile"
               type="button"
               class="home-hero__nav home-hero__nav--prev"
               aria-label="Previous hero image"
@@ -83,6 +84,7 @@
               </svg>
             </button>
             <button
+              v-if="!isMobile"
               type="button"
               class="home-hero__nav home-hero__nav--next"
               aria-label="Next hero image"
@@ -93,7 +95,12 @@
               </svg>
             </button>
 
-            <div class="home-hero__dots" role="tablist" aria-label="Hero slides">
+            <div
+              v-if="!isMobile"
+              class="home-hero__dots"
+              role="tablist"
+              aria-label="Hero slides"
+            >
               <button
                 v-for="(_, index) in heroImages"
                 :key="'hero-dot-' + index"
@@ -181,10 +188,11 @@ const formattedQuote = computed(() => {
 
 const hasQuote = computed(() => Boolean(formattedQuote.value));
 useScrollParallax(heroSectionRef, quoteRef, hasQuote, {
-  desktop: 0.14,
-  mobile: 0,
   axis: 'x',
-  desktopOnly: true
+  desktopAxis: 'x',
+  mobileAxis: 'y',
+  desktop: 0.14,
+  mobile: 0.06
 });
 
 function clearSlideTimer() {

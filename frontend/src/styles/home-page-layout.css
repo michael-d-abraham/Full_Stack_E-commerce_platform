@@ -273,6 +273,7 @@
     min-height: 0;
     padding: 0;
     box-sizing: border-box;
+    position: relative;
   }
 
   .home-hero__stage {
@@ -284,15 +285,20 @@
     min-height: 0;
     margin: 0;
     position: relative;
+    z-index: 1;
     display: block;
   }
 
   .home-hero__quote {
     order: 2;
+    position: relative;
+    z-index: 2;
     width: 100%;
     max-width: 100%;
     flex-shrink: 0;
+    margin-top: calc(-1 * var(--space-xl));
     text-align: center;
+    will-change: transform;
   }
 
   .home-hero__quote.home-quote::after {
