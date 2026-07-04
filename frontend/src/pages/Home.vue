@@ -3,20 +3,20 @@
     <p v-if="loading" class="home-page__status">Loading…</p>
     <p v-else-if="error" class="error home-page__status">{{ error }}</p>
     <template v-else-if="content">
-      <HomeHero
-        :image-urls="heroImageUrls"
-        :image-url="content.hero_image_url"
+      <HomeAboutSection
+        :section-title="content.about_title"
+        :header="content.about_header"
+        :text="content.about_text"
+        :image-url="content.about_image_url"
       />
       <HomeFeaturedProducts
         v-if="featuredProducts.length"
         :section-title="content.featured_title"
         :products="featuredProducts"
       />
-      <HomeAboutSection
-        :section-title="content.about_title"
-        :header="content.about_header"
-        :text="content.about_text"
-        :image-url="content.about_image_url"
+      <HomeHero
+        :image-urls="heroImageUrls"
+        :image-url="content.hero_image_url"
       />
     </template>
   </div>

@@ -94,7 +94,6 @@ const visibleStatement = computed(() => {
   width: 100%;
   padding: 0;
   background: #faf8f3;
-  border-top: 1px solid var(--color-border);
 }
 
 .home-about__container {
