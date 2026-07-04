@@ -93,12 +93,6 @@
         </template>
         </div>
       </div>
-
-      <p v-if="showOverlay" class="home-hero__cta">
-        <router-link to="/gallery" class="home-hero__cta-link">
-          View Collection
-        </router-link>
-      </p>
     </div>
   </section>
 </template>
@@ -138,8 +132,6 @@ const heroImages = computed(() => {
 });
 
 const canSwipe = computed(() => isMobile.value && heroImages.value.length >= 2);
-
-const showOverlay = computed(() => heroImages.value.length > 0);
 
 const formattedQuote = computed(() => {
   const raw = props.quote.trim();
@@ -449,54 +441,6 @@ onUnmounted(() => {
   box-shadow: var(--focus-ring);
 }
 
-.home-hero__cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 5rem;
-  text-align: center;
-  line-height: normal;
-  flex-shrink: 0;
-}
-
-.home-hero__cta-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 50vw;
-  max-width: 100%;
-  min-width: 0;
-  min-height: 64px;
-  padding: 0 3rem;
-  border: 1px solid var(--color-text);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-decoration: none;
-  box-shadow: none;
-  box-sizing: border-box;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.home-hero__cta-link:hover {
-  background: var(--color-text);
-  color: var(--color-bg);
-  opacity: 1;
-  text-decoration: none;
-}
-
-.home-hero__cta-link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
 @media (min-width: 641px) {
   .home-hero__inner {
     max-width: none;
@@ -558,21 +502,6 @@ onUnmounted(() => {
     height: auto;
     margin: 0;
     line-height: 0;
-  }
-
-  .home-hero__cta {
-    margin: 0;
-    padding: 0;
-    min-height: 0;
-    text-align: center;
-  }
-
-  .home-hero__cta-link {
-    width: 50vw;
-    max-width: 100%;
-    min-width: 0;
-    min-height: 64px;
-    font-size: 0.875rem;
   }
 }
 

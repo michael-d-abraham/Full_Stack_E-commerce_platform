@@ -27,14 +27,6 @@
             @pick="$emit('pick-image', { type: 'hero' })"
             @remove="$emit('remove-image', { type: 'hero', index: 0 })"
           />
-          <div class="hero-display__overlay admin-home-preview__hero-overlay">
-            <div class="hero-display__overlay-scrim" aria-hidden="true" />
-            <div class="hero-display__overlay-content">
-              <span class="hero-display__overlay-link hero-display__overlay-link--static">
-                View Collection →
-              </span>
-            </div>
-          </div>
         </div>
         </div>
 
@@ -123,6 +115,9 @@
             @update:product-id="item.product_id = $event"
           />
         </div>
+        <p class="admin-home-preview__featured-cta">
+          <span class="admin-home-preview__featured-cta-link">View Collection</span>
+        </p>
       </div>
     </section>
 
@@ -282,14 +277,6 @@ const takenFeaturedProductIds = computed(() =>
   max-width: 100%;
 }
 
-.admin-home-preview__hero-overlay {
-  pointer-events: none;
-}
-
-.admin-home-preview__hero-overlay .hero-display__overlay-content {
-  pointer-events: auto;
-}
-
 .admin-home-preview__hero-image-wrap :deep(.admin-home-img-slot__hit:not(:has(.admin-home-img-slot__photo))) {
   aspect-ratio: 16 / 9;
   min-height: 200px;
@@ -437,6 +424,38 @@ const takenFeaturedProductIds = computed(() =>
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-lg);
   align-items: start;
+}
+
+.admin-home-preview__featured-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-xl) 0 0;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  line-height: normal;
+}
+
+.admin-home-preview__featured-cta-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50vw;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 0 3rem;
+  border: 1px solid var(--color-text);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-sizing: border-box;
+  opacity: 0.88;
 }
 
 /* —— About —— */
@@ -607,6 +626,10 @@ const takenFeaturedProductIds = computed(() =>
   .admin-home-preview__featured-grid {
     grid-template-columns: 1fr;
     gap: var(--space-md);
+  }
+
+  .admin-home-preview__featured-cta {
+    margin-top: var(--space-lg);
   }
 
   .admin-home-preview__hero-image-wrap :deep(.admin-home-img-slot__hit:not(:has(.admin-home-img-slot__photo))) {
