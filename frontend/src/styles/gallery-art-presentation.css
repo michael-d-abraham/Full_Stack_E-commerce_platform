@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');
+
+/*
+ * Reusable gallery art presentation — frame, mat, plaque typography.
+ * Wrap content in .gallery-art-presentation (e.g. on a card link or product detail block).
+ * Size tokens can be overridden by a parent context such as .product-grid--gallery.
+ */
+
+.gallery-art-presentation {
+  --gallery-frame-width: 2.5px;
+  --gallery-frame-bg: #1a1a1a;
+  --gallery-mat-bg: #f7f4ee;
+  --gallery-mat-padding: 9px;
+  --gallery-frame-shadow:
+    2px 4px 8px rgba(0, 0, 0, 0.05),
+    4px 10px 22px rgba(0, 0, 0, 0.08);
+  --gallery-frame-shadow-hover:
+    3px 8px 14px rgba(0, 0, 0, 0.07),
+    6px 16px 28px rgba(0, 0, 0, 0.1);
+  --gallery-frame-inset:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.35);
+  --gallery-meta-font: 'Oswald', var(--font-sans);
+  --gallery-plaque-gap: 18px;
+  --gallery-art-landscape-max: 300px;
+  --gallery-art-portrait-max: 240px;
+  --gallery-art-square-max: 260px;
+  --gallery-art-landscape-height: 220px;
+  --gallery-art-portrait-height: 320px;
+  --gallery-art-square-height: 260px;
+}
+
+.gallery-art-presentation .gallery-art-frame {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  padding: var(--gallery-frame-width);
+  box-sizing: border-box;
+  border: none;
+  background: var(--gallery-frame-bg);
+  box-shadow: var(--gallery-frame-shadow), var(--gallery-frame-inset);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  line-height: 0;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.gallery-art-presentation .gallery-art-mat {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  padding: var(--gallery-mat-padding);
+  box-sizing: border-box;
+  background: var(--gallery-mat-bg);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: block;
+  line-height: 0;
+}
+
+.gallery-art-presentation .gallery-art-image,
+.gallery-art-presentation .product-image {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.gallery-art-presentation .gallery-art--landscape .gallery-art-image {
+  max-width: var(--gallery-art-landscape-max);
+  max-height: var(--gallery-art-landscape-height);
+}
+
+.gallery-art-presentation .gallery-art--portrait .gallery-art-image {
+  max-width: var(--gallery-art-portrait-max);
+  max-height: var(--gallery-art-portrait-height);
+}
+
+.gallery-art-presentation .gallery-art--square .gallery-art-image {
+  max-width: var(--gallery-art-square-max);
+  max-height: var(--gallery-art-square-height);
+}
+
+.gallery-art-presentation .product-image--placeholder {
+  min-width: 140px;
+  min-height: 105px;
+  max-width: var(--gallery-art-square-max);
+  max-height: var(--gallery-art-square-height);
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  background: #f5f5f5;
+  box-shadow: none;
+}
+
+.gallery-art-presentation .gallery-plaque,
+.gallery-art-presentation .gallery-product-meta,
+.gallery-art-presentation .product-info {
+  width: 100%;
+  margin-top: var(--gallery-plaque-gap);
+  flex-shrink: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/*
+ * Plaque typography — gallery cards and product detail title/price.
+ */
+
+.gallery-plaque-typography,
+.gallery-art-presentation .gallery-plaque,
+.gallery-art-presentation .gallery-product-meta {
+  --gallery-meta-font: 'Oswald', var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gallery-plaque-typography .gallery-product-title,
+.gallery-art-presentation .gallery-product-title,
+.gallery-art-presentation .product-title {
+  max-width: 100%;
+  min-height: 0;
+  margin: 0;
+  font-family: var(--gallery-meta-font);
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  color: var(--color-text);
+}
+
+.gallery-plaque-typography .gallery-product-price,
+.gallery-art-presentation .gallery-product-price,
+.gallery-art-presentation .product-price {
+  margin: 5px 0 0;
+  font-family: var(--gallery-meta-font);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  color: #8a8680;
+}
+
+.gallery-plaque-typography .gallery-product-price::after,
+.gallery-art-presentation .gallery-product-price::after {
+  content: '';
+  display: block;
+  width: 38px;
+  height: 1px;
+  margin: 9px auto 0;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.gallery-plaque-typography--start {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.gallery-plaque-typography--start .gallery-product-price::after {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-art-presentation .gallery-art-frame {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-art-presentation {
+    --gallery-art-landscape-max: 280px;
+    --gallery-art-portrait-max: 220px;
+    --gallery-art-square-max: 240px;
+    --gallery-art-landscape-height: 200px;
+    --gallery-art-portrait-height: 280px;
+    --gallery-art-square-height: 240px;
+    --gallery-plaque-gap: 18px;
+  }
+
+  .gallery-art-presentation .gallery-product-title,
+  .gallery-art-presentation .product-title,
+  .gallery-plaque-typography .gallery-product-title {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+
+  .gallery-art-presentation .gallery-product-price,
+  .gallery-art-presentation .product-price,
+  .gallery-plaque-typography .gallery-product-price {
+    font-size: 11px;
+  }
+}
+
+/*
+ * Product detail — larger premium frame/mat sizing (ProductImageGallery stage).
+ * Uses the same visual tokens as gallery cards with room to breathe in the viewport.
+ */
+
+.gallery-art-presentation.gallery-art-presentation--detail {
+  --gallery-mat-bg: #ffffff;
+  --gallery-mat-padding: 12px;
+  --gallery-frame-width: 3px;
+  --gallery-detail-frame-inset: calc((var(--gallery-mat-padding) + var(--gallery-frame-width)) * 2 + 4px);
+  --gallery-detail-art-max-height: min(44vh, 400px);
+  --gallery-art-landscape-max: min(480px, 100%);
+  --gallery-art-landscape-height: min(340px, var(--gallery-detail-art-max-height));
+  --gallery-art-portrait-max: min(320px, calc(100% - 24px));
+  --gallery-art-portrait-height: min(420px, var(--gallery-detail-art-max-height));
+  --gallery-art-square-max: min(380px, 100%);
+  --gallery-art-square-height: min(380px, var(--gallery-detail-art-max-height));
+}
+
+.gallery-art-presentation.gallery-art-presentation--detail .gallery-art-frame {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+@media (min-width: 641px) {
+  .gallery-art-presentation.gallery-art-presentation--detail {
+    --gallery-detail-art-max-height: min(58vh, 520px);
+    --gallery-art-landscape-max: min(600px, 100%);
+    --gallery-art-landscape-height: min(420px, var(--gallery-detail-art-max-height));
+    --gallery-art-portrait-max: min(380px, calc(100% - 24px));
+    --gallery-art-portrait-height: min(500px, var(--gallery-detail-art-max-height));
+    --gallery-art-square-max: min(440px, 100%);
+    --gallery-art-square-height: min(440px, var(--gallery-detail-art-max-height));
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-art-presentation.gallery-art-presentation--detail {
+    --gallery-mat-padding: 10px;
+    --gallery-frame-width: 2.5px;
+    --gallery-detail-art-max-height: min(40svh, 300px);
+    --gallery-art-landscape-max: min(calc(100vw - 48px), 100%);
+    --gallery-art-landscape-height: min(240px, var(--gallery-detail-art-max-height));
+    --gallery-art-portrait-max: min(calc(100vw - 56px), 260px);
+    --gallery-art-portrait-height: min(300px, var(--gallery-detail-art-max-height));
+    --gallery-art-square-max: min(calc(100vw - 52px), 280px);
+    --gallery-art-square-height: min(280px, var(--gallery-detail-art-max-height));
+  }
+}

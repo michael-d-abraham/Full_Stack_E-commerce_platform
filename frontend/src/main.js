@@ -2,6 +2,8 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import './styles/base.css';
+import './styles/gallery-art-presentation.css';
+import './styles/product-expanded-image.css';
 import './styles/gallery-product-grid.css';
 import './styles/home-page-layout.css';
 import './styles/contact-page-layout.css';

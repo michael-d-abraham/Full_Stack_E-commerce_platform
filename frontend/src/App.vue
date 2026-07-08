@@ -3,7 +3,7 @@
     <header
       v-if="!isAdminRoute"
       class="app-header site-header"
-      :class="headerHidden ? 'is-hidden' : 'is-visible'"
+      :class="(headerHidden || hideHeaderForGalleryProduct) ? 'is-hidden' : 'is-visible'"
     >
       <div ref="headerBarRef" class="app-header__bar">
         <button
@@ -95,8 +95,9 @@ const isHomeRoute = computed(() => route.name === 'home');
 const isGalleryProductOpen = computed(
   () => route.name === 'gallery' && typeof route.query.product === 'string' && Boolean(route.query.product)
 );
+const hideHeaderForGalleryProduct = computed(() => isGalleryProductOpen.value);
 const isProductMobile = computed(
-  () => isMobile.value && (route.name === 'product-detail' || isGalleryProductOpen.value)
+  () => isMobile.value && route.name === 'product-detail'
 );
 
 const { headerHidden, resetHeader, syncSiteHeaderOffset } = useAutoHideSiteHeader({
@@ -180,6 +181,10 @@ const showSocialFooter = computed(() => {
 
 .site-header.is-visible {
   transform: translateY(0);
+}
+
+body.gallery-product-open .site-header {
+  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

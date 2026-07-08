@@ -11,9 +11,10 @@
     <div
       v-else-if="overlay && isMobile"
       class="product-page__content product-page__content--mobile product-page__content--overlay"
+      :class="{ 'product-page__content--swapping': isProductSwapping }"
     >
       <ProductCloseButton
-        placement="overlay"
+        placement="inline"
         flush
         back-to="/gallery"
         as-button
@@ -30,31 +31,30 @@
       />
       <div v-else class="product-skeleton product-skeleton--image" aria-hidden="true" />
 
-      <div class="product-page__details">
-        <div class="product-page__purchase">
+      <div class="product-page__details product-page__details--stacked">
+        <header v-if="product" class="product-page__intro gallery-plaque-typography">
           <ProductInfo
-            v-if="product"
             :title="productTitle(product)"
-            :price="formattedPrice"
+            :show-price="false"
           />
-          <div v-else class="product-skeleton-group" aria-hidden="true">
-            <div class="product-skeleton product-skeleton--title" />
-            <div class="product-skeleton product-skeleton--price" />
-          </div>
+          <p v-if="formattedPrice != null" class="product-page__price gallery-product-price">
+            {{ formattedPrice }}
+          </p>
+        </header>
+        <div v-else class="product-skeleton-group product-page__intro" aria-hidden="true">
+          <div class="product-skeleton product-skeleton--title" />
+          <div class="product-skeleton product-skeleton--price" />
+        </div>
 
+        <ProductDetailMeta v-if="product" :product="product" />
+
+        <div class="product-page__purchase">
           <p v-if="showStock" class="product-page__availability">
             Available: {{ product.quantity_available }}
           </p>
           <div
             v-else-if="!product"
             class="product-skeleton product-skeleton--availability"
-            aria-hidden="true"
-          />
-
-          <SizeDropdown v-if="product" :size-label="product.size_label || ''" />
-          <div
-            v-else
-            class="product-skeleton product-skeleton--size"
             aria-hidden="true"
           />
 
@@ -85,6 +85,16 @@
           />
         </div>
 
+        <ProductOverlayGalleryNav
+          v-if="showGalleryNav"
+          :position="galleryNavPosition"
+          :total="props.gallerySlugs.length"
+          :can-go-prev="canGoGalleryPrev"
+          :can-go-next="canGoGalleryNext"
+          @prev="goGalleryPrev"
+          @next="goGalleryNext"
+        />
+
         <ProductDescription v-if="product?.description" :text="product.description" />
         <div
           v-else-if="!product"
@@ -113,13 +123,23 @@
         :image-alt="productTitle(product)"
         @lightbox-change="imageLightboxOpen = $event"
       />
-      <div class="product-page__details">
+      <div class="product-page__details product-page__details--stacked">
+        <header class="product-page__intro gallery-plaque-typography">
+          <ProductInfo
+            :title="productTitle(product)"
+            :show-price="false"
+          />
+          <p v-if="formattedPrice != null" class="product-page__price gallery-product-price">
+            {{ formattedPrice }}
+          </p>
+        </header>
+
+        <ProductDetailMeta :product="product" />
+
         <div class="product-page__purchase">
-          <ProductInfo :title="productTitle(product)" :price="formattedPrice" />
           <p v-if="showStock" class="product-page__availability">
             Available: {{ product.quantity_available }}
           </p>
-          <SizeDropdown :size-label="product.size_label || ''" />
           <ProductQuantityField
             v-model="quantity"
             :max="maxQuantity"
@@ -153,7 +173,10 @@
           v-if="product"
           ref="detailGridRef"
           class="detail__grid"
-          :class="{ 'detail__grid--lightbox-open': imageLightboxOpen }"
+          :class="{
+            'detail__grid--lightbox-open': imageLightboxOpen,
+            'detail__grid--swapping': isProductSwapping
+          }"
         >
           <div class="detail__media">
             <ProductImageGallery
@@ -169,18 +192,16 @@
             />
           </div>
 
-          <div class="detail__info">
-            <h1 class="page-title">{{ productTitle(product) }}</h1>
-            <div v-if="hasDesktopMeta" class="detail__meta-group">
-              <p v-if="product.year_created != null" class="meta">Year: {{ product.year_created }}</p>
-              <p v-if="productFormat(product)" class="meta">Format: {{ productFormat(product) }}</p>
-              <p v-if="product.size_label" class="meta">Size: {{ product.size_label }}</p>
-            </div>
+          <div class="detail__info gallery-plaque-typography gallery-plaque-typography--start">
+            <h1 class="page-title gallery-product-title">{{ productTitle(product) }}</h1>
+
+            <ProductDetailMeta :product="product" />
+
+            <p v-if="product.price_cents != null" class="price gallery-product-price">
+              {{ formatMoneyFromCents(product.price_cents, product.currency || 'usd') }}
+            </p>
 
             <div class="detail__purchase">
-              <p v-if="product.price_cents != null" class="price">
-                {{ formatMoneyFromCents(product.price_cents, product.currency || 'usd') }}
-              </p>
               <p v-if="showStock" class="meta stock">Available: {{ product.quantity_available }}</p>
               <ProductQuantityField
                 v-model="quantity"
@@ -200,7 +221,7 @@
           </div>
         </div>
 
-        <div v-else class="detail__grid detail__grid--loading" aria-hidden="true">
+        <div v-else-if="!overlay" class="detail__grid detail__grid--loading" aria-hidden="true">
           <div class="detail__media">
             <div class="product-skeleton product-skeleton--image product-skeleton--desktop-image" />
           </div>
@@ -217,31 +238,53 @@
         </div>
 
         <p v-if="error" class="error product-page__inline-error product-page__inline-error--desktop">{{ error }}</p>
+
+        <ProductOverlayGalleryNav
+          v-if="showGalleryNav"
+          desktop
+          :position="galleryNavPosition"
+          :total="props.gallerySlugs.length"
+          :can-go-prev="canGoGalleryPrev"
+          :can-go-next="canGoGalleryNext"
+          @prev="goGalleryPrev"
+          @next="goGalleryNext"
+        />
       </div>
     </article>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { getProductBySlug } from '../services/api.js';
+import {
+  getCachedProduct,
+  setCachedProduct,
+  fetchProduct,
+  refreshProductInBackground,
+  prefetchAdjacentProducts,
+  getProductSwapDurationMs,
+  wait
+} from '../composables/useProductCache.js';
 import { addToCart, setCartQuantity } from '../utils/cart.js';
 import { CART_QUANTITY_MAX } from '@shared/cartQuantity.js';
 import { useCart } from '../composables/useCart.js';
 import { useMediaQuery } from '../composables/useMediaQuery.js';
+import {
+  useProductGalleryNavKeyboard
+} from '../composables/useProductGalleryNav.js';
 import { formatMoneyFromCents } from '../utils/money.js';
 import {
-  productTitle,
-  productFormat
+  productTitle
 } from '../utils/storefrontProduct.js';
 import ProductCloseButton from '../components/product/ProductCloseButton.vue';
 import ProductImageGallery from '../components/product/ProductImageGallery.vue';
 import ProductInfo from '../components/product/ProductInfo.vue';
-import SizeDropdown from '../components/product/SizeDropdown.vue';
+import ProductDetailMeta from '../components/product/ProductDetailMeta.vue';
 import ProductQuantityField from '../components/product/ProductQuantityField.vue';
 import AddToCartButton from '../components/product/AddToCartButton.vue';
 import ProductDescription from '../components/product/ProductDescription.vue';
+import ProductOverlayGalleryNav from '../components/product/ProductOverlayGalleryNav.vue';
 
 const props = defineProps({
   slug: {
@@ -255,6 +298,10 @@ const props = defineProps({
   initialProduct: {
     type: Object,
     default: null
+  },
+  gallerySlugs: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -265,6 +312,10 @@ const router = useRouter();
 const { openDrawer } = useCart();
 
 function resolveCachedProduct(slug) {
+  const cached = getCachedProduct(slug);
+  if (cached) {
+    return cached;
+  }
   if (props.initialProduct?.slug === slug) {
     return props.initialProduct;
   }
@@ -273,10 +324,14 @@ function resolveCachedProduct(slug) {
 
 const cachedProduct = resolveCachedProduct(props.slug);
 const product = ref(cachedProduct);
+if (cachedProduct?.slug) {
+  setCachedProduct(cachedProduct.slug, cachedProduct);
+}
 const loading = ref(!cachedProduct);
 const error = ref('');
 const quantity = ref(1);
 const added = ref(false);
+const isProductSwapping = ref(false);
 const detailGridRef = ref(null);
 const detailCardRef = ref(null);
 const galleryRef = ref(null);
@@ -305,15 +360,6 @@ const showStock = computed(() => {
   return q != null && typeof q === 'number';
 });
 
-const hasDesktopMeta = computed(() => {
-  if (!product.value) return false;
-  return (
-    product.value.year_created != null
-    || Boolean(productFormat(product.value))
-    || Boolean(product.value.size_label)
-  );
-});
-
 const maxQuantity = computed(() => {
   const q = product.value?.quantity_available;
   if (q == null || typeof q !== 'number') {
@@ -339,6 +385,53 @@ const addButtonLabel = computed(() => {
 const showFullPageLoader = computed(
   () => loading.value && !props.overlay
 );
+
+const galleryNavIndex = computed(() => props.gallerySlugs.indexOf(props.slug));
+
+const showGalleryNav = computed(
+  () => props.overlay && props.gallerySlugs.length > 1 && galleryNavIndex.value >= 0
+);
+
+const galleryNavPosition = computed(() => galleryNavIndex.value + 1);
+
+const canGoGalleryPrev = computed(
+  () => showGalleryNav.value && galleryNavIndex.value > 0
+);
+
+const canGoGalleryNext = computed(
+  () => showGalleryNav.value && galleryNavIndex.value < props.gallerySlugs.length - 1
+);
+
+function navigateGalleryProduct(nextSlug) {
+  if (!nextSlug || nextSlug === props.slug) {
+    return;
+  }
+  router.replace({ name: 'gallery', query: { product: nextSlug } });
+}
+
+function goGalleryPrev() {
+  if (!canGoGalleryPrev.value) {
+    return;
+  }
+  navigateGalleryProduct(props.gallerySlugs[galleryNavIndex.value - 1]);
+}
+
+function goGalleryNext() {
+  if (!canGoGalleryNext.value) {
+    return;
+  }
+  navigateGalleryProduct(props.gallerySlugs[galleryNavIndex.value + 1]);
+}
+
+function canUseGalleryNavGestures() {
+  return showGalleryNav.value && !imageLightboxOpen.value;
+}
+
+const { onKeydown: handleGalleryNavKeydown } = useProductGalleryNavKeyboard({
+  canNavigate: canUseGalleryNavGestures,
+  onPrev: goGalleryPrev,
+  onNext: goGalleryNext
+});
 
 function incrementQty() {
   quantity.value = Math.min(maxQuantity.value, quantity.value + 1);
@@ -389,7 +482,7 @@ function closeImageLightbox() {
   galleryRef.value?.closeLightbox();
 }
 
-defineExpose({ closeImageLightbox });
+defineExpose({ closeImageLightbox, handleGalleryNavKeydown });
 
 function onAddToCart() {
   if (!product.value || !canBuy.value) return;
@@ -403,63 +496,103 @@ function onAddToCart() {
   }, 1500);
 }
 
-function productImageIds(item) {
-  const imgs = item?.product_images;
-  if (!Array.isArray(imgs)) {
-    return '';
-  }
-  return imgs.map((i) => i?._id || i?.image_url).filter(Boolean).join(',');
-}
-
-function hasProductChanged(current, fresh) {
-  if (!fresh) {
-    return false;
-  }
-  if (!current) {
-    return true;
-  }
-  if (current.updated_at && fresh.updated_at) {
-    return current.updated_at !== fresh.updated_at;
-  }
-  return (
-    current.price_cents !== fresh.price_cents
-    || current.quantity_available !== fresh.quantity_available
-    || (current.description || '') !== (fresh.description || '')
-    || productImageIds(current) !== productImageIds(fresh)
-  );
-}
-
 let loadRequestId = 0;
+let swapRequestId = 0;
 
-async function refreshProductInBackground(slug, requestId) {
-  try {
-    const fresh = await getProductBySlug(slug);
-    if (requestId !== loadRequestId || props.slug !== slug) {
-      return;
-    }
-    if (hasProductChanged(product.value, fresh)) {
-      product.value = fresh;
-    }
-  } catch {
-    // Keep cached data on background refresh failure.
+async function applyProduct(productData, { animate = false } = {}) {
+  if (!productData) {
+    return;
   }
+
+  setCachedProduct(productData.slug, productData);
+
+  const shouldAnimate = animate
+    && props.overlay
+    && product.value
+    && product.value.slug !== productData.slug;
+
+  if (!shouldAnimate) {
+    product.value = productData;
+    return;
+  }
+
+  const requestId = ++swapRequestId;
+  isProductSwapping.value = true;
+  await nextTick();
+  await wait(getProductSwapDurationMs());
+  if (requestId !== swapRequestId) {
+    return;
+  }
+  product.value = productData;
+  await nextTick();
+  if (requestId === swapRequestId) {
+    isProductSwapping.value = false;
+  }
+}
+
+function scheduleNeighborPrefetch(slug = props.slug) {
+  if (!props.overlay) {
+    return;
+  }
+  prefetchAdjacentProducts(slug, props.gallerySlugs);
 }
 
 async function load() {
   const slug = props.slug;
   const cached = resolveCachedProduct(slug);
-  const hadCache = Boolean(cached);
   const requestId = ++loadRequestId;
 
   error.value = '';
   quantity.value = 1;
   added.value = false;
-  imageLightboxOpen.value = false;
+
+  if (!props.overlay) {
+    imageLightboxOpen.value = false;
+  } else if (product.value?.slug !== slug) {
+    imageLightboxOpen.value = false;
+  }
 
   if (cached) {
-    product.value = cached;
     loading.value = false;
-    refreshProductInBackground(slug, requestId);
+    await applyProduct(cached, {
+      animate: Boolean(props.overlay && product.value && product.value.slug !== slug)
+    });
+    if (requestId !== loadRequestId || props.slug !== slug) {
+      return;
+    }
+    refreshProductInBackground(slug, (fresh) => {
+      if (requestId === loadRequestId && props.slug === slug) {
+        product.value = fresh;
+      }
+    });
+    scheduleNeighborPrefetch(slug);
+    return;
+  }
+
+  if (props.overlay && product.value) {
+    loading.value = false;
+    try {
+      const fresh = await fetchProduct(slug);
+      if (requestId !== loadRequestId || props.slug !== slug) {
+        return;
+      }
+      await applyProduct(fresh, { animate: true });
+      refreshProductInBackground(slug, (freshProduct) => {
+        if (requestId === loadRequestId && props.slug === slug) {
+          product.value = freshProduct;
+        }
+      });
+    } catch (e) {
+      if (requestId !== loadRequestId || props.slug !== slug) {
+        return;
+      }
+      error.value = e.status === 404 ? 'Product not found.' : e.message || 'Failed to load product';
+    } finally {
+      if (requestId === loadRequestId && props.slug === slug) {
+        loading.value = false;
+        scheduleNeighborPrefetch(slug);
+      }
+    }
     return;
   }
 
@@ -469,21 +602,25 @@ async function load() {
   }
 
   try {
-    const fresh = await getProductBySlug(slug);
+    const fresh = await fetchProduct(slug);
     if (requestId !== loadRequestId || props.slug !== slug) {
       return;
     }
-    product.value = fresh;
+    await applyProduct(fresh, { animate: false });
+    refreshProductInBackground(slug, (freshProduct) => {
+      if (requestId === loadRequestId && props.slug === slug) {
+        product.value = freshProduct;
+      }
+    });
   } catch (e) {
     if (requestId !== loadRequestId || props.slug !== slug) {
       return;
     }
-    if (!hadCache) {
-      error.value = e.status === 404 ? 'Product not found.' : e.message || 'Failed to load product';
-    }
+    error.value = e.status === 404 ? 'Product not found.' : e.message || 'Failed to load product';
   } finally {
     if (requestId === loadRequestId && props.slug === slug) {
       loading.value = false;
+      scheduleNeighborPrefetch(slug);
     }
   }
 }
@@ -496,6 +633,15 @@ watch(maxQuantity, (max) => {
 
 onMounted(load);
 watch(() => props.slug, load);
+watch(
+  () => props.initialProduct,
+  (initialProduct) => {
+    if (initialProduct?.slug) {
+      setCachedProduct(initialProduct.slug, initialProduct);
+    }
+  },
+  { immediate: true }
+);
 
 watch(imageLightboxOpen, (open) => {
   emit('lightbox-change', open);
@@ -511,19 +657,68 @@ watch(imageLightboxOpen, (open) => {
   min-height: 100%;
 }
 
+.product-page--overlay .product-page__content--overlay,
+.product-page--overlay .detail__grid {
+  transition: opacity 200ms ease;
+}
+
+.product-page--overlay .product-page__content--swapping,
+.product-page--overlay .detail__grid--swapping {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-page--overlay .product-page__content--overlay,
+  .product-page--overlay .detail__grid {
+    transition: opacity 0.01ms linear;
+  }
+}
+
 .product-page__content--mobile {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 8px 20px 40px;
+  padding: 8px 20px 48px;
   overflow-x: hidden;
+}
+
+.product-page__details--stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.product-page__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.product-page__intro :deep(.product-info) {
+  margin-bottom: 0;
+}
+
+.detail__info .gallery-product-price {
+  margin: 0 0 0.25rem;
+}
+
+.product-page__price {
+  margin: 0 0 0.125rem;
+}
+
+.product-page__details--stacked :deep(.product-detail-meta) {
+  text-align: center;
+  align-items: center;
 }
 
 .product-page__purchase {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 1rem;
+  margin-top: 0;
 }
 
 .product-page__availability {
@@ -531,11 +726,10 @@ watch(imageLightboxOpen, (open) => {
   font-size: 0.8125rem;
   font-weight: 400;
   color: var(--color-text-muted);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-align: center;
 }
 
-.product-page__purchase :deep(.product-info),
-.product-page__purchase :deep(.size-dropdown),
 .product-page__purchase :deep(.product-quantity) {
   margin-bottom: 0;
 }
@@ -555,9 +749,9 @@ watch(imageLightboxOpen, (open) => {
 }
 
 .product-page__purchase :deep(.add-to-cart-button) {
-  height: 44px;
+  height: 46px;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 0.125rem;
 }
 
@@ -566,12 +760,12 @@ watch(imageLightboxOpen, (open) => {
 }
 
 .product-page__content--mobile :deep(.product-image-gallery) {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.product-page__content--mobile :deep(.product-description) {
-  margin-top: 1rem;
-  padding-top: 0.875rem;
+.product-page__details--stacked :deep(.product-description) {
+  margin-top: 0.25rem;
+  padding-top: 1.25rem;
 }
 
 .product-page__status {
@@ -600,22 +794,17 @@ watch(imageLightboxOpen, (open) => {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 1.125rem;
 }
 
 .detail--desktop .page-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
+  padding-right: 2rem;
   text-align: left;
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  line-height: 1.35;
 }
 
-.detail__meta-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  margin-bottom: 0.25rem;
+.detail__info :deep(.product-detail-meta) {
+  margin-top: -0.25rem;
 }
 
 .meta {
@@ -624,16 +813,16 @@ watch(imageLightboxOpen, (open) => {
   font-size: 0.8125rem;
   font-weight: 300;
   text-align: left;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .detail__purchase {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+  gap: 1rem;
+  margin-top: 0.125rem;
+  padding-top: 0;
+  border-top: none;
 }
 
 .detail__purchase :deep(.product-quantity) {
@@ -644,21 +833,18 @@ watch(imageLightboxOpen, (open) => {
 .detail__purchase :deep(.add-to-cart-button) {
   width: 100%;
   min-width: 0;
-  height: 44px;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  height: 46px;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .detail__info :deep(.product-description) {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
 }
 
 .price {
   margin: 0;
-  font-weight: 500;
-  font-size: 1rem;
-  letter-spacing: 0.04em;
   text-align: left;
 }
 
@@ -715,6 +901,7 @@ watch(imageLightboxOpen, (open) => {
 
   .product-page--overlay .detail__card {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
   }
 
   .detail__close {
@@ -775,36 +962,26 @@ watch(imageLightboxOpen, (open) => {
 
   .detail__info {
     justify-content: flex-start;
-    gap: 0;
-    padding-top: 4px;
+    gap: 1.25rem;
+    padding-top: 0.5rem;
     padding-right: 4px;
     overflow-y: auto;
   }
 
   .detail--desktop .page-title {
-    font-size: 1.375rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.625rem;
     padding-right: 2rem;
   }
 
-  .detail__meta-group {
-    gap: 0.3rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .meta {
+  .detail__info :deep(.product-detail-meta__line) {
     font-size: 0.875rem;
-    font-weight: 400;
+    letter-spacing: 0.05em;
     color: var(--color-text);
     opacity: 0.72;
   }
 
   .detail__purchase {
-    gap: 1rem;
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
+    gap: 1.125rem;
+    margin-top: 0.25rem;
   }
 
   .detail__purchase :deep(.product-quantity__label) {
@@ -812,24 +989,22 @@ watch(imageLightboxOpen, (open) => {
   }
 
   .detail__purchase :deep(.add-to-cart-button) {
-    height: 46px;
+    height: 48px;
     font-size: 1rem;
   }
 
   .detail__info :deep(.product-description) {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
+    margin-top: 0.75rem;
+    padding-top: 1.75rem;
   }
 
   .detail__info :deep(.product-description__text) {
     font-size: 0.9375rem;
-    line-height: 1.65;
+    line-height: 1.7;
   }
 
   .price {
-    font-size: 1.125rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    text-align: left;
   }
 
   .stock {
@@ -839,16 +1014,39 @@ watch(imageLightboxOpen, (open) => {
 }
 
 @media (max-width: 640px) {
+  .product-page--overlay {
+    min-height: 0;
+    height: auto;
+  }
+
   .product-page--overlay .product-page__content--overlay {
-    padding-top: 0;
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    padding: 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .product-page--overlay .product-page__content--overlay > .product-close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    margin: 0;
   }
 
   .product-page--overlay .product-page__content--overlay :deep(.product-image-gallery) {
-    margin-bottom: 0.5rem;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+    margin-bottom: 0.75rem;
+    padding-top: 0.25rem;
   }
 
   .product-page--overlay .product-skeleton--image {
@@ -856,30 +1054,29 @@ watch(imageLightboxOpen, (open) => {
     height: min(50svh, 380px);
     min-height: min(50svh, 380px);
     max-height: min(50svh, 380px);
-    margin-top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+    margin-top: 0.25rem;
   }
 
   .product-page__content--mobile:not(.product-page__content--overlay) :deep(.product-image-gallery) {
     padding-top: 1.25rem;
   }
 
-  .product-page--overlay .product-page__details {
-    display: flex;
-    flex-direction: column;
+  .product-page--overlay .product-page__details--stacked {
+    gap: 1.125rem;
+    margin-top: 1rem;
   }
 
   .product-page--overlay .product-page__purchase {
-    margin-top: 0;
-    gap: 0.375rem;
+    gap: 0.875rem;
   }
 
-  .product-page--overlay .product-page__details :deep(.product-description) {
-    margin-top: 0.625rem;
-    padding-top: 0.625rem;
+  .product-page--overlay .product-page__details--stacked :deep(.product-description) {
+    margin-top: 0.125rem;
+    padding-top: 1.125rem;
   }
 
   .product-page--overlay .product-page__purchase :deep(.add-to-cart-button) {
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
   }
 
 .product-page__inline-error {
@@ -975,9 +1172,8 @@ watch(imageLightboxOpen, (open) => {
 }
 
 .product-skeleton-group--description {
-  margin-top: 0.625rem;
-  padding-top: 0.625rem;
-  border-top: 1px solid var(--color-border);
+  margin-top: 0.25rem;
+  padding-top: 1.25rem;
 }
 
 .product-skeleton--line {
@@ -1020,8 +1216,8 @@ watch(imageLightboxOpen, (open) => {
   }
 
   .product-page--overlay .product-page__content--overlay {
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }
 </style>

@@ -15,17 +15,17 @@ defineProps({
 
 <style scoped>
 .product-description {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+  margin: 0;
+  padding: 0;
 }
 
 .product-description__text {
   margin: 0;
   white-space: pre-wrap;
-  line-height: 1.65;
+  line-height: 1.7;
   font-size: 0.875rem;
   font-weight: 300;
-  color: var(--color-text);
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
 }
 </style>

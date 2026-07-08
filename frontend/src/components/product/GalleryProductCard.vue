@@ -4,30 +4,18 @@
       :is="galleryLinkTag"
       v-if="!showAddToCart"
       v-bind="galleryLinkBindings"
-      class="product-card-link"
+      class="product-card-link gallery-art-presentation"
       :aria-label="`${productTitle(product)} — view product`"
       @click="onGalleryLinkClick"
     >
-      <div class="product-image-frame gallery-wall-scene">
-        <div class="gallery-art-frame" :class="galleryArtOrientationClass">
-          <div class="gallery-art-mat">
-            <img
-              v-if="primaryProductImageUrl(product)"
-              ref="galleryImageRef"
-              class="product-image gallery-art-image"
-              :src="primaryProductImageUrl(product)"
-              :alt="thumbAlt(product)"
-              loading="lazy"
-              @load="onGalleryImageLoad"
-            />
-            <span v-else class="product-image product-image--placeholder gallery-art-image">No image</span>
-          </div>
-        </div>
-      </div>
-      <div class="product-info gallery-product-meta gallery-plaque">
-        <h3 class="product-title gallery-product-title">{{ productTitle(product) }}</h3>
-        <p class="product-price gallery-product-price">{{ formatMoneyFromCents(product.price_cents, product.currency || 'usd') }}</p>
-      </div>
+      <GalleryArtFrame
+        :src="primaryProductImageUrl(product)"
+        :alt="thumbAlt(product)"
+      />
+      <GalleryProductPlaque
+        :title="productTitle(product)"
+        :price="formatMoneyFromCents(product.price_cents, product.currency || 'usd')"
+      />
     </component>
 
     <template v-else>
@@ -78,7 +66,9 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed } from 'vue';
+import GalleryArtFrame from './GalleryArtFrame.vue';
+import GalleryProductPlaque from './GalleryProductPlaque.vue';
 import { addToCart } from '../../utils/cart.js';
 import { formatMoneyFromCents } from '../../utils/money.js';
 import {
@@ -100,39 +90,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['added', 'open']);
-
-const galleryArtOrientation = ref('gallery-art--square');
-const galleryImageRef = ref(null);
-
-const galleryArtOrientationClass = computed(() => galleryArtOrientation.value);
-
-function applyGalleryArtOrientation(img) {
-  if (!img?.naturalWidth || !img?.naturalHeight) {
-    return;
-  }
-  const ratio = img.naturalWidth / img.naturalHeight;
-  if (ratio > 1.12) {
-    galleryArtOrientation.value = 'gallery-art--landscape';
-    return;
-  }
-  if (ratio < 0.88) {
-    galleryArtOrientation.value = 'gallery-art--portrait';
-    return;
-  }
-  galleryArtOrientation.value = 'gallery-art--square';
-}
-
-function onGalleryImageLoad(event) {
-  applyGalleryArtOrientation(event.target);
-}
-
-onMounted(() => {
-  nextTick(() => {
-    if (galleryImageRef.value?.complete) {
-      applyGalleryArtOrientation(galleryImageRef.value);
-    }
-  });
-});
 
 const detailRoute = computed(() => ({
   name: 'product-detail',

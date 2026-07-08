@@ -32,18 +32,26 @@
     </template>
 
     <ProductDetailOverlay
-      v-if="activeProductSlug"
-      :slug="activeProductSlug"
-      :initial-product="activeInitialProduct"
+      v-if="overlaySlug"
+      :slug="overlaySlug"
+      :initial-product="overlayInitialProduct"
+      :gallery-slugs="galleryNavSlugs"
+      :open="isOverlayOpen"
       @close="closeProduct"
+      @after-leave="onOverlayAfterLeave"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getProducts } from '../services/api.js';
+import {
+  seedProductCache,
+  prefetchProduct,
+  prefetchAdjacentProducts
+} from '../composables/useProductCache.js';
 import GalleryProductCard from '../components/product/GalleryProductCard.vue';
 import ProductDetailOverlay from '../components/product/ProductDetailOverlay.vue';
 
@@ -56,35 +64,89 @@ const products = ref([]);
 const loading = ref(true);
 const error = ref('');
 const visibleCount = ref(PAGE_SIZE);
+const overlaySlug = ref(null);
 
 const visibleProducts = computed(() => products.value.slice(0, visibleCount.value));
 const hasMore = computed(() => visibleCount.value < products.value.length);
-
-// Future prev/next in overlay: pass visibleProducts (or products) slugs into
-// ProductDetailOverlay and navigate with router.push({ query: { product: nextSlug } }).
 
 const activeProductSlug = computed(() => {
   const product = route.query.product;
   return typeof product === 'string' && product ? product : null;
 });
 
-const activeInitialProduct = computed(() => {
-  if (!activeProductSlug.value) {
+const isOverlayOpen = computed(() => Boolean(activeProductSlug.value));
+
+const overlayInitialProduct = computed(() => {
+  if (!overlaySlug.value) {
     return null;
   }
-  return products.value.find((p) => p.slug === activeProductSlug.value) ?? null;
+  return products.value.find((p) => p.slug === overlaySlug.value) ?? null;
 });
+
+const galleryNavSlugs = computed(() => visibleProducts.value.map((p) => p.slug));
+
+function expandVisibleCountForSlug(slug) {
+  if (!slug) {
+    return;
+  }
+  const index = products.value.findIndex((p) => p.slug === slug);
+  if (index < 0 || index < visibleCount.value) {
+    return;
+  }
+  visibleCount.value = Math.min(
+    Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE,
+    products.value.length
+  );
+}
+
+watch(
+  activeProductSlug,
+  (slug) => {
+    if (slug) {
+      overlaySlug.value = slug;
+      expandVisibleCountForSlug(slug);
+      prefetchProduct(slug);
+      prefetchAdjacentProducts(slug, galleryNavSlugs.value, products.value);
+    }
+  },
+  { immediate: true }
+);
+
+watch(galleryNavSlugs, (slugs) => {
+  if (!overlaySlug.value) {
+    return;
+  }
+  prefetchAdjacentProducts(overlaySlug.value, slugs, products.value);
+});
+
+watch(visibleProducts, (visible) => {
+  seedProductCache(visible);
+}, { deep: true });
 
 function openProduct(slug) {
   router.push({ name: 'gallery', query: { product: slug } });
 }
 
+function cameFromGalleryHistory() {
+  const back = window.history.state?.back;
+  return typeof back === 'string' && back.startsWith('/gallery');
+}
+
 function closeProduct() {
-  if (window.history.state?.back != null) {
+  if (!route.query.product) {
+    return;
+  }
+  if (cameFromGalleryHistory()) {
     router.back();
     return;
   }
   router.replace({ name: 'gallery' });
+}
+
+function onOverlayAfterLeave() {
+  if (!activeProductSlug.value) {
+    overlaySlug.value = null;
+  }
 }
 
 function loadMore() {
@@ -96,7 +158,17 @@ onMounted(async () => {
   error.value = '';
   try {
     products.value = await getProducts();
+    seedProductCache(products.value);
     visibleCount.value = Math.min(PAGE_SIZE, products.value.length || PAGE_SIZE);
+    expandVisibleCountForSlug(activeProductSlug.value);
+    if (activeProductSlug.value) {
+      prefetchProduct(activeProductSlug.value);
+      prefetchAdjacentProducts(
+        activeProductSlug.value,
+        products.value.slice(0, visibleCount.value).map((p) => p.slug),
+        products.value
+      );
+    }
   } catch (e) {
     error.value = e.message || 'Failed to load products';
   } finally {

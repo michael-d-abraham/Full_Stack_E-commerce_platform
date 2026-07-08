@@ -1,6 +1,9 @@
 <template>
-  <div class="product-image-gallery" :class="{ 'product-image-gallery--contained-active': lightboxOpen && containedLightboxActive }">
-    <div v-show="!(lightboxOpen && containedLightboxActive)" class="product-image-gallery__stage">
+  <div class="product-image-gallery" :class="{ 'product-image-gallery--lightbox-open': lightboxOpen }">
+    <div
+      class="product-image-gallery__stage"
+      :class="{ 'product-image-gallery__stage--lightbox-hidden': lightboxOpen }"
+    >
       <ProductGalleryNavButton
         v-if="canSwipe"
         direction="prev"
@@ -18,57 +21,34 @@
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
       >
-        <div
-          v-if="currentImage"
-          class="product-image-gallery__image-frame product-image-gallery__image-frame--clickable"
-          role="button"
-          tabindex="0"
-          aria-label="View larger image"
-          @click="onImageClick"
-          @keydown.enter.prevent="openLightbox"
-          @keydown.space.prevent="openLightbox"
-        >
-          <Transition
-            :name="slideTransitionName"
-            @before-leave="onSlideStart"
-            @after-enter="onSlideEnd"
-          >
-            <img
-              :key="activeIndex"
-              class="product-image-gallery__image product-image-gallery__slide-image"
-              :src="currentImage.image_url"
-              :alt="currentImage.alt_text || imageAlt"
-              :loading="priority ? 'eager' : 'lazy'"
-              :fetchpriority="priority ? 'high' : 'auto'"
-            />
-          </Transition>
+        <div v-if="currentImage" class="product-image-gallery__image-frame">
+          <div class="product-image-gallery__slide-host">
+            <Transition
+              :name="slideTransitionName"
+              @before-leave="onSlideStart"
+              @after-enter="onSlideEnd"
+            >
+              <img
+                :key="activeIndex"
+                class="product-image-gallery__image product-image-gallery__slide-image"
+                :src="currentImage.image_url"
+                :alt="currentImage.alt_text || imageAlt"
+                :loading="priority ? 'eager' : 'lazy'"
+                :fetchpriority="priority ? 'high' : 'auto'"
+              />
+            </Transition>
+          </div>
         </div>
         <p v-else class="product-image-gallery__empty">No image</p>
 
         <ProductFloatingCircleButton
-          v-if="currentImage && images.length && isMobile"
+          v-if="currentImage && images.length"
           icon="expand"
           placement="stage-enlarge"
           size="md"
           aria-label="View larger image"
           @click.stop="openLightbox"
         />
-        <button
-          v-else-if="currentImage && images.length"
-          type="button"
-          class="product-image-gallery__enlarge"
-          aria-label="View larger image"
-          @click.stop="openLightbox"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
-        </button>
       </div>
       <ProductGalleryNavButton
         v-if="canSwipe"
@@ -81,8 +61,8 @@
 
     <div
       v-if="showDots"
-      v-show="!(lightboxOpen && containedLightboxActive)"
       class="product-image-gallery__dots"
+      :class="{ 'product-image-gallery__dots--lightbox-hidden': lightboxOpen }"
       role="tablist"
       :aria-label="`${images.length} product images`"
     >
@@ -150,7 +130,7 @@
                 @click.stop="goPrev"
               />
               <div class="product-image-gallery__lightbox-viewport product-image-gallery__lightbox-viewport--contained">
-                <div class="product-image-gallery__lightbox-image-frame product-image-gallery__lightbox-image-frame--fullscreen">
+                <div class="product-expanded-slide-host">
                   <Transition
                     :name="slideTransitionName"
                     @before-leave="onSlideStart"
@@ -158,7 +138,7 @@
                   >
                     <img
                       :key="activeIndex"
-                      class="product-image-gallery__lightbox-img product-image-gallery__slide-image"
+                      class="product-expanded-image product-image-gallery__slide-image"
                       :src="currentImage.image_url"
                       :alt="currentImage.alt_text || imageAlt"
                     />
@@ -191,7 +171,7 @@
                 :disabled="!canGoPrev || isSliding"
                 @click.stop="goPrev"
               />
-              <div class="product-image-gallery__lightbox-image-frame product-image-gallery__lightbox-image-frame--fullscreen">
+              <div class="product-expanded-slide-host">
                 <Transition
                   :name="slideTransitionName"
                   @before-leave="onSlideStart"
@@ -199,7 +179,7 @@
                 >
                   <img
                     :key="activeIndex"
-                    class="product-image-gallery__lightbox-img product-image-gallery__slide-image"
+                    class="product-expanded-image product-image-gallery__slide-image"
                     :src="currentImage.image_url"
                     :alt="currentImage.alt_text || imageAlt"
                   />
@@ -240,6 +220,7 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue';
+import { isHorizontalSwipe } from '../../composables/useProductGalleryNav.js';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import ProductCloseButton from './ProductCloseButton.vue';
 import ProductFloatingCircleButton from './ProductFloatingCircleButton.vue';
@@ -280,7 +261,7 @@ const viewportRef = ref(null);
 const lightboxStageRef = ref(null);
 const lightboxViewportRef = ref(null);
 const CONTROL_SELECTOR =
-  '.product-floating-circle-button, .product-image-gallery__enlarge, .product-close-button, .product-image-gallery__dot';
+  '.product-floating-circle-button, .product-close-button, .product-image-gallery__dot';
 
 const containedLightboxActive = computed(
   () => props.containedLightbox && Boolean(props.lightboxTarget)
@@ -298,9 +279,9 @@ const teleportTarget = computed(() => {
 });
 
 let swipeStartX = 0;
+let swipeStartY = 0;
 let pointerSwipeActive = false;
 let touchSwipeActive = false;
-let suppressImageClick = false;
 let slideUnlockTimer = null;
 
 const SLIDE_DURATION_MS = 260;
@@ -313,8 +294,8 @@ function isControlTarget(target) {
 
 const canSwipe = computed(() => props.images.length > 1);
 const showDots = computed(() => props.images.length > 1);
-const canGoPrev = computed(() => activeIndex.value > 0);
-const canGoNext = computed(() => activeIndex.value < props.images.length - 1);
+const canGoPrev = computed(() => canSwipe.value);
+const canGoNext = computed(() => canSwipe.value);
 const currentImage = computed(() => props.images[activeIndex.value] || null);
 
 watch(
@@ -372,17 +353,6 @@ function openLightbox() {
     return;
   }
   lightboxOpen.value = true;
-}
-
-function onImageClick(event) {
-  if (suppressImageClick) {
-    suppressImageClick = false;
-    return;
-  }
-  if (isControlTarget(event.target)) {
-    return;
-  }
-  openLightbox();
 }
 
 function onLightboxBackdropClick(event) {
@@ -451,16 +421,28 @@ function getPointerSurface() {
 }
 
 function goNext() {
-  setActiveIndex(activeIndex.value + 1);
+  if (!canSwipe.value || isSliding.value) {
+    return;
+  }
+  slideDirection.value = 'next';
+  activeIndex.value = activeIndex.value >= props.images.length - 1
+    ? 0
+    : activeIndex.value + 1;
 }
 
 function goPrev() {
-  setActiveIndex(activeIndex.value - 1);
+  if (!canSwipe.value || isSliding.value) {
+    return;
+  }
+  slideDirection.value = 'prev';
+  activeIndex.value = activeIndex.value <= 0
+    ? props.images.length - 1
+    : activeIndex.value - 1;
 }
 
-function applySwipeDelta(delta) {
-  if (!canSwipe.value || isSliding.value || Math.abs(delta) < 40) return false;
-  if (delta < 0) {
+function applySwipeDelta(deltaX) {
+  if (!canSwipe.value || isSliding.value) return false;
+  if (deltaX < 0) {
     goNext();
   } else {
     goPrev();
@@ -472,21 +454,20 @@ function onTouchStart(event) {
   if (isControlTarget(event.target)) return;
   touchSwipeActive = true;
   swipeStartX = event.touches[0]?.clientX ?? 0;
+  swipeStartY = event.touches[0]?.clientY ?? 0;
 }
 
 function onTouchEnd(event) {
   if (!touchSwipeActive) return;
   touchSwipeActive = false;
   const endX = event.changedTouches[0]?.clientX ?? 0;
-  const delta = endX - swipeStartX;
-  if (applySwipeDelta(delta)) {
-    suppressImageClick = true;
+  const endY = event.changedTouches[0]?.clientY ?? 0;
+  const deltaX = endX - swipeStartX;
+  const deltaY = endY - swipeStartY;
+  if (!isHorizontalSwipe(deltaX, deltaY, 40)) {
     return;
   }
-  if (Math.abs(delta) < 10 && !isControlTarget(event.target)) {
-    openLightbox();
-    suppressImageClick = true;
-  }
+  applySwipeDelta(deltaX);
 }
 
 function onPointerDown(event) {
@@ -496,6 +477,7 @@ function onPointerDown(event) {
 
   pointerSwipeActive = true;
   swipeStartX = event.clientX;
+  swipeStartY = event.clientY;
   if (canSwipe.value) {
     getPointerSurface()?.setPointerCapture?.(event.pointerId);
   }
@@ -506,12 +488,10 @@ function onPointerUp(event) {
   if (!pointerSwipeActive) return;
 
   pointerSwipeActive = false;
-  const delta = event.clientX - swipeStartX;
-  if (applySwipeDelta(delta)) {
-    suppressImageClick = true;
-  } else if (Math.abs(delta) < 10 && !isControlTarget(event.target)) {
-    openLightbox();
-    suppressImageClick = true;
+  const deltaX = event.clientX - swipeStartX;
+  const deltaY = event.clientY - swipeStartY;
+  if (isHorizontalSwipe(deltaX, deltaY, 40)) {
+    applySwipeDelta(deltaX);
   }
   try {
     getPointerSurface()?.releasePointerCapture?.(event.pointerId);
@@ -527,7 +507,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.product-image-gallery--contained-active {
+.product-image-gallery--lightbox-open {
+  pointer-events: none;
+}
+
+.product-image-gallery__stage--lightbox-hidden,
+.product-image-gallery__dots--lightbox-hidden {
+  visibility: hidden;
   pointer-events: none;
 }
 .product-image-gallery {
@@ -586,8 +572,10 @@ onUnmounted(() => {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 
   .product-image-gallery__dots {
@@ -614,35 +602,36 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
+.product-image-gallery__slide-host {
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.product-image-gallery__slide-host .product-image-gallery__image {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+}
+
 .product-image-gallery__image-frame {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
   width: 100%;
   height: 100%;
   min-height: 0;
-}
-
-.product-image-gallery__image-frame--clickable {
-  cursor: zoom-in;
-}
-
-.product-image-gallery__image-frame--clickable:focus-visible {
-  outline: none;
-  box-shadow: inset var(--focus-ring);
-}
-
-@media (max-width: 640px) {
-  .product-image-gallery__image {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: center;
-  }
+  box-sizing: border-box;
 }
 
 .product-image-gallery__empty {
@@ -651,30 +640,6 @@ onUnmounted(() => {
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-}
-
-.product-image-gallery__enlarge {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  pointer-events: auto;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.product-image-gallery__enlarge:hover {
-  opacity: 0.55;
-  background: transparent;
 }
 
 .product-image-gallery__dots {
@@ -782,9 +747,17 @@ onUnmounted(() => {
     min-height: 0;
     height: 100%;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
     background: var(--color-product-image-bg, #f8f8f8);
     touch-action: pan-y pinch-zoom;
+  }
+
+  .product-image-gallery__lightbox-viewport--contained .product-expanded-slide-host {
+    width: 100%;
+    height: 100%;
   }
 
   .product-image-gallery__lightbox--contained .product-image-gallery__dots--lightbox {
@@ -808,6 +781,9 @@ onUnmounted(() => {
 
   .product-image-gallery__lightbox:not(.product-image-gallery__lightbox--contained) .product-image-gallery__lightbox-viewport {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: min(100%, 1100px);
     height: min(72vh, 720px);
     min-height: min(72vh, 720px);
@@ -817,6 +793,14 @@ onUnmounted(() => {
     overflow: hidden;
     box-sizing: border-box;
     touch-action: pan-y pinch-zoom;
+  }
+
+  .product-image-gallery__lightbox:not(.product-image-gallery__lightbox--contained) .product-expanded-slide-host {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
   }
 
   .product-image-gallery__lightbox:not(.product-image-gallery__lightbox--contained) .product-image-gallery__lightbox-viewport--swipeable {
@@ -834,37 +818,6 @@ onUnmounted(() => {
     margin-top: 16px;
     padding: 0;
   }
-
-  .product-image-gallery__lightbox .product-image-gallery__lightbox-image-frame--fullscreen {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  .product-image-gallery__lightbox .product-image-gallery__lightbox-image-frame--fullscreen .product-image-gallery__lightbox-img,
-  .product-image-gallery__lightbox .product-image-gallery__lightbox-image-frame--fullscreen .product-image-gallery__slide-image {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: center;
-  }
-}
-
-.product-image-gallery__lightbox-img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  object-position: center;
-  pointer-events: none;
 }
 
 .product-image-gallery__slide-image {
@@ -889,6 +842,14 @@ onUnmounted(() => {
   pointer-events: none;
   will-change: transform, opacity;
   z-index: 1;
+}
+
+.product-image-gallery__slide-host .gallery-slide-next-enter-active,
+.product-image-gallery__slide-host .gallery-slide-next-leave-active,
+.product-image-gallery__slide-host .gallery-slide-prev-enter-active,
+.product-image-gallery__slide-host .gallery-slide-prev-leave-active {
+  max-width: none;
+  max-height: none;
 }
 
 .gallery-slide-next-leave-active,
@@ -924,38 +885,13 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-@media (min-width: 641px) {
-  .product-image-gallery__lightbox .gallery-slide-next-enter-active,
-  .product-image-gallery__lightbox .gallery-slide-next-leave-active,
-  .product-image-gallery__lightbox .gallery-slide-prev-enter-active,
-  .product-image-gallery__lightbox .gallery-slide-prev-leave-active {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: center;
-  }
-}
-
 .gallery-lightbox-enter-active,
 .gallery-lightbox-leave-active {
   transition: opacity 0.26s ease;
 }
 
-.gallery-lightbox-enter-active .product-image-gallery__lightbox-img,
-.gallery-lightbox-leave-active .product-image-gallery__lightbox-img {
-  transition: transform 0.3s ease, opacity 0.26s ease;
-}
-
 .gallery-lightbox-enter-from,
 .gallery-lightbox-leave-to {
-  opacity: 0;
-}
-
-.gallery-lightbox-enter-from .product-image-gallery__lightbox-img,
-.gallery-lightbox-leave-to .product-image-gallery__lightbox-img {
-  transform: scale(0.94);
   opacity: 0;
 }
 

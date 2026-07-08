@@ -35,18 +35,20 @@
       @touchstart.passive="onTouchStart"
       @touchend.passive="onTouchEnd"
     >
-      <Transition
-        :name="slideTransitionName"
-        @before-leave="onSlideStart"
-        @after-enter="onSlideEnd"
-      >
-        <img
-          :key="activeIndex"
-          class="mobile-fullscreen-viewer__image mobile-fullscreen-viewer__slide-image"
-          :src="currentImage.image_url"
-          :alt="currentImage.alt_text || imageAlt"
-        />
-      </Transition>
+      <div class="product-expanded-slide-host">
+        <Transition
+          :name="slideTransitionName"
+          @before-leave="onSlideStart"
+          @after-enter="onSlideEnd"
+        >
+          <img
+            :key="activeIndex"
+            class="product-expanded-image mobile-fullscreen-viewer__image"
+            :src="currentImage.image_url"
+            :alt="currentImage.alt_text || imageAlt"
+          />
+        </Transition>
+      </div>
     </div>
 
     <div
@@ -72,6 +74,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { isHorizontalSwipe } from '../../composables/useProductGalleryNav.js';
 import ProductCloseButton from './ProductCloseButton.vue';
 import ProductGalleryNavButton from './ProductGalleryNavButton.vue';
 
@@ -106,12 +109,13 @@ const CONTROL_SELECTOR =
   '.product-close-button, .product-floating-circle-button, .mobile-fullscreen-viewer__dot';
 
 let swipeStartX = 0;
+let swipeStartY = 0;
 let touchSwipeActive = false;
 
 const canSwipe = computed(() => props.images.length > 1);
 const showDots = computed(() => props.images.length > 1);
-const canGoPrev = computed(() => props.activeIndex > 0);
-const canGoNext = computed(() => props.activeIndex < props.images.length - 1);
+const canGoPrev = computed(() => canSwipe.value);
+const canGoNext = computed(() => canSwipe.value);
 const currentImage = computed(() => props.images[props.activeIndex] || null);
 
 function isControlTarget(target) {
@@ -127,7 +131,7 @@ function onSlideEnd() {
 }
 
 function onBackdropClick(event) {
-  if (event.target.closest('.mobile-fullscreen-viewer__image')) {
+  if (event.target.closest('.product-expanded-image')) {
     return;
   }
   if (isControlTarget(event.target)) {
@@ -136,9 +140,9 @@ function onBackdropClick(event) {
   emit('close');
 }
 
-function applySwipeDelta(delta) {
-  if (!canSwipe.value || props.isSliding || Math.abs(delta) < 40) return;
-  if (delta < 0) {
+function applySwipeDelta(deltaX) {
+  if (!canSwipe.value || props.isSliding) return;
+  if (deltaX < 0) {
     emit('next');
   } else {
     emit('prev');
@@ -149,13 +153,20 @@ function onTouchStart(event) {
   if (!canSwipe.value || isControlTarget(event.target)) return;
   touchSwipeActive = true;
   swipeStartX = event.touches[0]?.clientX ?? 0;
+  swipeStartY = event.touches[0]?.clientY ?? 0;
 }
 
 function onTouchEnd(event) {
   if (!canSwipe.value || !touchSwipeActive) return;
   touchSwipeActive = false;
   const endX = event.changedTouches[0]?.clientX ?? 0;
-  applySwipeDelta(endX - swipeStartX);
+  const endY = event.changedTouches[0]?.clientY ?? 0;
+  const deltaX = endX - swipeStartX;
+  const deltaY = endY - swipeStartY;
+  if (!isHorizontalSwipe(deltaX, deltaY, 40)) {
+    return;
+  }
+  applySwipeDelta(deltaX);
 }
 </script>
 
@@ -164,9 +175,7 @@ function onTouchEnd(event) {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(0, 0, 0, 0.52);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.98);
   box-sizing: border-box;
   --mobile-viewer-top: calc(env(safe-area-inset-top, 0px) + var(--product-close-circle-size, clamp(2.25rem, 5vw, 2.75rem)) + 12px);
   --mobile-viewer-bottom: calc(env(safe-area-inset-bottom, 0px) + 36px);
@@ -190,8 +199,16 @@ function onTouchEnd(event) {
   left: var(--mobile-viewer-inset-left);
   right: var(--mobile-viewer-inset-right);
   bottom: var(--mobile-viewer-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
+}
+
+.mobile-fullscreen-viewer__viewport .product-expanded-slide-host {
+  width: 100%;
+  height: 100%;
 }
 
 .mobile-fullscreen-viewer__viewport--swipeable {
@@ -201,24 +218,6 @@ function onTouchEnd(event) {
 
 .mobile-fullscreen-viewer__viewport--swipeable:active {
   cursor: grabbing;
-}
-
-.mobile-fullscreen-viewer__image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 3px;
-  display: block;
-  pointer-events: none;
-}
-
-.mobile-fullscreen-viewer__slide-image {
-  display: block;
 }
 
 .mobile-fullscreen-viewer__dots {
@@ -238,7 +237,7 @@ function onTouchEnd(event) {
   width: 7px;
   height: 7px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--color-text);
   border-radius: 50%;
   background: transparent;
   box-shadow: none;
@@ -246,80 +245,6 @@ function onTouchEnd(event) {
 }
 
 .mobile-fullscreen-viewer__dot--active {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.9);
-}
-
-.gallery-slide-next-enter-active,
-.gallery-slide-next-leave-active,
-.gallery-slide-prev-enter-active,
-.gallery-slide-prev-leave-active {
-  transition:
-    transform var(--gallery-slide-duration, 0.26s) cubic-bezier(0.4, 0, 0.2, 1),
-    opacity var(--gallery-slide-duration, 0.26s) cubic-bezier(0.4, 0, 0.2, 1);
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 3px;
-  pointer-events: none;
-  will-change: transform, opacity;
-  z-index: 1;
-}
-
-.gallery-slide-next-leave-active,
-.gallery-slide-prev-leave-active {
-  z-index: 0;
-}
-
-.gallery-slide-next-enter-from {
-  transform: translate3d(18%, 0, 0);
-  opacity: 0;
-}
-
-.gallery-slide-next-leave-to {
-  transform: translate3d(-18%, 0, 0);
-  opacity: 0;
-}
-
-.gallery-slide-prev-enter-from {
-  transform: translate3d(-18%, 0, 0);
-  opacity: 0;
-}
-
-.gallery-slide-prev-leave-to {
-  transform: translate3d(18%, 0, 0);
-  opacity: 0;
-}
-
-.gallery-slide-next-enter-to,
-.gallery-slide-next-leave-from,
-.gallery-slide-prev-enter-to,
-.gallery-slide-prev-leave-from {
-  transform: translate3d(0, 0, 0);
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gallery-slide-next-enter-active,
-  .gallery-slide-next-leave-active,
-  .gallery-slide-prev-enter-active,
-  .gallery-slide-prev-leave-active {
-    --gallery-slide-duration: 0.01ms;
-    transition: opacity 0.01ms linear;
-    transform: none !important;
-  }
-
-  .gallery-slide-next-enter-from,
-  .gallery-slide-next-leave-to,
-  .gallery-slide-prev-enter-from,
-  .gallery-slide-prev-leave-to {
-    transform: none;
-    opacity: 0;
-  }
+  background: var(--color-text);
 }
 </style>

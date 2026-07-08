@@ -1,6 +1,10 @@
 <template>
   <Teleport to="body">
-    <Transition name="product-overlay">
+    <Transition
+      name="product-overlay"
+      :duration="{ enter: overlayTransitionMs, leave: overlayTransitionMs }"
+      @after-leave="onAfterLeave"
+    >
       <div
         v-if="open"
         ref="panelRef"
@@ -9,11 +13,13 @@
         aria-modal="true"
         aria-label="Product details"
       >
+        <div class="product-detail-overlay__backdrop" aria-hidden="true" @click="onBackdropLayerClick" />
         <div class="product-detail-overlay__scroll" @click="onBackdropClick">
           <ProductDetail
             ref="productDetailRef"
             :slug="slug"
             :initial-product="initialProduct"
+            :gallery-slugs="gallerySlugs"
             overlay
             @close="emit('close')"
             @lightbox-change="galleryLightboxOpen = $event"
@@ -25,11 +31,13 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import ProductDetail from '../../pages/ProductDetail.vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
+import { lockBodyScroll, unlockBodyScroll, resetBodyScrollLock } from '../../composables/useBodyScrollLock.js';
 
 const isDesktop = useMediaQuery('(min-width: 641px)');
+const overlayTransitionMs = computed(() => (isDesktop.value ? 220 : 300));
 
 const props = defineProps({
   slug: {
@@ -40,13 +48,17 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  gallerySlugs: {
+    type: Array,
+    default: () => []
+  },
   open: {
     type: Boolean,
     default: true
   }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'after-leave']);
 
 const panelRef = ref(null);
 const productDetailRef = ref(null);
@@ -54,14 +66,25 @@ const galleryLightboxOpen = ref(false);
 let previousFocus = null;
 
 function onBackdropClick(event) {
-  if (!isDesktop.value || event.target !== event.currentTarget) {
+  if (event.target !== event.currentTarget) {
     return;
   }
+  onBackdropLayerClick();
+}
+
+function onBackdropLayerClick() {
   if (galleryLightboxOpen.value) {
     productDetailRef.value?.closeImageLightbox();
     return;
   }
   emit('close');
+}
+
+function onOverlayKeydown(event) {
+  if (galleryLightboxOpen.value) {
+    return;
+  }
+  productDetailRef.value?.handleGalleryNavKeydown?.(event);
 }
 
 function onEscape(event) {
@@ -75,9 +98,18 @@ function onEscape(event) {
   emit('close');
 }
 
-function lockBodyScroll(locked) {
-  document.body.style.overflow = locked ? 'hidden' : '';
-  document.body.classList.toggle('gallery-product-open', locked);
+function onAfterLeave() {
+  emit('after-leave');
+}
+
+function setScrollLock(locked) {
+  if (locked) {
+    lockBodyScroll();
+    document.body.classList.add('gallery-product-open');
+    return;
+  }
+  unlockBodyScroll();
+  document.body.classList.remove('gallery-product-open');
 }
 
 watch(
@@ -85,8 +117,9 @@ watch(
   async (isOpen) => {
     if (isOpen) {
       previousFocus = document.activeElement;
-      lockBodyScroll(true);
+      setScrollLock(true);
       window.addEventListener('keydown', onEscape);
+      window.addEventListener('keydown', onOverlayKeydown);
       await nextTick();
       if (!galleryLightboxOpen.value) {
         const backControl = panelRef.value?.querySelector('.product-close-button');
@@ -94,10 +127,11 @@ watch(
       }
     } else {
       galleryLightboxOpen.value = false;
-      lockBodyScroll(false);
+      setScrollLock(false);
       window.removeEventListener('keydown', onEscape);
+      window.removeEventListener('keydown', onOverlayKeydown);
       if (previousFocus && typeof previousFocus.focus === 'function') {
-        previousFocus.focus();
+        previousFocus.focus({ preventScroll: true });
       }
       previousFocus = null;
     }
@@ -106,10 +140,13 @@ watch(
 );
 
 onUnmounted(() => {
-  lockBodyScroll(false);
+  setScrollLock(false);
+  resetBodyScrollLock();
+  document.body.classList.remove('gallery-product-open');
   window.removeEventListener('keydown', onEscape);
+  window.removeEventListener('keydown', onOverlayKeydown);
   if (previousFocus && typeof previousFocus.focus === 'function') {
-    previousFocus.focus();
+    previousFocus.focus({ preventScroll: true });
   }
 });
 </script>
@@ -119,94 +156,131 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 1050;
-  background: #fff;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.product-detail-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.88);
+  cursor: default;
 }
 
 .product-detail-overlay__scroll {
+  position: relative;
+  z-index: 1;
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: none;
+  cursor: default;
+  will-change: opacity, transform;
+  pointer-events: none;
+}
+
+.product-detail-overlay__scroll > :deep(*) {
+  pointer-events: auto;
 }
 
 @media (max-width: 640px) {
   .product-detail-overlay {
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding:
+      env(safe-area-inset-top, 0px)
+      env(safe-area-inset-right, 0px)
+      env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 0px);
     box-sizing: border-box;
-  }
-}
-
-@media (min-width: 641px) {
-  .product-detail-overlay {
-    background: #f4f4f4;
   }
 
   .product-detail-overlay__scroll {
-    display: flex;
+    padding: 16px 28px;
     align-items: center;
-    justify-content: center;
-    min-height: 100%;
-    padding: 48px;
-    box-sizing: border-box;
-    cursor: default;
-  }
-}
-
-.product-overlay-enter-active,
-.product-overlay-leave-active {
-  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
-}
-
-.product-overlay-leave-active {
-  transition-duration: 0.12s;
-  transition-timing-function: ease-in;
-}
-
-.product-overlay-enter-from,
-.product-overlay-leave-to {
-  opacity: 0;
-  transform: scale(0.985);
-}
-
-@media (max-width: 640px) {
-  .product-detail-overlay {
-    will-change: opacity, transform;
   }
 
-  .product-overlay-enter-active {
-    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  .product-overlay-enter-active .product-detail-overlay__backdrop,
+  .product-overlay-leave-active .product-detail-overlay__backdrop {
+    transition: opacity 300ms ease;
   }
 
-  .product-overlay-leave-active {
-    transition: opacity 0.1s ease-in, transform 0.1s ease-in;
-  }
-
-  .product-overlay-enter-from,
-  .product-overlay-leave-to {
+  .product-overlay-enter-from .product-detail-overlay__backdrop,
+  .product-overlay-leave-to .product-detail-overlay__backdrop {
     opacity: 0;
-    transform: translate3d(0, 12px, 0);
+  }
+
+  .product-overlay-enter-active .product-detail-overlay__scroll,
+  .product-overlay-leave-active .product-detail-overlay__scroll {
+    transition:
+      opacity 300ms ease-out,
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-overlay-leave-active .product-detail-overlay__scroll {
+    transition:
+      opacity 260ms ease-in,
+      transform 260ms cubic-bezier(0.4, 0, 0.8, 0.6);
+  }
+
+  .product-overlay-enter-from .product-detail-overlay__scroll,
+  .product-overlay-leave-to .product-detail-overlay__scroll {
+    opacity: 0;
+    transform: translate3d(0, 52px, 0) scale(0.96);
   }
 }
 
 @media (min-width: 641px) {
-  .product-detail-overlay {
-    will-change: opacity, transform;
+  .product-detail-overlay__scroll {
+    padding: 48px;
+  }
+
+  .product-overlay-enter-active .product-detail-overlay__backdrop,
+  .product-overlay-leave-active .product-detail-overlay__backdrop {
+    transition: opacity 220ms ease;
+  }
+
+  .product-overlay-enter-from .product-detail-overlay__backdrop,
+  .product-overlay-leave-to .product-detail-overlay__backdrop {
+    opacity: 0;
+  }
+
+  .product-overlay-enter-active .product-detail-overlay__scroll,
+  .product-overlay-leave-active .product-detail-overlay__scroll {
+    transition:
+      opacity 220ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-overlay-enter-from .product-detail-overlay__scroll,
+  .product-overlay-leave-to .product-detail-overlay__scroll {
+    opacity: 0;
+    transform: scale(0.96) translate3d(0, 14px, 0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .product-overlay-enter-active,
-  .product-overlay-leave-active {
+  .product-overlay-leave-active,
+  .product-overlay-enter-active .product-detail-overlay__backdrop,
+  .product-overlay-leave-active .product-detail-overlay__backdrop,
+  .product-overlay-enter-active .product-detail-overlay__scroll,
+  .product-overlay-leave-active .product-detail-overlay__scroll {
     transition: opacity 0.01ms linear;
   }
 
   .product-overlay-enter-from,
-  .product-overlay-leave-to {
+  .product-overlay-leave-to,
+  .product-overlay-enter-from .product-detail-overlay__scroll,
+  .product-overlay-leave-to .product-detail-overlay__scroll {
     transform: none;
   }
 }

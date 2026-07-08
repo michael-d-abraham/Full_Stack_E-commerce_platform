@@ -337,3 +337,14 @@ button.is-icon:focus-visible {
 .table-scroll .table {
   margin-top: 0;
 }
+
+/* Gallery product overlay — block interaction with page beneath */
+body.gallery-product-open #app {
+  pointer-events: none;
+  user-select: none;
+}
+
+body.gallery-product-open .product-detail-overlay {
+  pointer-events: auto;
+  user-select: auto;
+}

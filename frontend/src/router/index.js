@@ -60,7 +60,19 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+            return savedPosition;
+        }
+
+        // Gallery product overlay: keep grid scroll position when query toggles.
+        if (to.name === 'gallery' && from.name === 'gallery') {
+            return false;
+        }
+
+        return { top: 0 };
+    }
 });
 
 router.beforeEach(async (to) => {
