@@ -12,7 +12,6 @@ const {
   fetchProduct,
   getCachedProduct,
   hasProductChanged,
-  prefetchAdjacentProducts,
   prefetchProduct,
   seedProductCache,
   setCachedProduct
@@ -45,31 +44,6 @@ describe('useProductCache', () => {
     resolveFetch({ slug: 'beta', title: 'Beta' });
     await expect(first).resolves.toEqual({ slug: 'beta', title: 'Beta' });
     expect(getCachedProduct('beta')).toEqual({ slug: 'beta', title: 'Beta' });
-  });
-
-  it('prefetches adjacent slugs from the gallery list', async () => {
-    setCachedProduct('b', { slug: 'b', title: 'B' });
-
-    prefetchAdjacentProducts('b', ['a', 'b', 'c'], [
-      { slug: 'a', title: 'A' },
-      { slug: 'c', title: 'C' }
-    ]);
-
-    expect(getCachedProduct('a')?.title).toBe('A');
-    expect(getCachedProduct('c')?.title).toBe('C');
-    expect(getProductBySlug).not.toHaveBeenCalled();
-  });
-
-  it('fetches uncached adjacent slugs in the background', async () => {
-    setCachedProduct('b', { slug: 'b', title: 'B' });
-    getProductBySlug.mockImplementation(async (slug) => ({ slug, title: slug.toUpperCase() }));
-
-    prefetchAdjacentProducts('b', ['a', 'b', 'c'], []);
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(getProductBySlug).toHaveBeenCalledWith('a');
-    expect(getProductBySlug).toHaveBeenCalledWith('c');
   });
 
   it('detects meaningful product changes', () => {

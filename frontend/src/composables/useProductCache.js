@@ -4,8 +4,6 @@ const productCache = new Map();
 const inflightRequests = new Map();
 const prefetchedImageUrls = new Set();
 
-const PRODUCT_SWAP_MS = 200;
-
 function productImageIds(product) {
   const imgs = product?.product_images;
   if (!Array.isArray(imgs)) {
@@ -128,36 +126,6 @@ export async function refreshProductInBackground(slug, onUpdate) {
 
 function cachedProductFallback(slug) {
   return productCache.get(slug) ?? null;
-}
-
-export function prefetchAdjacentProducts(currentSlug, slugs = [], productList = []) {
-  if (!currentSlug || !Array.isArray(slugs) || slugs.length < 2) {
-    return;
-  }
-
-  const index = slugs.indexOf(currentSlug);
-  if (index < 0) {
-    return;
-  }
-
-  const neighborSlugs = [slugs[index - 1], slugs[index + 1]].filter(Boolean);
-  for (const slug of neighborSlugs) {
-    const listProduct = productList.find((product) => product.slug === slug);
-    if (listProduct) {
-      setCachedProduct(slug, listProduct);
-    }
-    prefetchProduct(slug);
-  }
-}
-
-export function getProductSwapDurationMs() {
-  return PRODUCT_SWAP_MS;
-}
-
-export function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 }
 
 export function __resetProductCacheForTests() {

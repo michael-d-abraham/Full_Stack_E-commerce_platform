@@ -195,7 +195,7 @@ function onClick(event) {
 .product-floating-circle-button--lightbox-next {
   position: absolute;
   top: 50%;
-  z-index: 10;
+  z-index: 12;
   transform: translateY(-50%);
 }
 
@@ -253,7 +253,7 @@ function onClick(event) {
   position: absolute;
   right: 0;
   bottom: 0;
-  z-index: 10;
+  z-index: 12;
 }
 
 .product-floating-circle-button--stage-enlarge:active:not(:disabled) {

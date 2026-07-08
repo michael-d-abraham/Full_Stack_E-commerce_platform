@@ -1,11 +1,12 @@
 <template>
   <div class="product-image-gallery" :class="{ 'product-image-gallery--lightbox-open': lightboxOpen }">
     <div
+      ref="stageRef"
       class="product-image-gallery__stage"
       :class="{ 'product-image-gallery__stage--lightbox-hidden': lightboxOpen }"
     >
       <ProductGalleryNavButton
-        v-if="canSwipe"
+        v-if="canSwipe && !useFloatingControls"
         direction="prev"
         context="overlay"
         :disabled="!canGoPrev || isSliding"
@@ -40,7 +41,37 @@
           </div>
         </div>
         <p v-else class="product-image-gallery__empty">No image</p>
+      </div>
+      <ProductFloatingCircleButton
+        v-if="currentImage && images.length && !useFloatingControls"
+        icon="expand"
+        placement="stage-enlarge"
+        size="md"
+        aria-label="View larger image"
+        @click.stop="openLightbox"
+      />
+      <ProductGalleryNavButton
+        v-if="canSwipe && !useFloatingControls"
+        direction="next"
+        context="overlay"
+        :disabled="!canGoNext || isSliding"
+        @click.stop="goNext"
+      />
+    </div>
 
+    <Teleport :to="floatingControlsTarget" :disabled="!useFloatingControls">
+      <div
+        v-if="useFloatingControls && !lightboxOpen"
+        class="product-image-gallery__floating-controls"
+        :style="stageAnchorStyle"
+      >
+        <ProductGalleryNavButton
+          v-if="canSwipe"
+          direction="prev"
+          context="overlay"
+          :disabled="!canGoPrev || isSliding"
+          @click.stop="goPrev"
+        />
         <ProductFloatingCircleButton
           v-if="currentImage && images.length"
           icon="expand"
@@ -49,15 +80,15 @@
           aria-label="View larger image"
           @click.stop="openLightbox"
         />
+        <ProductGalleryNavButton
+          v-if="canSwipe"
+          direction="next"
+          context="overlay"
+          :disabled="!canGoNext || isSliding"
+          @click.stop="goNext"
+        />
       </div>
-      <ProductGalleryNavButton
-        v-if="canSwipe"
-        direction="next"
-        context="overlay"
-        :disabled="!canGoNext || isSliding"
-        @click.stop="goNext"
-      />
-    </div>
+    </Teleport>
 
     <div
       v-if="showDots"
@@ -222,6 +253,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { isHorizontalSwipe } from '../../composables/useProductGalleryNav.js';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
+import { useFloatingControlsAnchor } from '../../composables/useFloatingControlsAnchor.js';
 import ProductCloseButton from './ProductCloseButton.vue';
 import ProductFloatingCircleButton from './ProductFloatingCircleButton.vue';
 import ProductGalleryNavButton from './ProductGalleryNavButton.vue';
@@ -247,6 +279,10 @@ const props = defineProps({
   priority: {
     type: Boolean,
     default: false
+  },
+  floatingControlsTarget: {
+    type: Object,
+    default: null
   }
 });
 
@@ -257,11 +293,20 @@ const activeIndex = ref(0);
 const slideDirection = ref('next');
 const isSliding = ref(false);
 const lightboxOpen = ref(false);
+const stageRef = ref(null);
 const viewportRef = ref(null);
 const lightboxStageRef = ref(null);
 const lightboxViewportRef = ref(null);
 const CONTROL_SELECTOR =
-  '.product-floating-circle-button, .product-close-button, .product-image-gallery__dot';
+  '.product-floating-circle-button, .product-close-button, .product-image-gallery__dot, .product-image-gallery__floating-controls';
+
+const useFloatingControls = computed(
+  () => Boolean(props.floatingControlsTarget)
+);
+
+const { anchorStyle: stageAnchorStyle } = useFloatingControlsAnchor(stageRef, {
+  enabled: () => useFloatingControls.value && !lightboxOpen.value
+});
 
 const containedLightboxActive = computed(
   () => props.containedLightbox && Boolean(props.lightboxTarget)
@@ -524,6 +569,15 @@ onUnmounted(() => {
 .product-image-gallery__stage {
   position: relative;
   width: 100%;
+  z-index: 1;
+}
+
+.product-image-gallery__floating-controls {
+  box-sizing: border-box;
+}
+
+.product-image-gallery__floating-controls > :deep(.product-floating-circle-button) {
+  pointer-events: auto;
 }
 
 .product-image-gallery__viewport {

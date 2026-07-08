@@ -35,7 +35,6 @@
       v-if="overlaySlug"
       :slug="overlaySlug"
       :initial-product="overlayInitialProduct"
-      :gallery-slugs="galleryNavSlugs"
       :open="isOverlayOpen"
       @close="closeProduct"
       @after-leave="onOverlayAfterLeave"
@@ -49,8 +48,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { getProducts } from '../services/api.js';
 import {
   seedProductCache,
-  prefetchProduct,
-  prefetchAdjacentProducts
+  prefetchProduct
 } from '../composables/useProductCache.js';
 import GalleryProductCard from '../components/product/GalleryProductCard.vue';
 import ProductDetailOverlay from '../components/product/ProductDetailOverlay.vue';
@@ -83,8 +81,6 @@ const overlayInitialProduct = computed(() => {
   return products.value.find((p) => p.slug === overlaySlug.value) ?? null;
 });
 
-const galleryNavSlugs = computed(() => visibleProducts.value.map((p) => p.slug));
-
 function expandVisibleCountForSlug(slug) {
   if (!slug) {
     return;
@@ -106,18 +102,10 @@ watch(
       overlaySlug.value = slug;
       expandVisibleCountForSlug(slug);
       prefetchProduct(slug);
-      prefetchAdjacentProducts(slug, galleryNavSlugs.value, products.value);
     }
   },
   { immediate: true }
 );
-
-watch(galleryNavSlugs, (slugs) => {
-  if (!overlaySlug.value) {
-    return;
-  }
-  prefetchAdjacentProducts(overlaySlug.value, slugs, products.value);
-});
 
 watch(visibleProducts, (visible) => {
   seedProductCache(visible);
@@ -163,11 +151,6 @@ onMounted(async () => {
     expandVisibleCountForSlug(activeProductSlug.value);
     if (activeProductSlug.value) {
       prefetchProduct(activeProductSlug.value);
-      prefetchAdjacentProducts(
-        activeProductSlug.value,
-        products.value.slice(0, visibleCount.value).map((p) => p.slug),
-        products.value
-      );
     }
   } catch (e) {
     error.value = e.message || 'Failed to load products';

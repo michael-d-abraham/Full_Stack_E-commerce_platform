@@ -1,6 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition
+      appear
       name="product-overlay"
       :duration="{ enter: overlayTransitionMs, leave: overlayTransitionMs }"
       @after-leave="onAfterLeave"
@@ -14,12 +15,12 @@
         aria-label="Product details"
       >
         <div class="product-detail-overlay__backdrop" aria-hidden="true" @click="onBackdropLayerClick" />
+        <div ref="controlsLayerRef" class="product-detail-overlay__controls" />
         <div class="product-detail-overlay__scroll" @click="onBackdropClick">
           <ProductDetail
             ref="productDetailRef"
             :slug="slug"
             :initial-product="initialProduct"
-            :gallery-slugs="gallerySlugs"
             overlay
             @close="emit('close')"
             @lightbox-change="galleryLightboxOpen = $event"
@@ -31,13 +32,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onUnmounted, nextTick, provide } from 'vue';
 import ProductDetail from '../../pages/ProductDetail.vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import { lockBodyScroll, unlockBodyScroll, resetBodyScrollLock } from '../../composables/useBodyScrollLock.js';
 
 const isDesktop = useMediaQuery('(min-width: 641px)');
-const overlayTransitionMs = computed(() => (isDesktop.value ? 220 : 300));
+const overlayTransitionMs = computed(() => (isDesktop.value ? 220 : 260));
 
 const props = defineProps({
   slug: {
@@ -48,10 +49,6 @@ const props = defineProps({
     type: Object,
     default: null
   },
-  gallerySlugs: {
-    type: Array,
-    default: () => []
-  },
   open: {
     type: Boolean,
     default: true
@@ -61,9 +58,12 @@ const props = defineProps({
 const emit = defineEmits(['close', 'after-leave']);
 
 const panelRef = ref(null);
+const controlsLayerRef = ref(null);
 const productDetailRef = ref(null);
 const galleryLightboxOpen = ref(false);
 let previousFocus = null;
+
+provide('productOverlayControlsTarget', controlsLayerRef);
 
 function onBackdropClick(event) {
   if (event.target !== event.currentTarget) {
@@ -78,13 +78,6 @@ function onBackdropLayerClick() {
     return;
   }
   emit('close');
-}
-
-function onOverlayKeydown(event) {
-  if (galleryLightboxOpen.value) {
-    return;
-  }
-  productDetailRef.value?.handleGalleryNavKeydown?.(event);
 }
 
 function onEscape(event) {
@@ -119,7 +112,6 @@ watch(
       previousFocus = document.activeElement;
       setScrollLock(true);
       window.addEventListener('keydown', onEscape);
-      window.addEventListener('keydown', onOverlayKeydown);
       await nextTick();
       if (!galleryLightboxOpen.value) {
         const backControl = panelRef.value?.querySelector('.product-close-button');
@@ -129,7 +121,6 @@ watch(
       galleryLightboxOpen.value = false;
       setScrollLock(false);
       window.removeEventListener('keydown', onEscape);
-      window.removeEventListener('keydown', onOverlayKeydown);
       if (previousFocus && typeof previousFocus.focus === 'function') {
         previousFocus.focus({ preventScroll: true });
       }
@@ -144,7 +135,6 @@ onUnmounted(() => {
   resetBodyScrollLock();
   document.body.classList.remove('gallery-product-open');
   window.removeEventListener('keydown', onEscape);
-  window.removeEventListener('keydown', onOverlayKeydown);
   if (previousFocus && typeof previousFocus.focus === 'function') {
     previousFocus.focus({ preventScroll: true });
   }
@@ -169,6 +159,14 @@ onUnmounted(() => {
   z-index: 0;
   background: rgba(255, 255, 255, 0.88);
   cursor: default;
+}
+
+.product-detail-overlay__controls {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .product-detail-overlay__scroll {
@@ -210,7 +208,7 @@ onUnmounted(() => {
 
   .product-overlay-enter-active .product-detail-overlay__backdrop,
   .product-overlay-leave-active .product-detail-overlay__backdrop {
-    transition: opacity 300ms ease;
+    transition: opacity 260ms ease;
   }
 
   .product-overlay-enter-from .product-detail-overlay__backdrop,
@@ -221,13 +219,7 @@ onUnmounted(() => {
   .product-overlay-enter-active .product-detail-overlay__scroll,
   .product-overlay-leave-active .product-detail-overlay__scroll {
     transition:
-      opacity 300ms ease-out,
-      transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .product-overlay-leave-active .product-detail-overlay__scroll {
-    transition:
-      opacity 260ms ease-in,
+      opacity 260ms ease,
       transform 260ms cubic-bezier(0.4, 0, 0.8, 0.6);
   }
 
