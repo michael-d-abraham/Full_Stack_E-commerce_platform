@@ -92,8 +92,8 @@ const props = defineProps({
 const emit = defineEmits(['added', 'open']);
 
 const detailRoute = computed(() => ({
-  name: 'product-detail',
-  params: { slug: props.product.slug }
+  name: 'gallery',
+  query: { product: props.product.slug }
 }));
 
 const galleryLinkTag = computed(() => (props.navigationMode === 'emit' ? 'button' : 'router-link'));

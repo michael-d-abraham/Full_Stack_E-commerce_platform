@@ -29,6 +29,8 @@
           :key="p._id"
           :product="p"
           :show-add-to-cart="false"
+          navigation-mode="emit"
+          @open="openProduct"
         />
       </div>
       <p class="home-featured__cta">
@@ -42,8 +44,10 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
+import { prefetchProduct } from '../../composables/useProductCache.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
 
 const MOBILE_MQ = '(max-width: 640px)';
@@ -57,6 +61,7 @@ const props = defineProps({
   }
 });
 
+const router = useRouter();
 const sectionRef = ref(null);
 const backgroundRef = ref(null);
 const overlayRef = ref(null);
@@ -68,6 +73,15 @@ useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRe
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products
 );
+
+function openProduct(slug) {
+  prefetchProduct(slug);
+  router.push({
+    name: 'gallery',
+    query: { product: slug },
+    state: { productOverlayOpened: true }
+  });
+}
 </script>
 
 <style scoped>

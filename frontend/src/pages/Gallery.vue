@@ -112,19 +112,20 @@ watch(visibleProducts, (visible) => {
 }, { deep: true });
 
 function openProduct(slug) {
-  router.push({ name: 'gallery', query: { product: slug } });
-}
-
-function cameFromGalleryHistory() {
-  const back = window.history.state?.back;
-  return typeof back === 'string' && back.startsWith('/gallery');
+  prefetchProduct(slug);
+  router.push({
+    name: 'gallery',
+    query: { product: slug },
+    state: { productOverlayOpened: true }
+  });
 }
 
 function closeProduct() {
   if (!route.query.product) {
     return;
   }
-  if (cameFromGalleryHistory()) {
+  // Return to the prior page (home, gallery grid, etc.) when opened in-app.
+  if (window.history.state?.productOverlayOpened) {
     router.back();
     return;
   }

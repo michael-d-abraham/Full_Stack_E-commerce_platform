@@ -1,15 +1,11 @@
 <template>
   <div
-    class="product-page"
-    :class="{ 'product-page--overlay': overlay }"
+    class="product-page product-page--overlay"
     @click="onDesktopBackdropClick"
   >
-    <p v-if="showFullPageLoader" class="product-page__status">Loading…</p>
-    <p v-else-if="error && !product" class="error product-page__status">{{ error }}</p>
-
     <!-- Mobile overlay: one scroll surface; close stays fixed outside the sheet -->
     <div
-      v-else-if="overlay && isMobile"
+      v-if="isMobile"
       class="product-page__content product-page__content--mobile product-page__content--overlay"
     >
       <Teleport :to="overlayControlsEl" :disabled="!useOverlayCloseTeleport">
@@ -97,65 +93,15 @@
       <p v-if="error" class="error product-page__inline-error">{{ error }}</p>
     </div>
 
-    <!-- Mobile standalone page -->
-    <div v-else-if="product && isMobile" class="product-page__content product-page__content--mobile">
-      <ProductCloseButton
-        flush
-        back-to="/gallery"
-        :as-button="overlay"
-        @close="emit('close')"
-      />
-      <ProductImageGallery
-        :images="imageList"
-        ref="galleryRef"
-        :image-alt="productTitle(product)"
-        @lightbox-change="imageLightboxOpen = $event"
-      />
-      <div class="product-page__details product-page__details--stacked">
-        <header class="product-page__intro gallery-plaque-typography">
-          <ProductInfo
-            :title="productTitle(product)"
-            :show-price="false"
-          />
-          <p v-if="formattedPrice != null" class="product-page__price gallery-product-price">
-            {{ formattedPrice }}
-          </p>
-        </header>
-
-        <ProductDescription
-          v-if="showMobileDetails"
-          :text="product.description || ''"
-          :meta-lines="mobileDetailLines"
-          collapsible
-          :collapsed-lines="0"
-        />
-
-        <div class="product-page__purchase">
-          <ProductQuantityField
-            v-model="quantity"
-            :max="maxQuantity"
-            @increment="incrementQty"
-            @decrement="decrementQty"
-          />
-          <AddToCartButton
-            :label="addButtonLabel"
-            :disabled="!canBuy || added"
-            :aria-label="`Add ${productTitle(product)} to cart`"
-            @click="onAddToCart"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Desktop layout (overlay shell renders immediately even while loading) -->
-    <article v-else-if="!isMobile && (product || overlay)" class="detail detail--desktop">
+    <!-- Desktop overlay layout -->
+    <article v-else class="detail detail--desktop">
       <div ref="detailCardRef" class="detail__card" @click="onDesktopCardBackdropClick">
         <ProductCloseButton
           class="detail__close"
           flush
           back-to="/gallery"
           :label="imageLightboxOpen ? 'Close enlarged image' : 'Close and return to gallery'"
-          :as-button="overlay || imageLightboxOpen"
+          as-button
           @close="onDesktopClose"
         />
 
@@ -172,7 +118,7 @@
               v-if="imageList.length"
               ref="galleryRef"
               class="detail__gallery"
-              :priority="overlay"
+              priority
               :images="imageList"
               :image-alt="productTitle(product)"
               contained-lightbox
@@ -212,7 +158,7 @@
           </div>
         </div>
 
-        <div v-else-if="!overlay" class="detail__grid detail__grid--loading" aria-hidden="true">
+        <div v-else class="detail__grid detail__grid--loading" aria-hidden="true">
           <div class="detail__media">
             <div class="product-skeleton product-skeleton--image product-skeleton--desktop-image" />
           </div>
@@ -236,7 +182,6 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, inject } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   getCachedProduct,
   setCachedProduct,
@@ -266,9 +211,10 @@ const props = defineProps({
     type: String,
     required: true
   },
+  /** @deprecated Always rendered inside ProductDetailOverlay; kept for call-site compat */
   overlay: {
     type: Boolean,
-    default: false
+    default: true
   },
   initialProduct: {
     type: Object,
@@ -282,9 +228,8 @@ const isMobile = useMediaQuery('(max-width: 640px)');
 const overlayControlsTarget = inject('productOverlayControlsTarget', ref(null));
 const overlayControlsEl = computed(() => overlayControlsTarget?.value ?? null);
 const useOverlayCloseTeleport = computed(
-  () => props.overlay && isMobile.value && Boolean(overlayControlsEl.value)
+  () => isMobile.value && Boolean(overlayControlsEl.value)
 );
-const router = useRouter();
 const { openDrawer } = useCart();
 
 function resolveCachedProduct(slug) {
@@ -359,10 +304,6 @@ const addButtonLabel = computed(() => {
   return 'Add to Cart';
 });
 
-const showFullPageLoader = computed(
-  () => loading.value && !props.overlay
-);
-
 const productMeta = computed(() => (product.value ? productMetaLines(product.value) : []));
 
 const mobileDetailLines = computed(() => {
@@ -400,11 +341,7 @@ function onDesktopClose() {
     galleryRef.value?.closeLightbox();
     return;
   }
-  if (props.overlay) {
-    emit('close');
-    return;
-  }
-  router.push({ name: 'gallery' });
+  emit('close');
 }
 
 function onDesktopCardBackdropClick(event) {
@@ -472,9 +409,7 @@ async function load() {
   quantity.value = 1;
   added.value = false;
 
-  if (!props.overlay) {
-    imageLightboxOpen.value = false;
-  } else if (product.value?.slug !== slug) {
+  if (product.value?.slug !== slug) {
     imageLightboxOpen.value = false;
   }
 
@@ -511,35 +446,10 @@ async function load() {
     return;
   }
 
-  if (props.overlay && product.value) {
+  if (product.value) {
     loading.value = false;
-    try {
-      const fresh = await fetchProduct(slug);
-      if (requestId !== loadRequestId || props.slug !== slug) {
-        return;
-      }
-      applyProduct(fresh);
-      refreshProductInBackground(slug, (freshProduct) => {
-        if (requestId === loadRequestId && props.slug === slug) {
-          product.value = freshProduct;
-        }
-      });
-    } catch (e) {
-      if (requestId !== loadRequestId || props.slug !== slug) {
-        return;
-      }
-      error.value = e.status === 404 ? 'Product not found.' : e.message || 'Failed to load product';
-    } finally {
-      if (requestId === loadRequestId && props.slug === slug) {
-        loading.value = false;
-      }
-    }
-    return;
-  }
-
-  loading.value = true;
-  if (product.value?.slug !== slug) {
-    product.value = null;
+  } else {
+    loading.value = true;
   }
 
   try {

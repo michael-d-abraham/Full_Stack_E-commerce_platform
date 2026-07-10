@@ -21,9 +21,6 @@ function viewKey(route) {
   if (route.name === 'gallery') {
     return 'gallery';
   }
-  if (route.name === 'product-detail') {
-    return `product-${route.params.slug || ''}`;
-  }
   // Prefer stable name keys so query-only changes do not remount the page.
   if (route.name) {
     return String(route.name);

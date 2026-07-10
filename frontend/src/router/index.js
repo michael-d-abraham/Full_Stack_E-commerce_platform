@@ -15,7 +15,6 @@ import { startNavProgress, finishNavProgress } from '../composables/useNavProgre
 const Gallery = () => import('../pages/Gallery.vue');
 const Contact = () => import('../pages/Contact.vue');
 const BookAppointment = () => import('../pages/BookAppointment.vue');
-const ProductDetail = () => import('../pages/ProductDetail.vue');
 const Checkout = () => import('../pages/Checkout.vue');
 const OrderSuccess = () => import('../pages/OrderSuccess.vue');
 const CheckoutCancel = () => import('../pages/CheckoutCancel.vue');
@@ -48,7 +47,13 @@ const routes = [
     { path: '/contact', name: 'contact', component: Contact },
     { path: '/book', name: 'book-appointment', component: BookAppointment },
     { path: '/art/:slug', redirect: { name: 'gallery' } },
-    { path: '/product/:slug', name: 'product-detail', component: ProductDetail, props: true },
+    {
+        path: '/product/:slug',
+        redirect: (to) => ({
+            name: 'gallery',
+            query: { product: String(to.params.slug || '') }
+        })
+    },
     { path: '/gallery/admin/login', redirect: '/admin/login' },
     { path: '/gallery/admin/sign-up', redirect: '/admin/sign-up' },
     { path: '/admin/login', name: 'admin-login', component: AdminLogin },

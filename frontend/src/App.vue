@@ -53,7 +53,6 @@
     <main
       class="app-main"
       :class="{
-        'app-main--product-mobile': isProductMobile,
         'app-main--admin': isAdminRoute,
         'app-main--home': isHomeRoute
       }"
@@ -78,19 +77,15 @@ import NavProgress from './components/loading/NavProgress.vue';
 import RouteTransition from './components/loading/RouteTransition.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
-import { useMediaQuery } from './composables/useMediaQuery.js';
 import { useAutoHideSiteHeader } from './composables/useAutoHideSiteHeader.js';
 import { hydrateCartFromServer } from './utils/cart.js';
 import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
 import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.js';
 
-const MOBILE_LAYOUT_MQ = '(max-width: 640px)';
-
 const route = useRoute();
 const { brandHomeAriaLabel } = useSiteBrand();
 const { drawerOpen } = useCart();
 const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileNav();
-const isMobile = useMediaQuery(MOBILE_LAYOUT_MQ);
 const headerBarRef = ref(null);
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
@@ -99,9 +94,6 @@ const isGalleryProductOpen = computed(
   () => route.name === 'gallery' && typeof route.query.product === 'string' && Boolean(route.query.product)
 );
 const hideHeaderForGalleryProduct = computed(() => isGalleryProductOpen.value);
-const isProductMobile = computed(
-  () => isMobile.value && route.name === 'product-detail'
-);
 
 const { headerHidden, resetHeader, syncSiteHeaderOffset } = useAutoHideSiteHeader({
   isActive: () => !isAdminRoute.value,
@@ -149,7 +141,7 @@ onUnmounted(() => {
 
 const showSocialFooter = computed(() => {
   const name = route.name;
-  return name === 'home' || name === 'gallery' || name === 'contact' || name === 'product-detail' || name === 'book-appointment';
+  return name === 'home' || name === 'gallery' || name === 'contact' || name === 'book-appointment';
 });
 </script>
 
@@ -459,11 +451,6 @@ body.gallery-product-open .site-header {
 
   .app-nav--desktop {
     display: none;
-  }
-
-  .app-main--product-mobile {
-    padding: 0;
-    overflow-x: hidden;
   }
 
   .mobile-menu-toggle span {
