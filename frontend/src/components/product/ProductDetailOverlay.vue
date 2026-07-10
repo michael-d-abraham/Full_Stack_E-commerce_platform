@@ -201,9 +201,19 @@ onUnmounted(() => {
     box-sizing: border-box;
   }
 
+  /* Chrome only — the product card owns vertical scrolling */
   .product-detail-overlay__scroll {
     padding: 16px 28px;
     align-items: center;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  .product-detail-overlay__controls :deep(.product-close-button),
+  .product-detail-overlay__controls :deep(.product-floating-circle-button) {
+    pointer-events: auto;
   }
 
   .product-overlay-enter-active .product-detail-overlay__backdrop,

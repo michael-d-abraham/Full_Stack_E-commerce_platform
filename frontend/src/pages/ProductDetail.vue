@@ -7,35 +7,28 @@
     <p v-if="showFullPageLoader" class="product-page__status">Loading…</p>
     <p v-else-if="error && !product" class="error product-page__status">{{ error }}</p>
 
-    <!-- Mobile overlay: shell renders immediately; skeletons fill gaps while fetching -->
+    <!-- Mobile overlay: one scroll surface; close stays fixed outside the sheet -->
     <div
       v-else-if="overlay && isMobile"
       class="product-page__content product-page__content--mobile product-page__content--overlay"
     >
-      <div ref="mediaShellRef" class="product-page__media-shell">
-        <Teleport :to="overlayControlsEl" :disabled="!useOverlayFloatingControls">
-          <div
-            v-if="useOverlayFloatingControls"
-            class="product-page__close-anchor"
-            :style="closeAnchorStyle"
-          >
-            <ProductCloseButton
-              placement="inline"
-              flush
-              back-to="/gallery"
-              as-button
-              @close="emit('close')"
-            />
-          </div>
-        </Teleport>
+      <Teleport :to="overlayControlsEl" :disabled="!useOverlayCloseTeleport">
+        <ProductCloseButton
+          v-if="useOverlayCloseTeleport"
+          placement="overlay"
+          flush
+          as-button
+          @close="emit('close')"
+        />
+      </Teleport>
 
+      <div class="product-page__media-shell">
         <ProductImageGallery
           v-if="imageList.length"
           ref="galleryRef"
           priority
           :images="imageList"
           :image-alt="product ? productTitle(product) : 'Product image'"
-          :floating-controls-target="overlayControlsEl"
           @lightbox-change="imageLightboxOpen = $event"
         />
         <div v-else class="product-skeleton product-skeleton--image" aria-hidden="true" />
@@ -57,10 +50,11 @@
         </div>
 
         <ProductDescription
-          v-if="showProductDescription"
+          v-if="showMobileDetails"
           :text="product?.description || ''"
-          :meta-lines="productMeta"
+          :meta-lines="mobileDetailLines"
           collapsible
+          :collapsed-lines="0"
         />
         <div
           v-else-if="!product"
@@ -72,26 +66,17 @@
         </div>
 
         <div class="product-page__purchase">
-          <p v-if="showStock" class="product-page__availability">
-            Available: {{ product.quantity_available }}
-          </p>
           <div
-            v-else-if="!product"
-            class="product-skeleton product-skeleton--availability"
+            v-if="!product"
+            class="product-skeleton product-skeleton--quantity"
             aria-hidden="true"
           />
-
           <ProductQuantityField
-            v-if="product"
+            v-else
             v-model="quantity"
             :max="maxQuantity"
             @increment="incrementQty"
             @decrement="decrementQty"
-          />
-          <div
-            v-else
-            class="product-skeleton product-skeleton--quantity"
-            aria-hidden="true"
           />
 
           <AddToCartButton
@@ -138,15 +123,14 @@
         </header>
 
         <ProductDescription
+          v-if="showMobileDetails"
           :text="product.description || ''"
-          :meta-lines="productMetaLines(product)"
+          :meta-lines="mobileDetailLines"
           collapsible
+          :collapsed-lines="0"
         />
 
         <div class="product-page__purchase">
-          <p v-if="showStock" class="product-page__availability">
-            Available: {{ product.quantity_available }}
-          </p>
           <ProductQuantityField
             v-model="quantity"
             :max="maxQuantity"
@@ -264,7 +248,6 @@ import { addToCart, setCartQuantity } from '../utils/cart.js';
 import { CART_QUANTITY_MAX } from '@shared/cartQuantity.js';
 import { useCart } from '../composables/useCart.js';
 import { useMediaQuery } from '../composables/useMediaQuery.js';
-import { useFloatingControlsAnchor } from '../composables/useFloatingControlsAnchor.js';
 import { formatMoneyFromCents } from '../utils/money.js';
 import {
   productTitle,
@@ -298,7 +281,7 @@ const emit = defineEmits(['close', 'lightbox-change']);
 const isMobile = useMediaQuery('(max-width: 640px)');
 const overlayControlsTarget = inject('productOverlayControlsTarget', ref(null));
 const overlayControlsEl = computed(() => overlayControlsTarget?.value ?? null);
-const useOverlayFloatingControls = computed(
+const useOverlayCloseTeleport = computed(
   () => props.overlay && isMobile.value && Boolean(overlayControlsEl.value)
 );
 const router = useRouter();
@@ -328,13 +311,8 @@ const quantity = ref(1);
 const added = ref(false);
 const detailGridRef = ref(null);
 const detailCardRef = ref(null);
-const mediaShellRef = ref(null);
 const galleryRef = ref(null);
 const imageLightboxOpen = ref(false);
-
-const { anchorStyle: closeAnchorStyle } = useFloatingControlsAnchor(mediaShellRef, {
-  enabled: () => useOverlayFloatingControls.value
-});
 
 const imageList = computed(() => {
   const imgs = product.value?.product_images;
@@ -387,11 +365,26 @@ const showFullPageLoader = computed(
 
 const productMeta = computed(() => (product.value ? productMetaLines(product.value) : []));
 
+const mobileDetailLines = computed(() => {
+  const lines = [...productMeta.value];
+  if (showStock.value && product.value) {
+    lines.push(`Available: ${product.value.quantity_available}`);
+  }
+  return lines;
+});
+
 const showProductDescription = computed(() => {
   if (!product.value) {
     return false;
   }
   return Boolean(String(product.value.description || '').trim()) || hasProductMeta(product.value);
+});
+
+const showMobileDetails = computed(() => {
+  if (!product.value) {
+    return false;
+  }
+  return showProductDescription.value || showStock.value;
 });
 
 function incrementQty() {
@@ -945,8 +938,10 @@ watch(imageLightboxOpen, (open) => {
   .product-page--overlay {
     min-height: 0;
     height: auto;
+    width: 100%;
   }
 
+  /* Single scrollport: image + details move together like a native sheet */
   .product-page--overlay .product-page__content--overlay {
     position: relative;
     display: flex;
@@ -954,7 +949,10 @@ watch(imageLightboxOpen, (open) => {
     width: 100%;
     max-width: 100%;
     max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: #fff;
     border: 1px solid var(--color-border);
     border-radius: 14px;
@@ -967,22 +965,21 @@ watch(imageLightboxOpen, (open) => {
     position: relative;
     flex-shrink: 0;
     padding-top: 12px;
+    overflow: visible;
   }
 
-  .product-page__close-anchor :deep(.product-close-button) {
-    position: absolute;
-    top: 8px;
-    left: 4px;
-    margin: 0;
-    pointer-events: auto;
-  }
-
+  /* Stay inside the card — negative bleed was clipping stage controls */
   .product-page--overlay .product-page__content--overlay :deep(.product-image-gallery) {
     --gallery-mobile-viewport-height: min(58svh, 440px);
-    width: calc(100% + 32px);
+    width: 100%;
     max-width: none;
-    margin: 0 -16px 0.5rem;
+    margin: 0 0 0.5rem;
     padding-top: 0;
+    overflow: visible;
+  }
+
+  .product-page--overlay .product-page__content--overlay :deep(.product-image-gallery__stage) {
+    overflow: visible;
   }
 
   .product-page--overlay .product-page__content--overlay :deep(.product-image-gallery__viewport) {
@@ -990,9 +987,9 @@ watch(imageLightboxOpen, (open) => {
   }
 
   .product-page--overlay .product-skeleton--image {
-    width: calc(100% + 32px);
+    width: 100%;
     max-width: none;
-    margin: 0 -16px 0.5rem;
+    margin: 0 0 0.5rem;
     height: min(58svh, 440px);
     min-height: min(58svh, 440px);
     max-height: min(58svh, 440px);
@@ -1002,11 +999,9 @@ watch(imageLightboxOpen, (open) => {
     gap: 1rem;
     margin-top: 0;
     padding: 0 16px;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .product-page--overlay .product-page__purchase {
@@ -1168,18 +1163,6 @@ watch(imageLightboxOpen, (open) => {
   .product-page--overlay .product-page__details--stacked {
     padding-left: 14px;
     padding-right: 14px;
-  }
-
-  .product-page--overlay .product-page__content--overlay :deep(.product-image-gallery) {
-    width: calc(100% + 28px);
-    margin-left: -14px;
-    margin-right: -14px;
-  }
-
-  .product-page--overlay .product-skeleton--image {
-    width: calc(100% + 28px);
-    margin-left: -14px;
-    margin-right: -14px;
   }
 }
 </style>

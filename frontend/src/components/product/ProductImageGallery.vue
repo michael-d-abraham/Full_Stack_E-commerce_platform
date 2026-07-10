@@ -589,6 +589,7 @@ onUnmounted(() => {
   justify-content: center;
   background: var(--color-product-image-bg);
   overflow: hidden;
+  /* Vertical pans scroll the parent sheet; horizontal is free for gallery swipe */
   touch-action: pan-y pinch-zoom;
 }
 

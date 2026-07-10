@@ -1,15 +1,16 @@
 <template>
   <div v-if="hasContent" class="product-description">
     <p
+      v-show="showText"
       ref="textRef"
       class="product-description__text"
-      :class="{ 'product-description__text--collapsed': collapsible && !expanded }"
+      :class="{ 'product-description__text--collapsed': isLineClamped }"
       :style="collapsedStyle"
     >
       {{ displayText }}
     </p>
     <button
-      v-if="collapsible && isTruncatable"
+      v-if="showToggle"
       type="button"
       class="product-description__read-more"
       @click="expanded = !expanded"
@@ -61,15 +62,43 @@ const displayText = computed(() => {
 
 const hasContent = computed(() => Boolean(displayText.value));
 
+const collapseFully = computed(
+  () => props.collapsible && props.collapsedLines <= 0
+);
+
+const showText = computed(() => {
+  if (!props.collapsible) {
+    return true;
+  }
+  if (collapseFully.value) {
+    return expanded.value;
+  }
+  return true;
+});
+
+const isLineClamped = computed(
+  () => props.collapsible && !collapseFully.value && !expanded.value
+);
+
+const showToggle = computed(() => {
+  if (!props.collapsible || !hasContent.value) {
+    return false;
+  }
+  if (collapseFully.value) {
+    return true;
+  }
+  return isTruncatable.value || expanded.value;
+});
+
 const collapsedStyle = computed(() => {
-  if (!props.collapsible || expanded.value) {
+  if (!isLineClamped.value) {
     return undefined;
   }
   return { '--product-description-clamp': String(props.collapsedLines) };
 });
 
 async function updateTruncation() {
-  if (!props.collapsible) {
+  if (!props.collapsible || collapseFully.value) {
     isTruncatable.value = false;
     return;
   }
@@ -81,12 +110,13 @@ async function updateTruncation() {
     return;
   }
 
-  const wasExpanded = expanded.value;
-  expanded.value = false;
-  await nextTick();
+  // Only measure while collapsed. Remeasuring while expanded previously
+  // cleared isTruncatable and hid the Read less control.
+  if (expanded.value) {
+    return;
+  }
 
   isTruncatable.value = el.scrollHeight > el.clientHeight + 1;
-  expanded.value = wasExpanded;
 }
 
 watch(displayText, () => {
@@ -94,7 +124,13 @@ watch(displayText, () => {
   updateTruncation();
 });
 
-watch(expanded, updateTruncation);
+watch(
+  () => props.collapsedLines,
+  () => {
+    expanded.value = false;
+    updateTruncation();
+  }
+);
 
 onMounted(updateTruncation);
 </script>
@@ -123,7 +159,7 @@ onMounted(updateTruncation);
 }
 
 .product-description__read-more {
-  margin-top: var(--space-md);
+  margin-top: 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -137,6 +173,10 @@ onMounted(updateTruncation);
   text-decoration: underline;
   text-underline-offset: 0.3em;
   cursor: pointer;
+}
+
+.product-description__text + .product-description__read-more {
+  margin-top: var(--space-md);
 }
 
 .product-description__read-more:hover {

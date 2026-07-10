@@ -203,7 +203,12 @@ function onTouchEnd(event) {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  touch-action: pan-y pinch-zoom;
+  /* Fullscreen does not scroll — claim horizontal for swipe, avoid dead vertical pans */
+  touch-action: pan-x;
+}
+
+.mobile-fullscreen-viewer__viewport :deep(.product-expanded-slide-host) {
+  touch-action: pan-x;
 }
 
 .mobile-fullscreen-viewer__viewport .product-expanded-slide-host {

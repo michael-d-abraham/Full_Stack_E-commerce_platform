@@ -261,9 +261,17 @@ function onClick(event) {
 }
 
 @media (max-width: 640px) {
+  .product-floating-circle-button--overlay-prev {
+    left: 8px;
+  }
+
+  .product-floating-circle-button--overlay-next {
+    right: 8px;
+  }
+
   .product-floating-circle-button--stage-enlarge {
-    right: 6px;
-    bottom: 6px;
+    right: 8px;
+    bottom: 8px;
   }
 }
 </style>
