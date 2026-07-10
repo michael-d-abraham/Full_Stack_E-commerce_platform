@@ -25,7 +25,7 @@ import { useMediaQuery } from '../../composables/useMediaQuery.js';
 
 const { itemCount, drawerOpen, toggleDrawer } = useCart();
 const isMobile = useMediaQuery('(max-width: 640px)');
-const iconSize = computed(() => (isMobile.value ? 26 : 40));
+const iconSize = computed(() => (isMobile.value ? 26 : 32));
 
 const displayCount = computed(() => {
   if (itemCount.value > 99) return '99+';

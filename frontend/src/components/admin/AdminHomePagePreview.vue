@@ -440,11 +440,12 @@ const takenFeaturedProductIds = computed(() =>
   border: 1px dashed transparent;
   background: transparent;
   box-shadow: none;
-  font-family: var(--font-sans);
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: clamp(0.9375rem, 2vw, 1.25rem);
-  font-weight: 500;
+  font-weight: 300;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-variant: small-caps;
   text-align: center;
   color: var(--color-text);
 }
@@ -498,12 +499,13 @@ const takenFeaturedProductIds = computed(() =>
   width: 100%;
   min-height: 8rem;
   padding: var(--space-sm) 0;
-  font-family: inherit;
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 700;
+  font-weight: 300;
   line-height: 1.15;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-variant: small-caps;
   color: var(--color-text);
   border: 1px dashed var(--color-border);
   background: transparent;
@@ -528,9 +530,11 @@ const takenFeaturedProductIds = computed(() =>
   width: 100%;
   min-height: 8rem;
   padding: var(--space-md);
-  font-family: inherit;
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: 1rem;
-  line-height: 1.65;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
   color: var(--color-text);
   border: 1px dashed var(--color-border);
   background: transparent;

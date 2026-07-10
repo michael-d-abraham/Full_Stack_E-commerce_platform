@@ -28,9 +28,23 @@
       </header>
 
       <div class="home-about__grid">
-        <blockquote v-if="header" ref="quoteRef" class="home-about__quote home-quote">
-          {{ formattedQuote }}
-        </blockquote>
+        <div class="home-about__copy-col">
+          <blockquote v-if="header" ref="quoteRef" class="home-about__quote home-quote">
+            {{ formattedQuote }}
+          </blockquote>
+
+          <div v-if="text" class="home-about__statement">
+            <p class="home-about__copy">{{ visibleStatement }}</p>
+            <button
+              v-if="isTruncatable"
+              type="button"
+              class="home-about__read-more"
+              @click="expanded = !expanded"
+            >
+              {{ expanded ? 'Read less' : 'Read more' }}
+            </button>
+          </div>
+        </div>
 
         <figure v-if="imageUrl" ref="photoParallaxRef" class="home-about__media">
           <img
@@ -40,18 +54,6 @@
           />
         </figure>
         <div v-else class="home-about__media home-about__media--empty" aria-hidden="true" />
-
-        <div v-if="text" class="home-about__statement">
-          <p class="home-about__copy">{{ visibleStatement }}</p>
-          <button
-            v-if="isTruncatable"
-            type="button"
-            class="home-about__read-more"
-            @click="expanded = !expanded"
-          >
-            {{ expanded ? 'Read less' : 'Read more' }}
-          </button>
-        </div>
       </div>
     </div>
   </section>
@@ -63,10 +65,8 @@ import { useMediaQuery } from '../../composables/useMediaQuery.js';
 import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 import { useScrollParallax } from '../../composables/useScrollParallax.js';
 
-const STATEMENT_PREVIEW_CHARS_MOBILE = 320;
-const STATEMENT_PREVIEW_CHARS_DESKTOP = 640;
-const STATEMENT_MIN_SENTENCE_CHARS_MOBILE = 100;
-const STATEMENT_MIN_SENTENCE_CHARS_DESKTOP = 200;
+const STATEMENT_PREVIEW_CHARS = 320;
+const STATEMENT_MIN_SENTENCE_CHARS = 100;
 
 const props = defineProps({
   sectionTitle: { type: String, required: true },
@@ -82,15 +82,7 @@ const overlayRef = ref(null);
 const photoParallaxRef = ref(null);
 const quoteRef = ref(null);
 const expanded = ref(false);
-const isDesktop = useMediaQuery('(min-width: 641px)');
-
-const statementPreviewChars = computed(() =>
-  isDesktop.value ? STATEMENT_PREVIEW_CHARS_DESKTOP : STATEMENT_PREVIEW_CHARS_MOBILE
-);
-
-const statementMinSentenceChars = computed(() =>
-  isDesktop.value ? STATEMENT_MIN_SENTENCE_CHARS_DESKTOP : STATEMENT_MIN_SENTENCE_CHARS_MOBILE
-);
+const isMobile = useMediaQuery('(max-width: 640px)');
 
 const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
 useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
@@ -113,7 +105,9 @@ const formattedQuote = computed(() => {
 });
 
 const hasQuote = computed(() => Boolean(formattedQuote.value));
-useScrollParallax(sectionRef, quoteRef, hasQuote, {
+/* Horizontal quote motion only on mobile — desktop expand was shifting the parallax. */
+const quoteParallaxEnabled = computed(() => hasQuote.value && isMobile.value);
+useScrollParallax(sectionRef, quoteRef, quoteParallaxEnabled, {
   axis: 'x',
   xMode: 'enter-from-right',
   maxOffset: 160,
@@ -126,22 +120,20 @@ const portraitAlt = computed(() => {
 });
 
 const isTruncatable = computed(
-  () => props.text.trim().length > statementPreviewChars.value
+  () => props.text.trim().length > STATEMENT_PREVIEW_CHARS
 );
 
 const visibleStatement = computed(() => {
   const body = props.text.trim();
-  const previewChars = statementPreviewChars.value;
-  const minSentenceChars = statementMinSentenceChars.value;
 
-  if (!body || expanded.value || body.length <= previewChars) {
+  if (!body || expanded.value || body.length <= STATEMENT_PREVIEW_CHARS) {
     return body;
   }
 
-  const slice = body.slice(0, previewChars);
+  const slice = body.slice(0, STATEMENT_PREVIEW_CHARS);
   const lastSentenceEnd = Math.max(slice.lastIndexOf('.'), slice.lastIndexOf('!'), slice.lastIndexOf('?'));
 
-  if (lastSentenceEnd > minSentenceChars) {
+  if (lastSentenceEnd > STATEMENT_MIN_SENTENCE_CHARS) {
     return body.slice(0, lastSentenceEnd + 1).trim();
   }
 
@@ -173,11 +165,12 @@ const visibleStatement = computed(() => {
 
 .home-about__title {
   margin: 0 0 var(--space-md);
-  font-family: var(--font-sans);
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: clamp(0.9375rem, 2vw, 1.25rem);
-  font-weight: 500;
+  font-weight: 300;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-variant: small-caps;
   line-height: 1.35;
   color: var(--color-text);
 }
@@ -193,16 +186,24 @@ const visibleStatement = computed(() => {
 .home-about__grid {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  grid-template-areas:
-    'quote portrait'
-    'statement portrait';
+  grid-template-areas: 'copy portrait';
   column-gap: clamp(var(--space-xl), 4vw, var(--space-2xl));
-  row-gap: var(--space-lg);
+  row-gap: 0;
   align-items: start;
 }
 
+.home-about__copy-col {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
 .home-about__quote {
-  grid-area: quote;
+  margin: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 641px) {
@@ -210,35 +211,48 @@ const visibleStatement = computed(() => {
     position: relative;
   }
 
+  .home-about__copy-col {
+    gap: 0.65rem;
+    position: relative;
+    z-index: 2;
+  }
+
   .home-about__quote {
     position: relative;
     z-index: 2;
-    will-change: transform;
+  }
+
+  .home-about__quote.home-quote::after {
+    margin-top: 0.65rem;
   }
 
   .home-about__media {
     position: relative;
     z-index: 1;
+    align-self: start;
   }
 }
 
 .home-about__statement {
-  grid-area: statement;
   max-width: 34rem;
+  width: 100%;
 }
 
 .home-about__copy {
   margin: 0;
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: 1rem;
-  line-height: 1.65;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
   color: var(--color-text);
   white-space: pre-line;
 }
 
 @media (min-width: 641px) {
   .home-about__copy {
-    font-size: 1.25rem;
-    line-height: 1.7;
+    font-size: 1.125rem;
+    line-height: 1.75;
   }
 }
 
@@ -248,11 +262,12 @@ const visibleStatement = computed(() => {
   border: none;
   background: transparent;
   box-shadow: none;
-  font-family: inherit;
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: 0.8125rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-weight: 300;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  font-variant: small-caps;
   color: var(--color-text);
   text-decoration: underline;
   text-underline-offset: 0.3em;
@@ -265,9 +280,8 @@ const visibleStatement = computed(() => {
 
 .home-about__media {
   grid-area: portrait;
-  grid-row: 1 / -1;
   margin: 0;
-  align-self: stretch;
+  align-self: start;
   display: flex;
   justify-content: flex-end;
   will-change: transform;
@@ -316,17 +330,21 @@ const visibleStatement = computed(() => {
     grid-template-columns: 1fr;
     grid-template-areas:
       'portrait'
-      'quote'
-      'statement';
+      'copy';
     row-gap: var(--space-xl);
     position: relative;
   }
 
   .home-about__media {
-    grid-row: auto;
     justify-content: center;
     position: relative;
     z-index: 1;
+  }
+
+  .home-about__copy-col {
+    gap: var(--space-md);
+    position: relative;
+    z-index: 2;
   }
 
   .home-about__quote {

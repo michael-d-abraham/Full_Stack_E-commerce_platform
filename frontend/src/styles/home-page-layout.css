@@ -1,16 +1,17 @@
 /* Home page — full-bleed sections and viewport-height bands (desktop) */
 
-/* Shared quote typography — about section */
+/* Shared quote typography — about section (matches hero Oswald display) */
 .home-quote {
   margin: 0;
   padding: 0;
   border: none;
-  font-family: var(--font-sans);
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: clamp(2rem, 4.2vw, 3.25rem);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: 0.01em;
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-variant: small-caps;
   color: var(--color-text);
   white-space: pre-line;
   quotes: none;
