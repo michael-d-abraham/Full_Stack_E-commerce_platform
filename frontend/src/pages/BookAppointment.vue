@@ -18,6 +18,14 @@
 import { ref, onMounted } from 'vue';
 import { getPublicBookPage } from '../services/api.js';
 import { applyBookPageDefaults, DEFAULT_BOOK_PAGE } from '../constants/bookPageDefaults.js';
+import { createSwrCache } from '../composables/createSwrCache.js';
+
+const BOOK_KEY = 'artist-portfolio-book-page';
+const bookCache = createSwrCache({
+  storageKey: BOOK_KEY,
+  storage: typeof sessionStorage !== 'undefined' ? sessionStorage : null,
+  ttlMs: 1000 * 60 * 60
+});
 
 const bookingUrl = ref(DEFAULT_BOOK_PAGE.booking_url);
 const pageTitle = ref(DEFAULT_BOOK_PAGE.page_title);
@@ -32,6 +40,11 @@ function applySettings(data) {
   buttonLabel.value = next.button_label || DEFAULT_BOOK_PAGE.button_label;
 }
 
+const cached = bookCache.getCached();
+if (cached) {
+  applySettings(cached);
+}
+
 function trackBookingClick() {
   if (typeof window.gtag !== 'function') {
     return;
@@ -41,10 +54,14 @@ function trackBookingClick() {
 
 onMounted(async () => {
   try {
-    const data = await getPublicBookPage();
+    const data = await bookCache.ensure(() => getPublicBookPage(), {
+      onUpdate(next) {
+        applySettings(next);
+      }
+    });
     applySettings(data);
   } catch {
-    /* keep defaults */
+    /* keep defaults / cache */
   }
 });
 </script>

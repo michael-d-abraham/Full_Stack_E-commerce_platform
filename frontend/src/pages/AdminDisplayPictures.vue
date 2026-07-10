@@ -1,9 +1,15 @@
 <template>
   <div class="admin-display admin-display--embedded">
-    <p v-if="loading" class="admin-display__status">Loading…</p>
-    <p v-else-if="loadError" class="error admin-display__status">{{ loadError }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton variant="card" height="12rem" />
+          <Skeleton variant="button" width="10rem" />
+        </div>
+      </template>
+      <p v-if="loadError" class="error admin-display__status">{{ loadError }}</p>
 
-    <form v-else class="admin-display__form" @submit.prevent="onSave">
+      <form v-else class="admin-display__form" @submit.prevent="onSave">
       <AdminContactPagePreview
         :form="form"
         :disabled="uploading || saving"
@@ -12,7 +18,7 @@
       />
 
       <footer class="admin-display__footer">
-        <p v-if="uploading" class="admin-display__uploading">Uploading…</p>
+        <UploadProgress v-if="uploading" />
         <p v-if="actionError" class="error">{{ actionError }}</p>
         <p v-if="saved" class="admin-display__success" role="status">Saved.</p>
         <button type="submit" class="btn-primary" :disabled="uploading || saving">
@@ -32,6 +38,7 @@
       @file="onPhotoFile"
       @cancel="onPhotoCancel"
     />
+    </PageReveal>
   </div>
 </template>
 
@@ -46,6 +53,9 @@ import { applyContactPageDefaults } from '../constants/contactPageDefaults.js';
 import { invalidateStorefrontNav } from '../composables/useStorefrontNav.js';
 import AdminContactPagePreview from '../components/admin/AdminContactPagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
+import Skeleton from '../components/loading/Skeleton.vue';
+import UploadProgress from '../components/loading/UploadProgress.vue';
 
 const form = reactive(applyContactPageDefaults({}));
 const loading = ref(true);

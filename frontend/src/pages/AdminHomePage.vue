@@ -1,16 +1,21 @@
 <template>
   <div class="admin-home admin-home--embedded">
-    <p v-if="loading" class="admin-home__status">Loading…</p>
-    <p v-else-if="loadError" class="error admin-home__status">{{ loadError }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton variant="card" height="14rem" />
+          <Skeleton variant="button" width="10rem" />
+        </div>
+      </template>
+      <p v-if="loadError" class="error admin-home__status">{{ loadError }}</p>
 
-    <form v-else class="admin-home__form" @submit.prevent="onSave">
+      <form v-else class="admin-home__form" @submit.prevent="onSave">
       <AdminHomePagePreview
         :form="form"
         :catalog-products="catalogProducts"
         :disabled="uploading || saving"
         @pick-image="openFilePicker"
         @remove-image="clearImage"
-        @move-hero-image="moveHeroImage"
       />
 
       <footer class="admin-home__footer">
@@ -30,6 +35,7 @@
       @file="onPhotoFile"
       @cancel="onPhotoCancel"
     />
+    </PageReveal>
   </div>
 </template>
 
@@ -43,10 +49,14 @@ import {
 } from '../services/api.js';
 import AdminHomePagePreview from '../components/admin/AdminHomePagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
+import Skeleton from '../components/loading/Skeleton.vue';
 import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls, resolveHeroImageFileIds } from '@shared/homePageDefaults.js';
 
 function createEmptyForm() {
   return {
+    hero_title: '',
+    hero_subtitle: '',
     hero_image_url: '',
     hero_image_urls: [],
     hero_image_file_id: '',
@@ -98,10 +108,12 @@ function alignHeroFileIdsToUrls() {
 function applySettings(data) {
   const next = createEmptyForm();
   if (data && typeof data === 'object') {
-    next.hero_image_urls = resolveHeroImageUrls(data);
+    next.hero_image_urls = resolveHeroImageUrls(data).slice(0, 1);
     next.hero_image_url = next.hero_image_urls[0] || '';
-    next.hero_image_file_ids = resolveHeroImageFileIds(data);
+    next.hero_image_file_ids = resolveHeroImageFileIds(data).slice(0, next.hero_image_urls.length);
     next.hero_image_file_id = next.hero_image_file_ids[0] || '';
+    next.hero_title = data.hero_title != null ? String(data.hero_title) : '';
+    next.hero_subtitle = data.hero_subtitle != null ? String(data.hero_subtitle) : '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
     next.about_title = data.about_title != null ? String(data.about_title) : '';
     next.hero_quote = data.hero_quote != null ? String(data.hero_quote) : '';
@@ -147,6 +159,8 @@ function applySettings(data) {
   form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
   form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, ...next.hero_image_file_ids);
   form.hero_image_file_id = next.hero_image_file_id;
+  form.hero_title = next.hero_title;
+  form.hero_subtitle = next.hero_subtitle;
   form.featured_title = next.featured_title;
   form.about_title = next.about_title;
   form.hero_quote = next.hero_quote;
@@ -169,13 +183,16 @@ function applySettings(data) {
 
 function payloadFromForm() {
   alignHeroFileIdsToUrls();
-  const hero_image_urls = form.hero_image_urls.map((url) => String(url).trim()).filter(Boolean);
+  const hero_image_urls = form.hero_image_urls
+    .map((url) => String(url).trim())
+    .filter(Boolean)
+    .slice(0, 1);
   const hero_image_file_ids = form.hero_image_file_ids
     .slice(0, hero_image_urls.length)
     .map((id) => String(id || '').trim());
   return {
-    hero_title: '',
-    hero_subtitle: '',
+    hero_title: form.hero_title,
+    hero_subtitle: form.hero_subtitle,
     hero_image_url: hero_image_urls[0] || '',
     hero_image_urls,
     hero_image_file_id: hero_image_file_ids[0] || '',
@@ -297,8 +314,8 @@ function openFilePicker(target) {
 
 function setImageUrl(target, url, fileId = '') {
   if (target.type === 'hero') {
-    form.hero_image_urls.push(url);
-    form.hero_image_file_ids.push(fileId || '');
+    form.hero_image_urls.splice(0, form.hero_image_urls.length, url);
+    form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, fileId || '');
     syncHeroFromUrls();
     return;
   }
@@ -317,30 +334,6 @@ function setImageUrl(target, url, fileId = '') {
   if (target.type === 'about-background') {
     form.about_background_image_url = url;
     form.about_background_image_file_id = fileId || '';
-  }
-}
-
-function removeHeroAt(index) {
-  if (index < 0 || index >= form.hero_image_urls.length) return;
-  form.hero_image_urls.splice(index, 1);
-  form.hero_image_file_ids.splice(index, 1);
-  syncHeroFromUrls();
-}
-
-async function moveHeroImage({ index, direction }) {
-  const targetIndex = direction === 'up' ? index - 1 : index + 1;
-  if (targetIndex < 0 || targetIndex >= form.hero_image_urls.length) return;
-
-  const urls = form.hero_image_urls;
-  const fileIds = form.hero_image_file_ids;
-  [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
-  [fileIds[index], fileIds[targetIndex]] = [fileIds[targetIndex], fileIds[index]];
-  syncHeroFromUrls();
-
-  try {
-    await persistSettings();
-  } catch {
-    /* actionError set in persistSettings */
   }
 }
 
@@ -382,8 +375,9 @@ function onPhotoCancel() {
 
 async function clearImage(target) {
   if (target.type === 'hero') {
-    const index = target.index != null ? target.index : 0;
-    removeHeroAt(index);
+    form.hero_image_urls.splice(0, form.hero_image_urls.length);
+    form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length);
+    syncHeroFromUrls();
     try {
       await persistSettings();
     } catch {

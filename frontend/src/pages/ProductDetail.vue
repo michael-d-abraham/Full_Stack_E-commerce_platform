@@ -257,7 +257,8 @@ import {
   getCachedProduct,
   setCachedProduct,
   fetchProduct,
-  refreshProductInBackground
+  refreshProductInBackground,
+  isProductDetailComplete
 } from '../composables/useProductCache.js';
 import { addToCart, setCartQuantity } from '../utils/cart.js';
 import { CART_QUANTITY_MAX } from '@shared/cartQuantity.js';
@@ -317,7 +318,9 @@ function resolveCachedProduct(slug) {
 const cachedProduct = resolveCachedProduct(props.slug);
 const product = ref(cachedProduct);
 if (cachedProduct?.slug) {
-  setCachedProduct(cachedProduct.slug, cachedProduct);
+  setCachedProduct(cachedProduct.slug, cachedProduct, {
+    complete: isProductDetailComplete(cachedProduct.slug)
+  });
 }
 const loading = ref(!cachedProduct);
 const error = ref('');
@@ -461,7 +464,9 @@ function applyProduct(productData) {
     return;
   }
 
-  setCachedProduct(productData.slug, productData);
+  setCachedProduct(productData.slug, productData, {
+    complete: isProductDetailComplete(productData.slug)
+  });
   product.value = productData;
 }
 
@@ -484,6 +489,25 @@ async function load() {
     loading.value = false;
     applyProduct(cached);
     if (requestId !== loadRequestId || props.slug !== slug) {
+      return;
+    }
+    // List/gallery cache is primary-image-only — await full detail so swipe
+    // gets every image instead of staying stuck on a single frame.
+    if (!isProductDetailComplete(slug)) {
+      try {
+        const fresh = await fetchProduct(slug);
+        if (requestId !== loadRequestId || props.slug !== slug) {
+          return;
+        }
+        applyProduct(fresh);
+      } catch (e) {
+        if (requestId !== loadRequestId || props.slug !== slug) {
+          return;
+        }
+        if (!product.value) {
+          error.value = e.status === 404 ? 'Product not found.' : e.message || 'Failed to load product';
+        }
+      }
       return;
     }
     refreshProductInBackground(slug, (fresh) => {
@@ -560,7 +584,10 @@ watch(
   () => props.initialProduct,
   (initialProduct) => {
     if (initialProduct?.slug) {
-      setCachedProduct(initialProduct.slug, initialProduct);
+      // Gallery list rows are primary-image-only — never mark them complete.
+      setCachedProduct(initialProduct.slug, initialProduct, {
+        complete: isProductDetailComplete(initialProduct.slug)
+      });
     }
   },
   { immediate: true }

@@ -1,9 +1,46 @@
 const AdminUser = require('../models/AdminUser');
 
+function getClerkAuth(req) {
+    try {
+        // Lazy-require so tests can run without Clerk env configured.
+        const { getAuth } = require('@clerk/express');
+        return getAuth(req);
+    } catch {
+        return null;
+    }
+}
+
+function clerkUserToAdmin(auth) {
+    const email =
+        (auth.sessionClaims &&
+            (auth.sessionClaims.email ||
+                auth.sessionClaims.email_address ||
+                (auth.sessionClaims.primary_email_address &&
+                    auth.sessionClaims.primary_email_address.email_address))) ||
+        null;
+
+    return {
+        _id: auth.userId,
+        clerkUserId: auth.userId,
+        username: email || auth.userId,
+        email,
+        isAdmin: true,
+        enabled: true,
+        authSource: 'clerk'
+    };
+}
+
 /**
- * Loads the admin user from MongoDB when req.session.userId is set (same idea as class authorizeUser).
+ * Loads the admin identity from a Clerk session (preferred) or a legacy
+ * express-session AdminUser id (kept for automated tests / migration).
  */
 function attachAdminUser(req, res, next) {
+    const auth = getClerkAuth(req);
+    if (auth && auth.isAuthenticated && auth.userId) {
+        req.user = clerkUserToAdmin(auth);
+        return next();
+    }
+
     if (!req.session || !req.session.userId) {
         return res.sendStatus(401);
     }

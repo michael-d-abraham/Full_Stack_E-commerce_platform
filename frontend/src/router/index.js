@@ -1,24 +1,36 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
-import Gallery from '../pages/Gallery.vue';
-import Contact from '../pages/Contact.vue';
-import BookAppointment from '../pages/BookAppointment.vue';
-import ProductDetail from '../pages/ProductDetail.vue';
-import AdminLayout from '../components/admin/AdminLayout.vue';
-import AdminDashboard from '../pages/admin/AdminDashboard.vue';
-import AdminOrders from '../pages/admin/AdminOrders.vue';
-import AdminListings from '../pages/admin/AdminListings.vue';
-import AdminCustomize from '../pages/admin/AdminCustomize.vue';
-import AdminSettings from '../pages/admin/AdminSettings.vue';
-import AdminForm from '../pages/AdminForm.vue';
-import AdminCreate from '../pages/AdminCreate.vue';
-import AdminInstagramAi from '../pages/AdminInstagramAi.vue';
-import AdminLogin from '../pages/AdminLogin.vue';
-import Checkout from '../pages/Checkout.vue';
-import OrderSuccess from '../pages/OrderSuccess.vue';
-import CheckoutCancel from '../pages/CheckoutCancel.vue';
+import { watch } from 'vue';
+import { useAuth } from '@clerk/vue';
 import { getAdminSession } from '../services/api.js';
-import { ensureStorefrontNavLoaded, invalidateStorefrontNav, showContactNav, showBookNav } from '../composables/useStorefrontNav.js';
+import {
+    ensureStorefrontNavLoaded,
+    hasStorefrontNavCache,
+    invalidateStorefrontNav,
+    showContactNav,
+    showBookNav
+} from '../composables/useStorefrontNav.js';
+import { startNavProgress, finishNavProgress } from '../composables/useNavProgress.js';
+
+const Gallery = () => import('../pages/Gallery.vue');
+const Contact = () => import('../pages/Contact.vue');
+const BookAppointment = () => import('../pages/BookAppointment.vue');
+const ProductDetail = () => import('../pages/ProductDetail.vue');
+const Checkout = () => import('../pages/Checkout.vue');
+const OrderSuccess = () => import('../pages/OrderSuccess.vue');
+const CheckoutCancel = () => import('../pages/CheckoutCancel.vue');
+const AdminLogin = () => import('../pages/AdminLogin.vue');
+const AdminSignUp = () => import('../pages/AdminSignUp.vue');
+const AdminSsoCallback = () => import('../pages/AdminSsoCallback.vue');
+const AdminLayout = () => import('../components/admin/AdminLayout.vue');
+const AdminDashboard = () => import('../pages/admin/AdminDashboard.vue');
+const AdminOrders = () => import('../pages/admin/AdminOrders.vue');
+const AdminListings = () => import('../pages/admin/AdminListings.vue');
+const AdminCustomize = () => import('../pages/admin/AdminCustomize.vue');
+const AdminSettings = () => import('../pages/admin/AdminSettings.vue');
+const AdminForm = () => import('../pages/AdminForm.vue');
+const AdminCreate = () => import('../pages/AdminCreate.vue');
+const AdminInstagramAi = () => import('../pages/AdminInstagramAi.vue');
 
 const routes = [
     { path: '/', name: 'home', component: Home },
@@ -37,7 +49,11 @@ const routes = [
     { path: '/book', name: 'book-appointment', component: BookAppointment },
     { path: '/art/:slug', redirect: { name: 'gallery' } },
     { path: '/product/:slug', name: 'product-detail', component: ProductDetail, props: true },
+    { path: '/gallery/admin/login', redirect: '/admin/login' },
+    { path: '/gallery/admin/sign-up', redirect: '/admin/sign-up' },
     { path: '/admin/login', name: 'admin-login', component: AdminLogin },
+    { path: '/admin/sign-up', name: 'admin-sign-up', component: AdminSignUp },
+    { path: '/admin/sso-callback', name: 'admin-sso-callback', component: AdminSsoCallback },
     {
         path: '/admin',
         component: AdminLayout,
@@ -66,7 +82,6 @@ const router = createRouter({
             return savedPosition;
         }
 
-        // Gallery product overlay: keep grid scroll position when query toggles.
         if (to.name === 'gallery' && from.name === 'gallery') {
             return false;
         }
@@ -75,9 +90,33 @@ const router = createRouter({
     }
 });
 
-router.beforeEach(async (to) => {
+function waitForClerkLoaded(isLoaded) {
+    if (isLoaded.value) {
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        const stop = watch(isLoaded, (loaded) => {
+            if (loaded) {
+                stop();
+                resolve();
+            }
+        });
+    });
+}
+
+router.beforeEach(async (to, from) => {
+    const isGalleryOverlayToggle = to.name === 'gallery' && from.name === 'gallery';
+    const isSamePlace = to.fullPath === from.fullPath;
+    if (!isSamePlace && !isGalleryOverlayToggle) {
+        startNavProgress();
+    }
+
     if (!to.path.startsWith('/admin')) {
-        await ensureStorefrontNavLoaded();
+        if (hasStorefrontNavCache()) {
+            ensureStorefrontNavLoaded();
+        } else {
+            await ensureStorefrontNavLoaded();
+        }
         if (to.name === 'contact' && !showContactNav.value) {
             return { name: 'home' };
         }
@@ -87,9 +126,17 @@ router.beforeEach(async (to) => {
         return true;
     }
 
-    if (to.name === 'admin-login') {
+    if (to.name === 'admin-login' || to.name === 'admin-sign-up' || to.name === 'admin-sso-callback') {
         return true;
     }
+
+    const { isLoaded, isSignedIn } = useAuth();
+    await waitForClerkLoaded(isLoaded);
+
+    if (!isSignedIn.value) {
+        return { name: 'admin-login', query: { redirect: to.fullPath } };
+    }
+
     try {
         await getAdminSession();
         return true;
@@ -108,9 +155,8 @@ router.beforeEach(async (to) => {
     }
 });
 
-// GA4 SPA tracking: gtag.js is loaded in index.html with send_page_view: false,
-// so we push page_view events manually on every non-admin route change.
 router.afterEach((to, from) => {
+    finishNavProgress();
     if (from.path.startsWith('/admin') && !to.path.startsWith('/admin')) {
         invalidateStorefrontNav();
         ensureStorefrontNavLoaded();
@@ -126,6 +172,10 @@ router.afterEach((to, from) => {
         page_location: window.location.origin + to.fullPath,
         page_title: document.title
     });
+});
+
+router.onError(() => {
+    finishNavProgress();
 });
 
 export default router;

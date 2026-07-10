@@ -6,9 +6,18 @@
     </header>
 
     <p v-if="loadError" class="error admin-page-header__status">{{ loadError }}</p>
-    <p v-else-if="loadingProduct" class="admin-page-header__status">Loading…</p>
+    <PageReveal v-else :ready="!loadingProduct">
+      <template #skeleton>
+        <div class="skeleton-stack admin-float admin-float--padded" aria-hidden="true">
+          <Skeleton variant="title" />
+          <Skeleton variant="line" />
+          <Skeleton variant="line" />
+          <Skeleton variant="card" height="10rem" />
+          <Skeleton variant="button" width="8rem" />
+        </div>
+      </template>
 
-    <div v-else class="admin-float admin-float--padded">
+      <div class="admin-float admin-float--padded">
       <form @submit.prevent="onSubmit">
         <div class="field">
           <label for="title">Title *</label>
@@ -66,11 +75,14 @@
         </div>
       </form>
     </div>
+    </PageReveal>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, computed, watch } from 'vue';
+import Skeleton from '../components/loading/Skeleton.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getAdminProductById, updateAdminProduct } from '../services/api.js';
 import AdminProductImages, { buildProductImagesPayload } from '../components/admin/AdminProductImages.vue';

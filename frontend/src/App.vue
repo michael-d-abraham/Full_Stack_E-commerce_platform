@@ -49,6 +49,7 @@
       <MobileMenuDrawer class="app-header__mobile-nav" />
     </header>
     <CartDrawer v-if="!isAdminRoute" />
+    <NavProgress />
     <main
       class="app-main"
       :class="{
@@ -58,7 +59,7 @@
       }"
     >
       <div class="app-main__inner">
-        <router-view />
+        <RouteTransition />
       </div>
     </main>
     <SiteFooter v-if="showSocialFooter" />
@@ -73,6 +74,8 @@ import CartDrawer from './components/cart/CartDrawer.vue';
 import MobileMenuDrawer from './components/mobile/MobileMenuDrawer.vue';
 import SiteFooter from './components/layout/SiteFooter.vue';
 import SiteBrandMark from './components/brand/SiteBrandMark.vue';
+import NavProgress from './components/loading/NavProgress.vue';
+import RouteTransition from './components/loading/RouteTransition.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
 import { useMediaQuery } from './composables/useMediaQuery.js';
@@ -197,11 +200,27 @@ body.gallery-product-open .site-header {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 1.25rem var(--header-padding-x) 1rem;
+  padding: 1.65rem var(--header-padding-x) 1.4rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
+}
+
+@media (min-width: 641px) {
+  .app-header__bar {
+    --header-bar-height: 5.5rem;
+    min-height: var(--header-bar-height);
+    height: var(--header-bar-height);
+    padding-top: 0;
+    padding-bottom: 0;
+    box-sizing: border-box;
+  }
+
+  .app-brand.site-brand-mark--header {
+    height: calc(var(--header-bar-height) * 0.72);
+    max-height: calc(var(--header-bar-height) * 0.72);
+  }
 }
 
 .app-brand {
@@ -382,8 +401,23 @@ body.gallery-product-open .site-header {
   .mobile-menu-toggle {
     grid-column: 1;
     grid-row: 1;
-    justify-self: start;
+    justify-self: stretch;
     z-index: 2;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    cursor: pointer;
   }
 
   .app-brand {
@@ -398,10 +432,29 @@ body.gallery-product-open .site-header {
   .app-header__end {
     grid-column: 3;
     grid-row: 1;
-    justify-self: end;
-    justify-content: flex-end;
+    justify-self: stretch;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
     gap: 0;
     z-index: 2;
+  }
+
+  .app-header__end :deep(.cart-icon-btn) {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .app-header__end :deep(.bag-icon) {
+    width: 26px !important;
+    height: 26px !important;
   }
 
   .app-nav--desktop {
@@ -411,20 +464,6 @@ body.gallery-product-open .site-header {
   .app-main--product-mobile {
     padding: 0;
     overflow-x: hidden;
-  }
-
-  .mobile-menu-toggle {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    background: transparent;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
   }
 
   .mobile-menu-toggle span {

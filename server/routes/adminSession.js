@@ -70,8 +70,10 @@ router.get('/', attachAdminUser, function (req, res) {
     res.json({
         _id: req.user._id,
         username: req.user.username,
+        email: req.user.email || null,
         isAdmin: req.user.isAdmin,
-        enabled: req.user.enabled
+        enabled: req.user.enabled,
+        authSource: req.user.authSource || 'session'
     });
 });
 

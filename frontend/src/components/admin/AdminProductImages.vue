@@ -30,7 +30,7 @@
       >
         Add photo
       </button>
-      <span v-if="uploading" class="upload-status">Uploading…</span>
+      <UploadProgress v-if="uploading" />
     </div>
 
     <AdminPhotoUploadFlow
@@ -77,6 +77,7 @@ export function buildProductImagesPayload(rows, primaryIndex) {
 import { ref, computed, watch } from 'vue';
 import { uploadAdminImage } from '../../services/api.js';
 import AdminPhotoUploadFlow from './AdminPhotoUploadFlow.vue';
+import UploadProgress from '../loading/UploadProgress.vue';
 
 const props = defineProps({
   modelValue: {

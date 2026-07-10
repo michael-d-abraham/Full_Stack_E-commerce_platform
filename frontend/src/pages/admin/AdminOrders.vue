@@ -4,11 +4,17 @@
       <h1 class="admin-page-header__title">Orders</h1>
     </header>
 
-    <p v-if="loading" class="admin-page-header__status">Loading…</p>
-    <p v-else-if="error" class="error admin-page-header__status">{{ error }}</p>
-    <p v-else-if="!orders.length" class="admin-float admin-float--padded admin-page-empty">No orders yet.</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton v-for="n in 5" :key="n" variant="table-row" />
+        </div>
+      </template>
 
-    <template v-else>
+      <p v-if="error" class="error admin-page-header__status">{{ error }}</p>
+      <p v-else-if="!orders.length" class="admin-float admin-float--padded admin-page-empty">No orders yet.</p>
+
+      <template v-else>
       <AdminListSortBar
         v-model="sortBy"
         select-id="orders-sort"
@@ -113,6 +119,7 @@
       </div>
       </div>
     </template>
+    </PageReveal>
   </div>
 </template>
 
@@ -127,6 +134,8 @@ import {
 } from '../../utils/orderFulfillmentStatus.js';
 import { ORDER_SORT_OPTIONS, sortOrders } from '../../utils/adminListSort.js';
 import AdminListSortBar from '../../components/admin/AdminListSortBar.vue';
+import PageReveal from '../../components/loading/PageReveal.vue';
+import Skeleton from '../../components/loading/Skeleton.vue';
 
 const statusOptions = FULFILLMENT_STATUS_OPTIONS;
 const orders = ref([]);

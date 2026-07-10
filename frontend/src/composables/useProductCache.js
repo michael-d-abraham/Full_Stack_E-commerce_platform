@@ -1,8 +1,14 @@
-import { getProductBySlug } from '../services/api.js';
+import { getProductBySlug, getProducts } from '../services/api.js';
 
 const productCache = new Map();
 const inflightRequests = new Map();
 const prefetchedImageUrls = new Set();
+/** Slugs whose cache entry came from GET /api/product/:slug (full detail, all images). */
+const completeDetailSlugs = new Set();
+
+/** In-memory products list for cart/home/checkout (compat with ensureProductsList callers). */
+let productsListCache = null;
+let productsListInflight = null;
 
 function productImageIds(product) {
   const imgs = product?.product_images;
@@ -19,15 +25,32 @@ export function hasProductChanged(current, fresh) {
   if (!current) {
     return true;
   }
-  if (current.updated_at && fresh.updated_at) {
-    return current.updated_at !== fresh.updated_at;
+
+  // Image set can change independently of updated_at when a slim list stub
+  // (primary-only) is replaced by full detail — that must count as a change
+  // or product view never enables multi-image swipe.
+  if (productImageIds(current) !== productImageIds(fresh)) {
+    return true;
   }
+
+  if (current.updated_at && fresh.updated_at) {
+    if (current.updated_at !== fresh.updated_at) {
+      return true;
+    }
+  }
+
   return (
     current.price_cents !== fresh.price_cents
     || current.quantity_available !== fresh.quantity_available
     || (current.description || '') !== (fresh.description || '')
-    || productImageIds(current) !== productImageIds(fresh)
   );
+}
+
+export function isProductDetailComplete(slug) {
+  if (!slug) {
+    return false;
+  }
+  return completeDetailSlugs.has(slug);
 }
 
 export function getCachedProduct(slug) {
@@ -37,21 +60,113 @@ export function getCachedProduct(slug) {
   return productCache.get(slug) ?? null;
 }
 
-export function setCachedProduct(slug, product) {
+/**
+ * @param {string} slug
+ * @param {object} product
+ * @param {{ complete?: boolean, prefetchImages?: boolean }} [options]
+ *        complete defaults to true (detail writes). Pass false for list stubs.
+ */
+export function setCachedProduct(slug, product, options = {}) {
   if (!slug || !product) {
     return;
   }
   productCache.set(slug, product);
-  prefetchProductImages(product);
+  if (options.complete === false) {
+    completeDetailSlugs.delete(slug);
+  } else {
+    completeDetailSlugs.add(slug);
+  }
+  if (options.prefetchImages !== false) {
+    prefetchProductImages(product);
+  }
 }
 
-export function seedProductCache(products = []) {
+function storeCompleteProduct(slug, product) {
+  setCachedProduct(slug, product, { complete: true });
+  return product;
+}
+
+/**
+ * Seed per-slug cache from lightweight list rows (partial — detail fetch still required).
+ * @param {object[]} products
+ * @param {{ prefetchImages?: boolean, updateListCache?: boolean }} [options]
+ */
+export function seedProductCache(products = [], options = {}) {
+  const prefetchImages = options.prefetchImages !== false;
+  const updateListCache = options.updateListCache !== false;
+
   for (const product of products) {
-    if (product?.slug) {
-      productCache.set(product.slug, product);
+    if (!product?.slug) {
+      continue;
+    }
+    // Never overwrite a complete detail entry with a slim list stub.
+    if (completeDetailSlugs.has(product.slug)) {
+      if (prefetchImages) {
+        prefetchProductImages(product);
+      }
+      continue;
+    }
+    productCache.set(product.slug, product);
+    completeDetailSlugs.delete(product.slug);
+    if (prefetchImages) {
       prefetchProductImages(product);
     }
   }
+
+  if (updateListCache && Array.isArray(products) && products.length) {
+    productsListCache = products;
+  }
+}
+
+export function getCachedProductsList() {
+  return Array.isArray(productsListCache) ? productsListCache : null;
+}
+
+/**
+ * Stale-while-revalidate products list used by cart, home, and checkout.
+ * @param {{ onUpdate?: (list: object[]) => void, force?: boolean }} [options]
+ */
+export function ensureProductsList(options = {}) {
+  const { onUpdate, force = false } = options;
+
+  if (!force && Array.isArray(productsListCache) && productsListCache.length) {
+    if (productsListInflight == null) {
+      productsListInflight = getProducts()
+        .then((list) => {
+          const next = Array.isArray(list) ? list : [];
+          productsListCache = next;
+          seedProductCache(next, { prefetchImages: false, updateListCache: false });
+          if (typeof onUpdate === 'function') {
+            onUpdate(next);
+          }
+          return next;
+        })
+        .finally(() => {
+          productsListInflight = null;
+        });
+    }
+    return Promise.resolve(productsListCache);
+  }
+
+  if (productsListInflight) {
+    return productsListInflight;
+  }
+
+  productsListInflight = getProducts()
+    .then((list) => {
+      const next = Array.isArray(list) ? list : [];
+      productsListCache = next;
+      seedProductCache(next, { prefetchImages: false, updateListCache: false });
+      if (typeof onUpdate === 'function') {
+        onUpdate(next);
+      }
+      return next;
+    })
+    .finally(() => {
+      productsListInflight = null;
+    });
+
+  return productsListInflight;
 }
 
 export function prefetchProductImages(product) {
@@ -78,7 +193,7 @@ export function prefetchProduct(slug) {
   }
 
   const cached = productCache.get(slug);
-  if (cached) {
+  if (cached && completeDetailSlugs.has(slug)) {
     prefetchProductImages(cached);
     return Promise.resolve(cached);
   }
@@ -88,11 +203,7 @@ export function prefetchProduct(slug) {
   }
 
   const request = getProductBySlug(slug)
-    .then((product) => {
-      productCache.set(slug, product);
-      prefetchProductImages(product);
-      return product;
-    })
+    .then((product) => storeCompleteProduct(slug, product))
     .finally(() => {
       inflightRequests.delete(slug);
     });
@@ -111,10 +222,14 @@ export async function refreshProductInBackground(slug, onUpdate) {
   }
 
   try {
-    const fresh = await getProductBySlug(slug);
+    // Prefer any in-flight prefetch so Gallery → overlay does not double-fetch.
+    const fresh = inflightRequests.has(slug)
+      ? await inflightRequests.get(slug)
+      : await getProductBySlug(slug);
     const cached = productCache.get(slug);
-    productCache.set(slug, fresh);
-    prefetchProductImages(fresh);
+    if (fresh) {
+      storeCompleteProduct(slug, fresh);
+    }
     if (typeof onUpdate === 'function' && hasProductChanged(cached, fresh)) {
       onUpdate(fresh);
     }
@@ -132,4 +247,7 @@ export function __resetProductCacheForTests() {
   productCache.clear();
   inflightRequests.clear();
   prefetchedImageUrls.clear();
+  completeDetailSlugs.clear();
+  productsListCache = null;
+  productsListInflight = null;
 }

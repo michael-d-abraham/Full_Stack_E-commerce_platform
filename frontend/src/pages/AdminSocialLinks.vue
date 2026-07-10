@@ -1,9 +1,14 @@
 <template>
   <div class="admin-social admin-social--embedded">
-    <p v-if="loading" class="admin-social__status">Loading…</p>
-    <p v-else-if="loadError" class="error admin-social__status">{{ loadError }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton v-for="n in 4" :key="n" variant="table-row" />
+        </div>
+      </template>
+      <p v-if="loadError" class="error admin-social__status">{{ loadError }}</p>
 
-    <form v-else class="admin-social__form" @submit.prevent="onSubmit">
+      <form v-else class="admin-social__form" @submit.prevent="onSubmit">
       <section class="admin-social__section" aria-labelledby="contact-section-heading">
         <h2 id="contact-section-heading" class="admin-social__section-title">Contact</h2>
         <p class="admin-social__section-hint">Form submissions from the Contact page are emailed to this address.</p>
@@ -78,11 +83,14 @@
         </button>
       </footer>
     </form>
-  </div>
+      </PageReveal>
+</div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
+import Skeleton from '../components/loading/Skeleton.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
 
 import { getAdminSocialLinks, updateAdminSocialLinks } from '../services/api.js';
 import {

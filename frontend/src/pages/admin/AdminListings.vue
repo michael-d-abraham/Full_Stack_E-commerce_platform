@@ -7,14 +7,20 @@
       </router-link>
     </header>
 
-    <p v-if="loading" class="admin-page-header__status">Loading…</p>
-    <p v-else-if="error" class="error admin-page-header__status">{{ error }}</p>
-    <p v-else-if="!items.length" class="admin-float admin-float--padded admin-page-empty">
-      No products yet.
-      <router-link to="/admin/new">Create your first listing</router-link>
-    </p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton v-for="n in 6" :key="n" variant="table-row" height="4.5rem" />
+        </div>
+      </template>
 
-    <template v-else>
+      <p v-if="error" class="error admin-page-header__status">{{ error }}</p>
+      <p v-else-if="!items.length" class="admin-float admin-float--padded admin-page-empty">
+        No products yet.
+        <router-link to="/admin/new">Create your first listing</router-link>
+      </p>
+
+      <template v-else>
       <AdminListSortBar
         v-model="sortBy"
         select-id="listings-sort"
@@ -127,6 +133,7 @@
       </div>
       </div>
     </template>
+    </PageReveal>
   </div>
 </template>
 
@@ -145,6 +152,8 @@ import {
 import { LISTING_SORT_OPTIONS, sortProducts } from '../../utils/adminListSort.js';
 import AdminListingActionsMenu from '../../components/admin/AdminListingActionsMenu.vue';
 import AdminListSortBar from '../../components/admin/AdminListSortBar.vue';
+import PageReveal from '../../components/loading/PageReveal.vue';
+import Skeleton from '../../components/loading/Skeleton.vue';
 
 const items = ref([]);
 const sortBy = ref('newest');

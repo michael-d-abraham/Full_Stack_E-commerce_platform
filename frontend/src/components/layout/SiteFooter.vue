@@ -11,7 +11,7 @@
           class="site-footer__brand"
           :aria-label="brandHomeAriaLabel"
         />
-        <p class="site-footer__copyright site-footer__copyright--desktop">©{{ copyrightYear }}&nbsp;{{ siteName }}</p>
+          <p class="site-footer__copyright site-footer__copyright--desktop">©{{ copyrightYear }}&nbsp;{{ siteName }}</p>
       </div>
 
       <nav class="site-footer__column site-footer__column--navigate" aria-label="Site navigation">

@@ -6,6 +6,12 @@
  * Admin Instagram AI: generateIgContent, savePreferredExample
  */
 
+import { getClerkSessionToken } from './clerkToken.js';
+
+function isAdminApiUrl(url) {
+    return typeof url === 'string' && url.startsWith('/api/admin');
+}
+
 async function fetchJson(url, options = {}) {
     const headers = {
         ...options.headers
@@ -14,6 +20,13 @@ async function fetchJson(url, options = {}) {
     if (body !== undefined && body !== null && typeof body === 'object' && !(body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
         body = JSON.stringify(body);
+    }
+
+    if (isAdminApiUrl(url) && !headers.Authorization) {
+        const token = await getClerkSessionToken();
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
     }
 
     const res = await fetch(url, {
@@ -206,6 +219,27 @@ export function getAdminSession() {
 
 export function logoutAdmin() {
     return fetchJson('/api/admin/session/logout', {
+        method: 'POST'
+    });
+}
+
+export function listAdminUsers() {
+    return fetchJson('/api/admin/users');
+}
+
+export function listAdminInvitations() {
+    return fetchJson('/api/admin/users/invitations');
+}
+
+export function inviteAdminUser(body) {
+    return fetchJson('/api/admin/users/invitations', {
+        method: 'POST',
+        body
+    });
+}
+
+export function revokeAdminInvitation(id) {
+    return fetchJson(`/api/admin/users/invitations/${encodeURIComponent(id)}/revoke`, {
         method: 'POST'
     });
 }

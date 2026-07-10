@@ -2,6 +2,11 @@
  * @jest-environment jsdom
  */
 
+jest.mock('../frontend/src/services/api.js', () => ({
+    getCartSession: jest.fn(() => Promise.resolve({ items: [] })),
+    putCartSession: jest.fn(() => Promise.resolve({}))
+}));
+
 const {
     addToCart,
     getCart,
@@ -73,11 +78,36 @@ describe('cart localStorage', () => {
         );
 
         expect(getCart()).toEqual([
-            {
+            expect.objectContaining({
                 productId: '507f1f77bcf86cd799439014',
                 slug: 'buy-now',
                 quantity: 99
-            }
+            })
         ]);
+    });
+
+    it('persists a display snapshot so cart lines stay visible without catalog hydration', () => {
+        addToCart({
+            _id: '507f1f77bcf86cd799439015',
+            slug: 'snapshot-print',
+            title: 'Snapshot Print',
+            price_cents: 4500,
+            size_label: '11x14',
+            quantity_available: 3,
+            product_images: [{ image_url: 'https://ik.imagekit.io/demo/a.jpg', is_primary: true }]
+        });
+
+        const line = getCart()[0];
+        expect(line).toEqual(
+            expect.objectContaining({
+                productId: '507f1f77bcf86cd799439015',
+                slug: 'snapshot-print',
+                quantity: 1,
+                title: 'Snapshot Print',
+                priceCents: 4500,
+                sizeLabel: '11x14',
+                imageUrl: 'https://ik.imagekit.io/demo/a.jpg'
+            })
+        );
     });
 });

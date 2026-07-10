@@ -1,16 +1,25 @@
 <template>
   <div class="order-success">
-    <p v-if="loading" class="status">Loading your order…</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="order-success__skeleton skeleton-stack" aria-hidden="true">
+          <Skeleton variant="title" width="60%" />
+          <Skeleton variant="line" />
+          <Skeleton variant="table-row" height="4rem" />
+          <Skeleton variant="table-row" height="4rem" />
+          <Skeleton variant="button" width="12rem" />
+        </div>
+      </template>
 
-    <template v-else-if="error">
-      <h1 class="page-title">Unable to load order</h1>
-      <p class="error">{{ error }}</p>
-      <button type="button" class="btn-primary continue-btn" @click="goShopping">
-        Continue shopping
-      </button>
-    </template>
+      <template v-if="error">
+        <h1 class="page-title">Unable to load order</h1>
+        <p class="error">{{ error }}</p>
+        <button type="button" class="btn-primary continue-btn" @click="goShopping">
+          Continue shopping
+        </button>
+      </template>
 
-    <template v-else-if="order">
+      <template v-else-if="order">
       <h1 class="page-title">Thank you for your order</h1>
       <p class="lead">
         Your payment was successful. We’re preparing your order.
@@ -111,6 +120,7 @@
         Continue shopping
       </button>
     </template>
+    </PageReveal>
   </div>
 </template>
 
@@ -120,6 +130,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { getCheckoutSessionOrder } from '../services/api.js';
 import { clearCart } from '../utils/cart.js';
 import { formatMoneyFromCents } from '../utils/money.js';
+import PageReveal from '../components/loading/PageReveal.vue';
+import Skeleton from '../components/loading/Skeleton.vue';
 
 const route = useRoute();
 const router = useRouter();

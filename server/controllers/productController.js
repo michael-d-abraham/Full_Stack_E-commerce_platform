@@ -1,5 +1,9 @@
 const { Product } = require('../db');
 const { applyProductRelations } = require('../utils/productPopulate');
+const {
+    toPublicProductListItem,
+    toPublicProductDetail
+} = require('../utils/publicProductDto');
 
 const listPublicProducts = async (req, res) => {
     try {
@@ -7,12 +11,12 @@ const listPublicProducts = async (req, res) => {
             Product.find({
                 is_active: true,
                 deleted_at: null
-            })
+            }).lean()
         )
             .sort({ created_at: -1 })
             .exec();
 
-        res.json(products);
+        res.json(products.map(toPublicProductListItem).filter(Boolean));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -32,14 +36,14 @@ const getPublicProductBySlug = async (req, res) => {
                 slug: String(productSlug).trim(),
                 is_active: true,
                 deleted_at: null
-            })
+            }).lean()
         ).exec();
 
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        res.json(product);
+        res.json(toPublicProductDetail(product));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

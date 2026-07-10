@@ -1,9 +1,16 @@
 <template>
   <div class="admin-book admin-book--embedded">
-    <p v-if="loading" class="admin-book__status">Loading…</p>
-    <p v-else-if="loadError" class="error admin-book__status">{{ loadError }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton variant="line" />
+          <Skeleton variant="line" width="70%" />
+          <Skeleton variant="button" width="8rem" />
+        </div>
+      </template>
+      <p v-if="loadError" class="error admin-book__status">{{ loadError }}</p>
 
-    <form v-else class="admin-book__form" @submit.prevent="onSave">
+      <form v-else class="admin-book__form" @submit.prevent="onSave">
       <label class="admin-book__nav-toggle">
         <input v-model="form.show_in_nav" type="checkbox" :disabled="saving" />
         <span>Show Book tab in navigation</span>
@@ -68,11 +75,14 @@
         </button>
       </footer>
     </form>
-  </div>
+      </PageReveal>
+</div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
+import Skeleton from '../components/loading/Skeleton.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
 import {
   getAdminBookPage,
   updateAdminBookPage

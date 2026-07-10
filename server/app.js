@@ -16,11 +16,22 @@ const adminSiteSettingsRoutes = require('./routes/adminSiteSettings');
 const adminUploadRoutes = require('./routes/adminUpload');
 const adminOrderRoutes = require('./routes/adminOrders');
 const adminDashboardRoutes = require('./routes/adminDashboard');
+const adminUsersRoutes = require('./routes/adminUsers');
 const { attachAdminUser, requireAdminRole } = require('./middleware/adminAuth');
 const { isProduction } = require('./sessionConfig');
 const { sessionMiddlewareOptions } = require('./sessionStore');
 const { contactRateLimiter, checkoutRateLimiter } = require('./middleware/rateLimiters');
 const cartSessionRoutes = require('./routes/cartSession');
+
+function clerkConfigured() {
+    if (process.env.NODE_ENV === 'test') {
+        return false;
+    }
+    return Boolean(
+        process.env.CLERK_SECRET_KEY &&
+            (process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY)
+    );
+}
 
 function parseOrigin(value) {
     if (!value || typeof value !== 'string') {
@@ -64,7 +75,36 @@ function buildContentSecurityPolicyDirectives() {
 
     return {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        'img-src': imgSrc
+        'img-src': imgSrc,
+        // Clerk hosted UI + API (admin auth)
+        'script-src': [
+            "'self'",
+            'https://*.clerk.accounts.dev',
+            'https://*.clerk.com',
+            'https://clerk.com',
+            'https://js.clerk.dev',
+            'https://www.googletagmanager.com'
+        ],
+        'connect-src': [
+            "'self'",
+            'https://*.clerk.accounts.dev',
+            'https://*.clerk.com',
+            'https://clerk.com',
+            'https://api.clerk.com',
+            'https://www.google-analytics.com',
+            'https://analytics.google.com'
+        ],
+        'frame-src': [
+            "'self'",
+            'https://*.clerk.accounts.dev',
+            'https://*.clerk.com',
+            'https://clerk.com',
+            'https://js.clerk.dev',
+            'https://challenges.cloudflare.com'
+        ],
+        'worker-src': ["'self'", 'blob:'],
+        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:']
     };
 }
 
@@ -95,12 +135,25 @@ function createApp() {
 
     app.use(express.json({ limit: '100kb' }));
 
+    if (clerkConfigured()) {
+        const { clerkMiddleware } = require('@clerk/express');
+        const publishableKey =
+            process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY;
+        app.use(
+            clerkMiddleware({
+                publishableKey,
+                secretKey: process.env.CLERK_SECRET_KEY
+            })
+        );
+    }
+
     app.use(session(sessionMiddlewareOptions()));
 
     const requireAdmin = [attachAdminUser, requireAdminRole];
 
     app.use('/api/cart', cartSessionRoutes);
     app.use('/api/admin/session', adminSessionRoutes);
+    app.use('/api/admin/users', ...requireAdmin, adminUsersRoutes);
     app.use('/api/admin', ...requireAdmin, adminUploadRoutes);
     app.use('/api/admin/products', ...requireAdmin, adminProductRoutes);
     app.use('/api/admin/orders', ...requireAdmin, adminOrderRoutes);

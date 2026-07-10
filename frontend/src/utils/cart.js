@@ -1,5 +1,9 @@
 import { getCartSession, putCartSession } from '../services/api.js';
 import { clampCartQuantity } from '@shared/cartQuantity.js';
+import {
+    displayProductName,
+    primaryProductImageUrl
+} from './storefrontProduct.js';
 
 const CART_KEY = 'artist-portfolio-cart';
 
@@ -19,8 +23,17 @@ function notifyCartUpdated() {
     }
 }
 
+/** Server session only needs ids + quantities (+ slug). */
+function toServerCartLines(items) {
+    return items.map((line) => ({
+        productId: line.productId,
+        slug: line.slug || '',
+        quantity: line.quantity
+    }));
+}
+
 function syncCartToServer(items) {
-    putCartSession(items).catch(() => {
+    putCartSession(toServerCartLines(items)).catch(() => {
         /* offline or session unavailable — local cart still works */
     });
 }
@@ -29,6 +42,27 @@ function writeCart(items) {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
     syncCartToServer(items);
     notifyCartUpdated();
+}
+
+function displaySnapshotFromProduct(product) {
+    return {
+        title: displayProductName(product) || product?.title || product?.slug || 'Product',
+        priceCents: typeof product?.price_cents === 'number' ? product.price_cents : 0,
+        imageUrl: primaryProductImageUrl(product) || '',
+        sizeLabel: product?.size_label || ''
+    };
+}
+
+function mergeSnapshot(line, product) {
+    const snap = displaySnapshotFromProduct(product);
+    return {
+        ...line,
+        slug: product.slug || line.slug || '',
+        title: snap.title,
+        priceCents: snap.priceCents,
+        imageUrl: snap.imageUrl,
+        sizeLabel: snap.sizeLabel
+    };
 }
 
 /**
@@ -53,8 +87,8 @@ export async function hydrateCartFromServer() {
 }
 
 /**
- * Cart lines store only productId + quantity (+ slug for display).
- * Prices are never trusted from the client — server loads them at checkout.
+ * Cart lines store productId + quantity + display snapshot for instant drawer UI.
+ * Prices at Stripe checkout are still loaded server-side.
  */
 export function addToCart(product) {
     if (!product || !product._id) {
@@ -70,11 +104,13 @@ export function addToCart(product) {
     const existing = cart.find((line) => line.productId === id);
     if (existing) {
         existing.quantity += 1;
+        Object.assign(existing, mergeSnapshot(existing, product));
     } else {
         cart.push({
             productId: id,
             slug: product.slug || '',
-            quantity: 1
+            quantity: 1,
+            ...displaySnapshotFromProduct(product)
         });
     }
     writeCart(cart);
@@ -91,7 +127,8 @@ export function setBuyNowCart(product, quantity = 1) {
         {
             productId: String(product._id),
             slug: product.slug || '',
-            quantity: qty
+            quantity: qty,
+            ...displaySnapshotFromProduct(product)
         }
     ]);
     return { ok: true };

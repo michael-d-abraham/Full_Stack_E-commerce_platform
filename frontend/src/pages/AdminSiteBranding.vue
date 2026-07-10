@@ -1,9 +1,16 @@
 <template>
   <div class="admin-site-branding admin-site-branding--embedded">
-    <p v-if="loading" class="admin-site-branding__status">Loading…</p>
-    <p v-else-if="loadError" class="error admin-site-branding__status">{{ loadError }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="skeleton-stack" aria-hidden="true">
+          <Skeleton variant="line" width="80%" />
+          <Skeleton variant="button" width="8rem" />
+          <Skeleton variant="card" height="6rem" />
+        </div>
+      </template>
+      <p v-if="loadError" class="error admin-site-branding__status">{{ loadError }}</p>
 
-    <form v-else class="admin-site-branding__form" @submit.prevent="onSubmit">
+      <form v-else class="admin-site-branding__form" @submit.prevent="onSubmit">
       <p class="admin-site-branding__hint">
         Shown in the site header, footer, and admin navigation. Choose text or upload a logo image.
         Leave the name blank to use {{ defaultSiteName }}.
@@ -88,7 +95,7 @@
       <p v-if="fieldError" class="field-error">{{ fieldError }}</p>
 
       <footer class="admin-site-branding__footer">
-        <p v-if="uploading" class="admin-site-branding__uploading">Uploading…</p>
+        <UploadProgress v-if="uploading" />
         <p v-if="submitError" class="error">{{ submitError }}</p>
         <p v-if="saved" class="admin-site-branding__success" role="status">Saved.</p>
         <button type="submit" class="btn-primary" :disabled="uploading || submitting">
@@ -108,6 +115,7 @@
       @file="onLogoFile"
       @cancel="onPhotoCancel"
     />
+    </PageReveal>
   </div>
 </template>
 
@@ -117,6 +125,9 @@ import { getAdminSiteBranding, updateAdminSiteBranding, uploadAdminImage } from 
 import { DEFAULT_SITE_NAME, resolveSiteName } from '@shared/siteBrandDefaults.js';
 import { invalidateSiteBrand, setBrandingFromStored } from '../composables/useSiteBrand.js';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
+import PageReveal from '../components/loading/PageReveal.vue';
+import Skeleton from '../components/loading/Skeleton.vue';
+import UploadProgress from '../components/loading/UploadProgress.vue';
 
 const defaultSiteName = DEFAULT_SITE_NAME;
 const siteNameInput = ref('');

@@ -4,10 +4,20 @@
       <h1 class="admin-page-header__title">Dashboard</h1>
     </header>
 
-    <p v-if="loading" class="admin-page-header__status">Loading…</p>
-    <p v-else-if="error" class="error admin-page-header__status">{{ error }}</p>
+    <PageReveal :ready="!loading">
+      <template #skeleton>
+        <div class="admin-dash__skeleton skeleton-stack" aria-hidden="true">
+          <Skeleton variant="card" height="8rem" />
+          <div class="admin-dash__skeleton-cols">
+            <Skeleton variant="card" height="6rem" />
+            <Skeleton variant="card" height="12rem" />
+          </div>
+        </div>
+      </template>
 
-    <div v-else class="admin-dash">
+      <p v-if="error" class="error admin-page-header__status">{{ error }}</p>
+
+      <div v-else class="admin-dash">
       <section class="admin-float admin-dash-hero" aria-labelledby="dash-earned-heading">
         <p id="dash-earned-heading" class="admin-dash-hero__label">Total earned</p>
         <p class="admin-dash-hero__value">{{ formatAmount(stats.total_earned_cents, stats.currency) }}</p>
@@ -70,6 +80,7 @@
         </section>
       </div>
     </div>
+    </PageReveal>
   </div>
 </template>
 
@@ -77,6 +88,9 @@
 import { ref, onMounted } from 'vue';
 import { getAdminDashboard } from '../../services/api.js';
 import { formatMoneyFromCents } from '../../utils/money.js';
+import PageReveal from '../../components/loading/PageReveal.vue';
+import Skeleton from '../../components/loading/Skeleton.vue';
+import { prefetchRouteChunks } from '../../utils/routePrefetch.js';
 
 const loading = ref(true);
 const error = ref('');
@@ -126,7 +140,10 @@ async function load() {
     }
 }
 
-onMounted(load);
+onMounted(() => {
+  prefetchRouteChunks(['adminDashboard']);
+  load();
+});
 </script>
 
 <style scoped>
@@ -139,5 +156,17 @@ onMounted(load);
 .admin-dash-stat-card {
   min-height: 0;
   padding: 0.875rem 1.25rem;
+}
+
+.admin-dash__skeleton-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .admin-dash__skeleton-cols {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

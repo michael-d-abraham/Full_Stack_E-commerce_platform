@@ -53,6 +53,15 @@ import { ref, onMounted } from 'vue';
 import { getPublicContactHero, submitContactForm } from '../services/api.js';
 import { applyContactPageDefaults } from '../constants/contactPageDefaults.js';
 import { isValidEmail } from '@shared/email.js';
+import { createSwrCache } from '../composables/createSwrCache.js';
+import { buildImageKitSrc } from '../utils/imageKitUrl.js';
+
+const CONTACT_KEY = 'artist-portfolio-contact-page';
+const contactCache = createSwrCache({
+  storageKey: CONTACT_KEY,
+  storage: typeof sessionStorage !== 'undefined' ? sessionStorage : null,
+  ttlMs: 1000 * 60 * 60
+});
 
 const heroImageUrl = ref('');
 const showHeroImage = ref(true);
@@ -89,7 +98,8 @@ function applyPageConfig(data) {
     contact_hero_image_url: data?.image_url || ''
   });
   showHeroImage.value = config.show_hero_image;
-  heroImageUrl.value = config.contact_hero_image_url;
+  const rawUrl = config.contact_hero_image_url;
+  heroImageUrl.value = rawUrl ? buildImageKitSrc(rawUrl, { width: 1200, quality: 80 }) : '';
   pageTitle.value = config.page_title;
   formNameLabel.value = config.form_name_label;
   formEmailLabel.value = config.form_email_label;
@@ -97,6 +107,11 @@ function applyPageConfig(data) {
   formMessageLabel.value = config.form_message_label;
   formSubmitLabel.value = config.form_submit_label;
   successMessage.value = config.success_message;
+}
+
+const cachedContact = contactCache.getCached();
+if (cachedContact) {
+  applyPageConfig(cachedContact);
 }
 
 async function onSubmit() {
@@ -131,10 +146,16 @@ async function onSubmit() {
 
 onMounted(async () => {
   try {
-    const data = await getPublicContactHero();
+    const data = await contactCache.ensure(() => getPublicContactHero(), {
+      onUpdate(next) {
+        applyPageConfig(next);
+      }
+    });
     applyPageConfig(data);
   } catch {
-    applyPageConfig({});
+    if (!contactCache.hasCache()) {
+      applyPageConfig({});
+    }
   }
 });
 </script>

@@ -1,13 +1,14 @@
 <template>
   <li class="cart-item">
-    <img
+    <SmartImage
       class="cart-item__thumb"
       :src="item.imageUrl"
       :alt="item.name"
-      width="100"
-      height="100"
-      loading="lazy"
-    >
+      :width="200"
+      :widths="[120, 200]"
+      sizes="88px"
+      object-fit="contain"
+    />
     <div class="cart-item__body">
       <div class="cart-item__top">
         <div class="cart-item__meta">
@@ -50,6 +51,7 @@
 <script setup>
 import { computed } from 'vue';
 import QuantityStepper from './QuantityStepper.vue';
+import SmartImage from '../media/SmartImage.vue';
 import { formatMoneyFromCents } from '../../utils/money.js';
 
 const props = defineProps({
@@ -82,9 +84,7 @@ const lineTotal = computed(() => formatMoneyFromCents(props.lineTotalCents, 'usd
   width: 88px;
   height: 88px;
   flex-shrink: 0;
-  object-fit: contain;
-  object-position: center;
-  background: var(--color-product-image-bg);
+  background: var(--color-surface);
   border: none;
 }
 

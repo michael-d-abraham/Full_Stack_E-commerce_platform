@@ -41,6 +41,7 @@ import AdminNavDrawer from './AdminNavDrawer.vue';
 import SiteBrandMark from '../brand/SiteBrandMark.vue';
 import { useAdminNav } from '../../composables/useAdminNav.js';
 import { useSiteBrand } from '../../composables/useSiteBrand.js';
+import { prefetchRouteChunks } from '../../utils/routePrefetch.js';
 
 const route = useRoute();
 const { brandAdminHomeAriaLabel } = useSiteBrand();
@@ -69,6 +70,7 @@ watch(adminMenuOpen, (open) => {
 
 onMounted(() => {
   window.addEventListener('keydown', onEscape);
+  prefetchRouteChunks(['adminDashboard']);
 });
 
 onUnmounted(() => {

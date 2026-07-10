@@ -235,6 +235,13 @@ const visibleStatement = computed(() => {
   white-space: pre-line;
 }
 
+@media (min-width: 641px) {
+  .home-about__copy {
+    font-size: 1.25rem;
+    line-height: 1.7;
+  }
+}
+
 .home-about__read-more {
   margin-top: var(--space-md);
   padding: 0;

@@ -41,6 +41,8 @@ function sharedCjsToEsmPlugin() {
 
 export default defineConfig({
     root: path.join(__dirname, 'frontend'),
+    // Clerk and other secrets live in the repo-root .env (not frontend/.env).
+    envDir: path.resolve(__dirname),
     plugins: [vue(), sharedCjsToEsmPlugin()],
     resolve: {
         alias: {

@@ -1,5 +1,4 @@
 import { ref, computed } from 'vue';
-import { getProducts } from '../services/api.js';
 import {
     getCart,
     setCartQuantity,
@@ -9,6 +8,12 @@ import {
     displayProductName,
     primaryProductImageUrl
 } from '../utils/storefrontProduct.js';
+import {
+    ensureProductsList,
+    getCachedProductsList
+} from './useProductCache.js';
+
+const ENRICHMENT_KEY = 'artist-portfolio-cart-enrichment';
 
 const drawerOpen = ref(false);
 const promoExpanded = ref(false);
@@ -28,18 +33,63 @@ if (typeof window !== 'undefined') {
     window.addEventListener('cart-updated', onCartUpdated);
 }
 
-async function ensureProducts() {
-    if (productsLoaded) {
+function readEnrichmentMap() {
+    if (typeof sessionStorage === 'undefined') {
+        return new Map();
+    }
+    try {
+        const raw = sessionStorage.getItem(ENRICHMENT_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== 'object') {
+            return new Map();
+        }
+        return new Map(Object.entries(parsed));
+    } catch {
+        return new Map();
+    }
+}
+
+function writeEnrichmentMap(map) {
+    if (typeof sessionStorage === 'undefined') {
         return;
     }
     try {
-        const list = await getProducts();
-        const map = new Map();
-        list.forEach((p) => map.set(String(p._id), p));
-        productsById.value = map;
-        productsLoaded = true;
+        const obj = Object.fromEntries(map.entries());
+        sessionStorage.setItem(ENRICHMENT_KEY, JSON.stringify(obj));
     } catch {
-        productsById.value = new Map();
+        /* ignore */
+    }
+}
+
+function applyProductList(list) {
+    const map = new Map();
+    (Array.isArray(list) ? list : []).forEach((p) => map.set(String(p._id), p));
+    productsById.value = map;
+    writeEnrichmentMap(map);
+    productsLoaded = true;
+}
+
+// Hydrate enrichment from session + product list cache immediately.
+(() => {
+    const cachedList = getCachedProductsList();
+    if (Array.isArray(cachedList) && cachedList.length) {
+        applyProductList(cachedList);
+        return;
+    }
+    const fromSession = readEnrichmentMap();
+    if (fromSession.size) {
+        productsById.value = fromSession;
+    }
+})();
+
+async function ensureProducts() {
+    try {
+        const list = await ensureProductsList();
+        applyProductList(list);
+    } catch {
+        if (!productsLoaded) {
+            productsById.value = productsById.value.size ? productsById.value : new Map();
+        }
     }
 }
 
@@ -50,35 +100,39 @@ export function useCart() {
     });
 
     const items = computed(() => {
-        return rawLines.value
-            .map((line) => {
-                const product = productsById.value.get(line.productId);
-                if (!product) {
-                    return null;
-                }
-                const priceCents = product.price_cents ?? 0;
-                const imageUrl = primaryProductImageUrl(product) || '';
+        return rawLines.value.map((line) => {
+            const product = productsById.value.get(line.productId);
+            if (product) {
                 return {
                     id: line.productId,
                     name: displayProductName(product),
-                    priceCents,
-                    imageUrl,
-                    optionLabel: product.size_label || '',
+                    priceCents: product.price_cents ?? line.priceCents ?? 0,
+                    imageUrl: primaryProductImageUrl(product) || line.imageUrl || '',
+                    optionLabel: product.size_label || line.sizeLabel || '',
                     quantity: line.quantity
                 };
-            })
-            .filter(Boolean);
+            }
+            // Optimistic snapshot — never drop lines while catalog hydrates.
+            return {
+                id: line.productId,
+                name: line.title || line.slug || 'Product',
+                priceCents: line.priceCents ?? 0,
+                imageUrl: line.imageUrl || '',
+                optionLabel: line.sizeLabel || '',
+                quantity: line.quantity
+            };
+        });
     });
 
     const itemCount = computed(() =>
-        items.value.reduce((sum, line) => sum + line.quantity, 0)
+        rawLines.value.reduce((sum, line) => sum + line.quantity, 0)
     );
 
     const estimatedTotalCents = computed(() =>
         items.value.reduce((sum, line) => sum + line.priceCents * line.quantity, 0)
     );
 
-    const isEmpty = computed(() => items.value.length === 0);
+    const isEmpty = computed(() => rawLines.value.length === 0);
 
     function openDrawer() {
         drawerOpen.value = true;
