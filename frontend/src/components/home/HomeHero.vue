@@ -118,7 +118,6 @@ function scrollToNext() {
   justify-content: center;
   width: 100%;
   min-height: 78svh;
-  min-height: 78dvh;
   padding: clamp(2.5rem, 6vh, 4rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vh, 4rem);
   box-sizing: border-box;
   background: #ffffff;
@@ -216,7 +215,6 @@ function scrollToNext() {
 @media (max-width: 640px) {
   .home-hero {
     min-height: calc(100svh - var(--site-header-height, 72px));
-    min-height: calc(100dvh - var(--site-header-height, 72px));
     padding: 1.5rem 1.125rem 5.5rem;
   }
 
