@@ -1,8 +1,7 @@
-/* Minimal artist store — museum-quality B&W editorial */
+/* Minimal artist store — clean B&W editorial (inspired by bycparker.com) */
 :root {
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-serif: 'Cormorant Garamond', 'Times New Roman', Times, serif;
-  --font-script: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
+  --font-serif: var(--font-sans);
 
   --color-bg: #ffffff;
   --color-surface: #ffffff;

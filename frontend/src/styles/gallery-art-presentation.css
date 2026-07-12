@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap');
 
 /*
  * Reusable gallery art presentation — frame, mat, plaque typography.
@@ -69,17 +69,35 @@
   display: block;
 }
 
-.gallery-art-presentation .gallery-art--landscape .gallery-art-image {
+/* SmartImage wraps <img> — constrain the real bitmap, never crop via overflow. */
+.gallery-art-presentation .gallery-art-image.smart-image {
+  overflow: visible;
+  background: transparent;
+}
+
+.gallery-art-presentation .gallery-art-image .smart-image__img,
+.gallery-art-presentation .product-image .smart-image__img {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.gallery-art-presentation .gallery-art--landscape .gallery-art-image,
+.gallery-art-presentation .gallery-art--landscape .gallery-art-image .smart-image__img {
   max-width: var(--gallery-art-landscape-max);
   max-height: var(--gallery-art-landscape-height);
 }
 
-.gallery-art-presentation .gallery-art--portrait .gallery-art-image {
+.gallery-art-presentation .gallery-art--portrait .gallery-art-image,
+.gallery-art-presentation .gallery-art--portrait .gallery-art-image .smart-image__img {
   max-width: var(--gallery-art-portrait-max);
   max-height: var(--gallery-art-portrait-height);
 }
 
-.gallery-art-presentation .gallery-art--square .gallery-art-image {
+.gallery-art-presentation .gallery-art--square .gallery-art-image,
+.gallery-art-presentation .gallery-art--square .gallery-art-image .smart-image__img {
   max-width: var(--gallery-art-square-max);
   max-height: var(--gallery-art-square-height);
 }
