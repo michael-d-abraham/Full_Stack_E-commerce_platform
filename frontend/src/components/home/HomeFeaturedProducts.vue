@@ -1,21 +1,12 @@
 <template>
   <section
-    ref="sectionRef"
     class="home-featured home-section"
     :class="{ 'home-section--has-background': Boolean(backgroundImageUrl) }"
     aria-labelledby="home-featured-heading"
   >
     <div
       v-if="backgroundImageUrl"
-      ref="backgroundRef"
       class="home-featured__background home-section__background"
-      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
-      aria-hidden="true"
-    />
-    <div
-      v-if="backgroundImageUrl"
-      ref="overlayRef"
-      class="home-featured__background-overlay home-section__background-overlay"
       :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
       aria-hidden="true"
     />
@@ -41,9 +32,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useMediaQuery } from '../../composables/useMediaQuery.js';
-import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
 import GalleryProductCard from '../product/GalleryProductCard.vue';
 
 const MOBILE_MQ = '(max-width: 640px)';
@@ -57,13 +47,7 @@ const props = defineProps({
   }
 });
 
-const sectionRef = ref(null);
-const backgroundRef = ref(null);
-const overlayRef = ref(null);
 const isMobile = useMediaQuery(MOBILE_MQ);
-
-const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
-useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
 
 const visibleProducts = computed(() =>
   isMobile.value ? props.products.slice(0, 3) : props.products

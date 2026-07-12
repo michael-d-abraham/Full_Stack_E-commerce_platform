@@ -1,21 +1,12 @@
 <template>
   <section
-    ref="sectionRef"
     class="home-about home-section"
     :class="{ 'home-section--has-background': Boolean(backgroundImageUrl) }"
     aria-labelledby="home-about-heading"
   >
     <div
       v-if="backgroundImageUrl"
-      ref="backgroundRef"
       class="home-about__background home-section__background"
-      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
-      aria-hidden="true"
-    />
-    <div
-      v-if="backgroundImageUrl"
-      ref="overlayRef"
-      class="home-about__background-overlay home-section__background-overlay"
       :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
       aria-hidden="true"
     />
@@ -29,7 +20,7 @@
 
       <div class="home-about__grid">
         <div class="home-about__copy-col">
-          <blockquote v-if="header" ref="quoteRef" class="home-about__quote home-quote">
+          <blockquote v-if="header" class="home-about__quote home-quote">
             {{ formattedQuote }}
           </blockquote>
 
@@ -46,7 +37,7 @@
           </div>
         </div>
 
-        <figure v-if="imageUrl" ref="photoParallaxRef" class="home-about__media">
+        <figure v-if="imageUrl" class="home-about__media">
           <img
             class="home-about__image"
             :src="imageUrl"
@@ -61,9 +52,6 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useMediaQuery } from '../../composables/useMediaQuery.js';
-import { useSectionBackgroundParallax } from '../../composables/useSectionBackgroundParallax.js';
-import { useScrollParallax } from '../../composables/useScrollParallax.js';
 
 const STATEMENT_PREVIEW_CHARS = 320;
 const STATEMENT_MIN_SENTENCE_CHARS = 100;
@@ -76,22 +64,7 @@ const props = defineProps({
   backgroundImageUrl: { type: String, default: '' }
 });
 
-const sectionRef = ref(null);
-const backgroundRef = ref(null);
-const overlayRef = ref(null);
-const photoParallaxRef = ref(null);
-const quoteRef = ref(null);
 const expanded = ref(false);
-const isMobile = useMediaQuery('(max-width: 640px)');
-
-const hasBackground = computed(() => Boolean(String(props.backgroundImageUrl || '').trim()));
-useSectionBackgroundParallax(sectionRef, backgroundRef, hasBackground, overlayRef);
-
-const hasPortrait = computed(() => Boolean(String(props.imageUrl || '').trim()));
-useScrollParallax(sectionRef, photoParallaxRef, hasPortrait, {
-  desktop: 0.16,
-  mobile: 0.11
-});
 
 const formattedQuote = computed(() => {
   const raw = props.header.trim();
@@ -102,16 +75,6 @@ const formattedQuote = computed(() => {
     return raw;
   }
   return `"${raw}"`;
-});
-
-const hasQuote = computed(() => Boolean(formattedQuote.value));
-/* Horizontal quote motion only on mobile — desktop expand was shifting the parallax. */
-const quoteParallaxEnabled = computed(() => hasQuote.value && isMobile.value);
-useScrollParallax(sectionRef, quoteRef, quoteParallaxEnabled, {
-  axis: 'x',
-  xMode: 'enter-from-right',
-  maxOffset: 160,
-  mobileMaxOffset: 80
 });
 
 const portraitAlt = computed(() => {
@@ -284,7 +247,6 @@ const visibleStatement = computed(() => {
   align-self: start;
   display: flex;
   justify-content: flex-end;
-  will-change: transform;
 }
 
 .home-about__image {
@@ -351,7 +313,6 @@ const visibleStatement = computed(() => {
     position: relative;
     z-index: 2;
     margin-top: calc(-1 * var(--space-xl));
-    will-change: transform;
   }
 
   .home-about__image {
@@ -367,12 +328,6 @@ const visibleStatement = computed(() => {
 
   .home-about__statement {
     max-width: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-about__media,
-  .home-about__quote {
-    will-change: auto;
   }
 }
 </style>

@@ -27,7 +27,7 @@
   opacity: 0.2;
 }
 
-/* Shared full-bleed section background texture (hero, featured, about) */
+/* Shared full-bleed section background texture (featured, about) */
 .home-section__background {
   position: absolute;
   inset: 0;
@@ -36,44 +36,6 @@
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
-}
-
-/* Mobile-only overlay layer — duplicate texture with faster parallax for depth */
-.home-section__background-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  pointer-events: none;
-}
-
-@media (min-width: 641px) {
-  .home-section--has-background .home-section__background {
-    height: 118%;
-    top: -9%;
-    will-change: transform;
-  }
-
-  .home-section__background-overlay {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .home-section--has-background .home-section__background,
-  .home-section--has-background .home-section__background-overlay {
-    height: 112%;
-    top: -6%;
-    will-change: transform;
-  }
-
-  /* Slight scale/position offset so overlay and background do not stack identically at rest */
-  .home-section__background-overlay {
-    background-size: 106%;
-    background-position: center 46%;
-  }
 }
 
 /* —— Hero: full-viewport museum opening (layout lives in HomeHero.vue) —— */
