@@ -1,3 +1,5 @@
+import { isViewportDebugEnabled, viewportDebugLogEvent } from './useViewportDebug.js';
+
 let lockCount = 0;
 let savedScrollY = 0;
 
@@ -14,6 +16,13 @@ export function lockBodyScroll() {
 
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    if (isViewportDebugEnabled()) {
+      viewportDebugLogEvent('body-scroll-lock.lock', {
+        scrollY: savedScrollY,
+        top: document.body.style.top
+      });
     }
   }
 
@@ -39,6 +48,10 @@ export function unlockBodyScroll() {
   document.body.style.paddingRight = '';
 
   window.scrollTo(0, scrollY);
+
+  if (isViewportDebugEnabled()) {
+    viewportDebugLogEvent('body-scroll-lock.unlock', { scrollY });
+  }
 }
 
 export function resetBodyScrollLock() {

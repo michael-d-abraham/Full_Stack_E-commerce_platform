@@ -63,6 +63,7 @@
       </div>
     </main>
     <SiteFooter v-if="showSocialFooter" />
+    <ViewportDebugPanel />
   </div>
 </template>
 
@@ -83,8 +84,12 @@ import { useAutoHideSiteHeader } from './composables/useAutoHideSiteHeader.js';
 import { hydrateCartFromServer } from './utils/cart.js';
 import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
 import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.js';
+import ViewportDebugPanel from './components/debug/ViewportDebugPanel.vue';
+import { useViewportDebugBootstrap } from './composables/useViewportDebug.js';
 
 const MOBILE_LAYOUT_MQ = '(max-width: 640px)';
+
+useViewportDebugBootstrap();
 
 const route = useRoute();
 const { brandHomeAriaLabel } = useSiteBrand();

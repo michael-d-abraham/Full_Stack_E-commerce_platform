@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useMediaQuery } from './useMediaQuery.js';
+import { isViewportDebugEnabled, viewportDebugLogEvent } from './useViewportDebug.js';
 
 /** Ignore scroll deltas smaller than this to prevent trackpad/touch flicker. */
 const SCROLL_DIRECTION_THRESHOLD = 72;
@@ -37,6 +38,10 @@ export function useAutoHideSiteHeader({ isActive, isScrollLocked, headerBarRef }
         const height = Math.ceil(bar.getBoundingClientRect().height);
         document.documentElement.style.setProperty('--site-header-height', `${height}px`);
         document.documentElement.classList.add('has-fixed-site-header');
+
+        if (isViewportDebugEnabled()) {
+            viewportDebugLogEvent('header-offset.sync', { height });
+        }
     }
 
     function updateHeaderOnScroll() {

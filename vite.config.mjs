@@ -3,9 +3,23 @@ import vue from '@vitejs/plugin-vue';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedDir = path.resolve(path.join(__dirname, 'shared'));
+
+function resolveAppCommitSha() {
+    try {
+        return execSync('git rev-parse --short HEAD', {
+            cwd: __dirname,
+            encoding: 'utf8'
+        }).trim();
+    } catch {
+        return process.env.RENDER_GIT_COMMIT?.slice(0, 7) || 'unknown';
+    }
+}
+
+const appCommitSha = resolveAppCommitSha();
 
 /**
  * shared/ uses CommonJS (module.exports) for Node/Jest.
@@ -43,6 +57,9 @@ export default defineConfig({
     root: path.join(__dirname, 'frontend'),
     // Clerk and other secrets live in the repo-root .env (not frontend/.env).
     envDir: path.resolve(__dirname),
+    define: {
+        __APP_COMMIT_SHA__: JSON.stringify(appCommitSha)
+    },
     plugins: [vue(), sharedCjsToEsmPlugin()],
     resolve: {
         alias: {

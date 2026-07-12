@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useMediaQuery } from './useMediaQuery.js';
+import { isViewportDebugEnabled, viewportDebugLogEvent } from './useViewportDebug.js';
 
 const DESKTOP_MQ = '(min-width: 641px)';
 const MOBILE_MQ = '(max-width: 640px)';
@@ -81,15 +82,22 @@ export function useSectionBackgroundParallax(sectionRef, backgroundRef, enabled,
         }
     }
 
+    function onResize() {
+        if (isViewportDebugEnabled()) {
+            viewportDebugLogEvent('parallax.resize', { handler: 'useSectionBackgroundParallax' });
+        }
+        onScroll();
+    }
+
     onMounted(() => {
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll, { passive: true });
+        window.addEventListener('resize', onResize, { passive: true });
         updateParallax();
     });
 
     onUnmounted(() => {
         window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onScroll);
+        window.removeEventListener('resize', onResize);
         resetTransform();
     });
 

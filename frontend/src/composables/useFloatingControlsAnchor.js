@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { isViewportDebugEnabled, viewportDebugLogEvent } from './useViewportDebug.js';
 
 export function useFloatingControlsAnchor(anchorRef, { enabled } = {}) {
   const anchorStyle = ref({ display: 'none' });
@@ -24,6 +25,13 @@ export function useFloatingControlsAnchor(anchorRef, { enabled } = {}) {
       pointerEvents: 'none',
       zIndex: 1060
     };
+
+    if (isViewportDebugEnabled()) {
+      viewportDebugLogEvent('floating-anchor.update', {
+        top: rect.top,
+        height: rect.height
+      });
+    }
   }
 
   let resizeObserver = null;
