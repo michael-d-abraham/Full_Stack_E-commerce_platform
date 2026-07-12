@@ -62,19 +62,6 @@
         </div>
 
         <div class="product-page__purchase">
-          <div
-            v-if="!product"
-            class="product-skeleton product-skeleton--quantity"
-            aria-hidden="true"
-          />
-          <ProductQuantityField
-            v-else
-            v-model="quantity"
-            :max="maxQuantity"
-            @increment="incrementQty"
-            @decrement="decrementQty"
-          />
-
           <AddToCartButton
             v-if="product"
             :label="addButtonLabel"
@@ -142,12 +129,6 @@
 
             <div class="detail__purchase">
               <p v-if="showStock" class="meta stock">Available: {{ product.quantity_available }}</p>
-              <ProductQuantityField
-                v-model="quantity"
-                :max="maxQuantity"
-                @increment="incrementQty"
-                @decrement="decrementQty"
-              />
               <AddToCartButton
                 :label="addButtonLabel"
                 :disabled="!canBuy || added"
@@ -165,7 +146,6 @@
           <div class="detail__info">
             <div class="product-skeleton product-skeleton--title product-skeleton--desktop-title" />
             <div class="product-skeleton product-skeleton--price product-skeleton--desktop-price" />
-            <div class="product-skeleton product-skeleton--quantity product-skeleton--desktop-quantity" />
             <div class="product-skeleton product-skeleton--cart product-skeleton--desktop-cart" />
             <div class="product-skeleton-group product-skeleton-group--description">
               <div class="product-skeleton product-skeleton--line" />
@@ -189,8 +169,7 @@ import {
   refreshProductInBackground,
   isProductDetailComplete
 } from '../composables/useProductCache.js';
-import { addToCart, setCartQuantity } from '../utils/cart.js';
-import { CART_QUANTITY_MAX } from '@shared/cartQuantity.js';
+import { addToCart } from '../utils/cart.js';
 import { useCart } from '../composables/useCart.js';
 import { useMediaQuery } from '../composables/useMediaQuery.js';
 import { formatMoneyFromCents } from '../utils/money.js';
@@ -202,7 +181,6 @@ import {
 import ProductCloseButton from '../components/product/ProductCloseButton.vue';
 import ProductImageGallery from '../components/product/ProductImageGallery.vue';
 import ProductInfo from '../components/product/ProductInfo.vue';
-import ProductQuantityField from '../components/product/ProductQuantityField.vue';
 import AddToCartButton from '../components/product/AddToCartButton.vue';
 import ProductDescription from '../components/product/ProductDescription.vue';
 
@@ -252,7 +230,6 @@ if (cachedProduct?.slug) {
 }
 const loading = ref(!cachedProduct);
 const error = ref('');
-const quantity = ref(1);
 const added = ref(false);
 const detailGridRef = ref(null);
 const detailCardRef = ref(null);
@@ -280,14 +257,6 @@ const formattedPrice = computed(() => {
 const showStock = computed(() => {
   const q = product.value?.quantity_available;
   return q != null && typeof q === 'number';
-});
-
-const maxQuantity = computed(() => {
-  const q = product.value?.quantity_available;
-  if (q == null || typeof q !== 'number') {
-    return CART_QUANTITY_MAX;
-  }
-  return Math.max(1, q);
 });
 
 const canBuy = computed(() => {
@@ -327,14 +296,6 @@ const showMobileDetails = computed(() => {
   }
   return showProductDescription.value || showStock.value;
 });
-
-function incrementQty() {
-  quantity.value = Math.min(maxQuantity.value, quantity.value + 1);
-}
-
-function decrementQty() {
-  quantity.value = Math.max(1, quantity.value - 1);
-}
 
 function onDesktopClose() {
   if (imageLightboxOpen.value) {
@@ -379,7 +340,6 @@ function onAddToCart() {
   if (!product.value || !canBuy.value) return;
   const result = addToCart(product.value);
   if (!result.ok) return;
-  setCartQuantity(product.value._id, quantity.value);
   openDrawer();
   added.value = true;
   window.setTimeout(() => {
@@ -406,7 +366,6 @@ async function load() {
   const requestId = ++loadRequestId;
 
   error.value = '';
-  quantity.value = 1;
   added.value = false;
 
   if (product.value?.slug !== slug) {
@@ -474,12 +433,6 @@ async function load() {
     }
   }
 }
-
-watch(maxQuantity, (max) => {
-  if (quantity.value > max) {
-    quantity.value = max;
-  }
-});
 
 onMounted(load);
 watch(() => props.slug, load);
@@ -561,24 +514,6 @@ watch(imageLightboxOpen, (open) => {
   text-align: center;
 }
 
-.product-page__purchase :deep(.product-quantity) {
-  margin-bottom: 0;
-}
-
-.product-page__purchase :deep(.qty-btn) {
-  width: 2rem;
-  height: 2rem;
-  min-width: 36px;
-  min-height: 36px;
-  font-size: 1rem;
-}
-
-.product-page__purchase :deep(.qty-input) {
-  width: 2rem;
-  min-height: 36px;
-  font-size: 0.9375rem;
-}
-
 .product-page__purchase :deep(.add-to-cart-button) {
   height: 46px;
   font-size: 0.9375rem;
@@ -654,11 +589,6 @@ watch(imageLightboxOpen, (open) => {
   margin-top: 0.125rem;
   padding-top: 0;
   border-top: none;
-}
-
-.detail__purchase :deep(.product-quantity) {
-  margin-bottom: 0;
-  width: 100%;
 }
 
 .detail__purchase :deep(.add-to-cart-button) {
@@ -815,10 +745,6 @@ watch(imageLightboxOpen, (open) => {
     margin-top: 0.25rem;
   }
 
-  .detail__purchase :deep(.product-quantity__label) {
-    font-size: 0.75rem;
-  }
-
   .detail__purchase :deep(.add-to-cart-button) {
     height: 48px;
     font-size: 1rem;
@@ -928,6 +854,7 @@ watch(imageLightboxOpen, (open) => {
   .product-page--overlay .product-page__purchase :deep(.add-to-cart-button) {
     margin-top: 0;
   }
+}
 
 .product-page__inline-error {
   margin: 0.75rem 0 0;
@@ -963,17 +890,10 @@ watch(imageLightboxOpen, (open) => {
   margin-bottom: 1.25rem;
 }
 
-.product-skeleton--desktop-quantity {
-  height: 2.25rem;
-  width: 7.5rem;
-  margin-bottom: 1rem;
-}
-
 .product-skeleton--desktop-cart {
   height: 46px;
   width: 100%;
   border-radius: 0;
-}
 }
 
 .product-skeleton {
@@ -1008,11 +928,6 @@ watch(imageLightboxOpen, (open) => {
   height: 2.25rem;
   width: 100%;
   border-radius: 0;
-}
-
-.product-skeleton--quantity {
-  height: 2.25rem;
-  width: 7.5rem;
 }
 
 .product-skeleton--cart {
