@@ -199,7 +199,7 @@ body.gallery-product-open .site-header {
   gap: var(--space-lg);
 }
 
-@media (min-width: 641px) {
+@media (min-width: 769px) {
   .app-header__bar {
     --header-bar-height: 5.5rem;
     min-height: var(--header-bar-height);
@@ -252,7 +252,7 @@ body.gallery-product-open .site-header {
   margin-right: var(--space-xl);
 }
 
-@media (min-width: 641px) {
+@media (min-width: 769px) {
   .app-header__mobile-nav {
     display: none !important;
   }
@@ -375,7 +375,7 @@ body.gallery-product-open .site-header {
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .app-header__bar {
     padding: 1rem var(--mobile-safe-inset-x);
     gap: 0;

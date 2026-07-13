@@ -134,7 +134,7 @@ onMounted(async () => {
   margin-top: 1.5rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .home-page__skeleton-grid {
     grid-template-columns: 1fr;
   }

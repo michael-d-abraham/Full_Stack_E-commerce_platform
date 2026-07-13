@@ -269,6 +269,18 @@ onUnmounted(() => {
   }
 }
 
+@media (min-width: 641px) and (max-width: 1024px) {
+  .product-detail-overlay__scroll {
+    padding: 24px;
+    align-items: center;
+  }
+
+  .product-detail-overlay__scroll > :deep(.product-page) {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .product-overlay-enter-active,
   .product-overlay-leave-active,

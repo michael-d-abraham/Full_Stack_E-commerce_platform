@@ -770,6 +770,88 @@ watch(imageLightboxOpen, (open) => {
   }
 }
 
+/* iPad / tablet — desktop overlay card, stacked vertically and centered */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .product-page--overlay:has(.detail--desktop) {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .detail--desktop {
+    width: min(560px, calc(100vw - 48px));
+    height: auto;
+    max-height: none;
+  }
+
+  .detail__card {
+    height: auto;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+
+  .detail__grid {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    height: auto;
+    min-height: 0;
+    gap: 1.5rem;
+    padding: 32px 32px 28px;
+    align-items: stretch;
+  }
+
+  .detail__media {
+    width: 100%;
+    height: auto;
+  }
+
+  .detail__media :deep(.product-image-gallery) {
+    flex: none;
+    height: auto;
+    width: 100%;
+  }
+
+  .detail__media :deep(.product-image-gallery__stage) {
+    flex: none;
+    width: 100%;
+  }
+
+  .detail__media :deep(.product-image-gallery__viewport) {
+    width: 100%;
+    height: min(50svh, 480px);
+    min-height: min(50svh, 480px);
+    max-height: min(50svh, 480px);
+  }
+
+  .detail__info {
+    width: 100%;
+    padding-top: 0;
+    padding-right: 0;
+    overflow-y: visible;
+    gap: 1rem;
+  }
+
+  .detail--desktop .page-title {
+    padding-right: 2.5rem;
+    font-size: 14px;
+  }
+
+  .detail__info :deep(.product-description) {
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+  }
+
+  .detail__purchase {
+    margin-top: 0;
+  }
+
+  .product-page__inline-error--desktop {
+    left: 32px;
+    right: 32px;
+    bottom: 16px;
+  }
+}
+
 @media (max-width: 640px) {
   .product-page--overlay {
     min-height: 0;

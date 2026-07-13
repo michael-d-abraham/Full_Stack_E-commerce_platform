@@ -212,7 +212,7 @@ function scrollToNext() {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .home-hero {
     min-height: calc(100svh - var(--site-header-height, 72px));
     padding: 1.5rem 1.125rem 5.5rem;

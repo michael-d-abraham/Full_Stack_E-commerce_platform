@@ -192,7 +192,7 @@ onMounted(async () => {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .site-footer__main,
   .site-footer__main--two-cols {
     display: grid;

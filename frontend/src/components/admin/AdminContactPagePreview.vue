@@ -159,7 +159,7 @@ defineEmits(['pick-image', 'remove-image']);
   max-width: 100%;
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 769px) {
   .admin-contact-preview__layout:not(.contact-page__layout--no-hero) .admin-contact-preview__media-col {
     max-width: calc(var(--max-width-page) - var(--max-width-narrow) - var(--space-2xl));
   }
@@ -282,7 +282,7 @@ defineEmits(['pick-image', 'remove-image']);
   box-shadow: var(--focus-ring);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .admin-contact-preview {
     padding-left: var(--space-md);
     padding-right: var(--space-md);

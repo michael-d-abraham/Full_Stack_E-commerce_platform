@@ -89,7 +89,7 @@
   color: var(--color-text-muted);
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 769px) {
   .contact-page__layout:not(.contact-page__layout--no-hero) {
     display: grid;
     grid-template-columns: minmax(12rem, 1fr) minmax(0, var(--max-width-narrow));
@@ -107,7 +107,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .contact-page:not(.admin-contact-preview) {
     padding-bottom: var(--space-lg);
   }

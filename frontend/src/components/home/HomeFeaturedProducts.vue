@@ -14,13 +14,15 @@
       <h2 id="home-featured-heading" class="home-featured__title page-hero-title">
         {{ sectionTitle }}
       </h2>
-      <div class="product-grid product-grid--gallery home-featured__grid">
-        <GalleryProductCard
-          v-for="p in visibleProducts"
-          :key="p._id"
-          :product="p"
-          :show-add-to-cart="false"
-        />
+      <div class="home-featured__grid-wrap">
+        <div class="product-grid product-grid--gallery home-featured__grid">
+          <GalleryProductCard
+            v-for="p in visibleProducts"
+            :key="p._id"
+            :product="p"
+            :show-add-to-cart="false"
+          />
+        </div>
       </div>
       <p class="home-featured__cta">
         <router-link to="/gallery" class="home-featured__cta-link">
@@ -74,6 +76,12 @@ const visibleProducts = computed(() =>
 .home-featured__title {
   margin: 0 0 2.5rem;
   text-align: center;
+}
+
+.home-featured__grid-wrap {
+  width: 100%;
+  container-type: inline-size;
+  container-name: gallery-wall;
 }
 
 .home-featured__cta {
@@ -143,6 +151,12 @@ const visibleProducts = computed(() =>
     width: 100%;
     max-width: none;
     gap: clamp(2rem, 4vw, 3rem) clamp(1.25rem, 2.5vw, 2rem);
+    --gallery-column-count: 3;
+    --gallery-column-gap-value: clamp(1.25rem, 2.5vw, 2rem);
+    --gallery-track-width: calc(
+      (100% - (var(--gallery-column-count) - 1) * var(--gallery-column-gap-value))
+        / var(--gallery-column-count)
+    );
   }
 
   .home-featured__grid.product-grid--gallery .product-card {

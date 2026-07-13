@@ -11,15 +11,17 @@
     <template v-else>
       <section class="gallery-section" aria-label="Product gallery">
         <div class="gallery-container mobile-safe-container">
-          <div class="product-grid product-grid--gallery">
-            <GalleryProductCard
-              v-for="p in visibleProducts"
-              :key="p._id"
-              :product="p"
-              :show-add-to-cart="false"
-              navigation-mode="emit"
-              @open="openProduct"
-            />
+          <div class="gallery-wall">
+            <div class="product-grid product-grid--gallery">
+              <GalleryProductCard
+                v-for="p in visibleProducts"
+                :key="p._id"
+                :product="p"
+                :show-add-to-cart="false"
+                navigation-mode="emit"
+                @open="openProduct"
+              />
+            </div>
           </div>
 
           <div v-if="hasMore" class="load-more-wrap">
@@ -198,6 +200,12 @@ onMounted(async () => {
   margin: 0 auto;
   padding: 0 32px;
   background: transparent;
+}
+
+.gallery-wall {
+  width: 100%;
+  container-type: inline-size;
+  container-name: gallery-wall;
 }
 
 .load-more-wrap {
