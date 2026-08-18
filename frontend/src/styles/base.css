@@ -30,6 +30,28 @@
   --header-padding-x: 9.5rem;
   --font-size-base: 1.0625rem;
   --focus-ring: 0 0 0 1px var(--color-text);
+
+  --nav-scroll-distance: 120px;
+  --site-header-bar-height-expanded: 5.5rem;
+  --site-header-bar-height-compact: 4.25rem;
+  --site-header-padding-y-expanded: 1.65rem;
+  --site-header-padding-y-compact: 0.75rem;
+  --site-header-mobile-padding-y-expanded: 1rem;
+  --site-header-mobile-padding-y-compact: 0.65rem;
+
+  --nav-inset-x: clamp(12px, 3.5vw, 20px);
+  --nav-float-top: 10px;
+  --nav-pill-radius: 999px;
+  --nav-pill-padding-x: 1.125rem;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --nav-scroll-distance: 160px;
+    --nav-inset-x: clamp(20px, 4vw, 56px);
+    --nav-float-top: 14px;
+    --nav-pill-padding-x: 1.5rem;
+  }
 }
 
 *,

@@ -1,54 +1,11 @@
 <template>
   <div class="app">
-    <header
+    <SiteHeader
       v-if="!isAdminRoute"
-      class="app-header site-header"
-      :class="(headerHidden || hideHeaderForGalleryProduct) ? 'is-hidden' : 'is-visible'"
-    >
-      <div ref="headerBarRef" class="app-header__bar">
-        <button
-          type="button"
-          class="mobile-menu-toggle"
-          :aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
-          :aria-expanded="mobileMenuOpen"
-          @click="toggleMobileMenu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <SiteBrandMark to="/" variant="header" class="app-brand" :aria-label="brandHomeAriaLabel" />
-        <nav class="app-nav app-nav--desktop" aria-label="Main">
-          <router-link to="/" class="app-nav__link" exact-active-class="app-nav__link--active">
-            Home
-          </router-link>
-          <router-link to="/gallery" class="app-nav__link" active-class="app-nav__link--active">
-            Gallery
-          </router-link>
-          <router-link
-            v-if="showContactNav"
-            to="/contact"
-            class="app-nav__link"
-            active-class="app-nav__link--active"
-          >
-            Contact
-          </router-link>
-          <router-link
-            v-if="showBookNav"
-            to="/book"
-            class="app-nav__link"
-            active-class="app-nav__link--active"
-          >
-            Book
-          </router-link>
-        </nav>
-        <div class="app-header__end">
-          <CartIcon />
-        </div>
-      </div>
-      <MobileMenuDrawer class="app-header__mobile-nav" />
-    </header>
-    <CartDrawer v-if="!isAdminRoute" />
+      ref="siteHeaderRef"
+      :hide-for-gallery-product="hideHeaderForGalleryProduct"
+    />
+    <CartDrawer v-if="!isAdminRoute && showCart" />
     <NavProgress />
     <main
       class="app-main"
@@ -68,38 +25,36 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import CartIcon from './components/cart/CartIcon.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
-import MobileMenuDrawer from './components/mobile/MobileMenuDrawer.vue';
+import SiteHeader from './components/layout/SiteHeader.vue';
 import SiteFooter from './components/layout/SiteFooter.vue';
-import SiteBrandMark from './components/brand/SiteBrandMark.vue';
 import NavProgress from './components/loading/NavProgress.vue';
 import RouteTransition from './components/loading/RouteTransition.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
-import { useAutoHideSiteHeader } from './composables/useAutoHideSiteHeader.js';
 import { hydrateCartFromServer } from './utils/cart.js';
-import { ensureStorefrontNavLoaded, showContactNav, showBookNav } from './composables/useStorefrontNav.js';
-import { ensureSiteBrandLoaded, useSiteBrand } from './composables/useSiteBrand.js';
+import { ensureStorefrontNavLoaded } from './composables/useStorefrontNav.js';
+import { useStorefrontLabels } from './composables/useStorefrontLabels.js';
+import { ensureSiteBrandLoaded } from './composables/useSiteBrand.js';
 
 const route = useRoute();
-const { brandHomeAriaLabel } = useSiteBrand();
+const { showCart } = useStorefrontLabels();
 const { drawerOpen } = useCart();
-const { mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileNav();
-const headerBarRef = ref(null);
+const { mobileMenuOpen, closeMobileMenu } = useMobileNav();
+const siteHeaderRef = ref(null);
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isHomeRoute = computed(() => route.name === 'home');
 const isGalleryProductOpen = computed(
-  () => route.name === 'gallery' && typeof route.query.product === 'string' && Boolean(route.query.product)
+  () =>
+    (route.name === 'wanna-dos' &&
+      typeof route.query.product === 'string' &&
+      Boolean(route.query.product)) ||
+    (route.name === 'gallery' &&
+      typeof route.query.work === 'string' &&
+      Boolean(route.query.work))
 );
 const hideHeaderForGalleryProduct = computed(() => isGalleryProductOpen.value);
-
-const { headerHidden, resetHeader, syncSiteHeaderOffset } = useAutoHideSiteHeader({
-  isActive: () => !isAdminRoute.value,
-  isScrollLocked: () => mobileMenuOpen.value || drawerOpen.value,
-  headerBarRef
-});
 
 function onEscape(event) {
   if (event.key === 'Escape' && mobileMenuOpen.value) {
@@ -116,14 +71,14 @@ watch(
   () => route.fullPath,
   () => {
     closeMobileMenu();
-    resetHeader();
-    nextTick(() => syncSiteHeaderOffset());
+    siteHeaderRef.value?.resetHeader();
+    nextTick(() => siteHeaderRef.value?.syncSiteHeaderOffset());
   }
 );
 
 watch([mobileMenuOpen, drawerOpen], () => {
   syncBodyHeaderClasses();
-  resetHeader();
+  siteHeaderRef.value?.resetHeader();
 });
 
 onMounted(() => {
@@ -141,166 +96,11 @@ onUnmounted(() => {
 
 const showSocialFooter = computed(() => {
   const name = route.name;
-  return name === 'home' || name === 'gallery' || name === 'contact' || name === 'book-appointment';
+  return name === 'home' || name === 'gallery' || name === 'wanna-dos' || name === 'contact' || name === 'book-appointment';
 });
 </script>
 
 <style>
-.app-header {
-  z-index: 1000;
-}
-
-.site-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  transform: translateY(0);
-  will-change: transform;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 6px 20px -6px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 960ms cubic-bezier(0.18, 1, 0.22, 1),
-    box-shadow 960ms ease,
-    border-color 960ms ease;
-}
-
-.site-header.is-hidden {
-  transform: translateY(-110%);
-  pointer-events: none;
-}
-
-.site-header.is-visible {
-  transform: translateY(0);
-}
-
-body.gallery-product-open .site-header {
-  transition: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .site-header {
-    transition: none;
-  }
-}
-
-.app-header__bar {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 1.65rem var(--header-padding-x) 1.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-lg);
-}
-
-@media (min-width: 769px) {
-  .app-header__bar {
-    --header-bar-height: 5.5rem;
-    min-height: var(--header-bar-height);
-    height: var(--header-bar-height);
-    padding-top: 0;
-    padding-bottom: 0;
-    box-sizing: border-box;
-  }
-}
-
-.app-brand {
-  text-decoration: none;
-  color: var(--color-text);
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.app-brand.site-brand-mark--image {
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.app-brand:hover,
-.app-brand:active,
-.app-brand:focus-visible {
-  opacity: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .app-brand:hover {
-    opacity: 0.85;
-  }
-}
-
-.app-header__end {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-xl);
-  flex-wrap: wrap;
-}
-
-.app-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-lg);
-  margin-left: auto;
-  margin-right: var(--space-xl);
-}
-
-@media (min-width: 769px) {
-  .app-header__mobile-nav {
-    display: none !important;
-  }
-}
-
-.mobile-menu-toggle {
-  display: none;
-  box-shadow: none;
-  letter-spacing: 0;
-  text-transform: none;
-  border-radius: 0;
-}
-
-.mobile-menu-toggle:hover:not(:disabled) {
-  background: transparent;
-  border-color: transparent;
-  opacity: 1;
-}
-
-.mobile-menu-toggle:focus-visible {
-  box-shadow: var(--focus-ring);
-}
-
-.app-nav__link {
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 1;
-  transition: opacity 0.2s ease;
-}
-
-.app-nav__link:hover {
-  opacity: 0.5;
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
-.app-nav__link.router-link-active,
-.app-nav__link.router-link-exact-active,
-.app-nav__link.app-nav__link--active {
-  opacity: 1;
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
 .app-main {
   flex: 1;
   padding: calc(var(--site-header-height, 76px) + var(--space-xl)) var(--space-lg) var(--space-3xl);
@@ -351,7 +151,6 @@ body.gallery-product-open .site-header {
   margin: 0;
 }
 
-
 .app {
   min-height: 100vh;
   min-height: 100dvh;
@@ -376,85 +175,12 @@ body.gallery-product-open .site-header {
 }
 
 @media (max-width: 768px) {
-  .app-header__bar {
-    padding: 1rem var(--mobile-safe-inset-x);
-    gap: 0;
-    display: grid;
-    grid-template-columns: 44px 1fr 44px;
-    align-items: center;
-    position: relative;
-  }
-
-  .mobile-menu-toggle {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    z-index: 2;
-  }
-
-  .app-brand {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: center;
-    max-width: 100%;
-    min-width: 0;
-    text-align: center;
-  }
-
-  .app-header__end {
-    grid-column: 3;
-    grid-row: 1;
-    justify-self: end;
-    justify-content: flex-end;
-    gap: 0;
-    z-index: 2;
-  }
-
-  .app-nav--desktop {
-    display: none;
-  }
-
   .app-main--product-mobile {
     padding: 0;
     overflow-x: hidden;
   }
 
-  .mobile-menu-toggle {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    background: transparent;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-  }
-
-  .mobile-menu-toggle span {
-    width: 22px;
-    height: 2px;
-    background: #000;
-    display: block;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-  }
-
-  .mobile-menu-toggle[aria-expanded='true'] span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
-  }
-
-  .mobile-menu-toggle[aria-expanded='true'] span:nth-child(2) {
-    opacity: 0;
-  }
-
-  .mobile-menu-toggle[aria-expanded='true'] span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
-  }
-
   .app-main:not(.app-main--admin) {
-    /* Fixed header is out of flow — offset top padding by measured bar height */
     padding: calc(var(--site-header-height, 72px) + var(--space-lg)) var(--mobile-safe-inset-x)
       var(--space-lg);
   }
@@ -469,24 +195,5 @@ body.gallery-product-open .site-header {
   .app-main--admin {
     padding: 0;
   }
-
-}
-
-@media (max-width: 390px) {
-  .app-header__bar {
-    padding-left: var(--mobile-safe-inset-x);
-    padding-right: var(--mobile-safe-inset-x);
-  }
-
-  .app-brand {
-    font-size: 1.25rem;
-    letter-spacing: 0.1em;
-  }
-
-  .app-nav--desktop .app-nav__link {
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
-  }
-
 }
 </style>

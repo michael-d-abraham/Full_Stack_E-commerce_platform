@@ -33,7 +33,15 @@
       active-class="mobile-menu-drawer__link--active"
       @click="closeMobileMenu"
     >
-      Gallery
+      {{ galleryNavLabel }}
+    </router-link>
+    <router-link
+      to="/wanna-dos"
+      class="mobile-menu-drawer__link"
+      active-class="mobile-menu-drawer__link--active"
+      @click="closeMobileMenu"
+    >
+      {{ wannaDosNavLabel }}
     </router-link>
     <router-link
       v-if="showContactNav"
@@ -59,11 +67,13 @@
 <script setup>
 import { useMobileNav } from '../../composables/useMobileNav.js';
 import { useStorefrontNav } from '../../composables/useStorefrontNav.js';
+import { useStorefrontLabels } from '../../composables/useStorefrontLabels.js';
 
 defineOptions({ inheritAttrs: false });
 
 const { mobileMenuOpen, closeMobileMenu } = useMobileNav();
 const { showContactNav, showBookNav } = useStorefrontNav();
+const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
 </script>
 
 <style scoped>
@@ -113,15 +123,16 @@ const { showContactNav, showBookNav } = useStorefrontNav();
   pointer-events: none;
   visibility: hidden;
   padding: 0 20px;
-  background: var(--color-surface);
+  background: transparent;
   border-bottom: 1px solid transparent;
   box-sizing: border-box;
   transition:
-    max-height 0.3s ease,
+    max-height 0.24s ease,
     opacity 0.24s ease,
-    padding 0.3s ease,
+    padding 0.24s ease,
     border-color 0.24s ease,
-    visibility 0.3s;
+    visibility 0.24s,
+    background 0.24s ease;
 }
 
 .mobile-menu-drawer--open {
@@ -145,12 +156,26 @@ const { showContactNav, showBookNav } = useStorefrontNav();
   align-items: center;
   padding: 0.5rem 0;
   width: 100%;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
 }
 
 .mobile-menu-drawer__link:hover {
   opacity: 0.55;
   text-decoration: underline;
   text-underline-offset: 0.25em;
+}
+
+.mobile-menu-drawer__link:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.mobile-menu-drawer__link:active {
+  opacity: 0.4;
 }
 
 .mobile-menu-drawer__link--active {
