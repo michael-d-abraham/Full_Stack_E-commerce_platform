@@ -1,0 +1,106 @@
+/*
+ * Expanded / lightbox product image — full uncropped art, no gallery frame.
+ * Used by ProductImageGallery lightbox and MobileFullscreenImageViewer.
+ */
+
+.product-expanded-slide-host {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.product-expanded-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.product-expanded-slide-host .gallery-slide-next-enter-active,
+.product-expanded-slide-host .gallery-slide-next-leave-active,
+.product-expanded-slide-host .gallery-slide-prev-enter-active,
+.product-expanded-slide-host .gallery-slide-prev-leave-active {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition:
+    transform var(--gallery-slide-duration, 0.26s) cubic-bezier(0.4, 0, 0.2, 1),
+    opacity var(--gallery-slide-duration, 0.26s) cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  z-index: 1;
+}
+
+.product-expanded-slide-host .gallery-slide-next-leave-active,
+.product-expanded-slide-host .gallery-slide-prev-leave-active {
+  z-index: 0;
+}
+
+.product-expanded-slide-host .gallery-slide-next-enter-from {
+  transform: translate3d(18%, 0, 0);
+  opacity: 0;
+}
+
+.product-expanded-slide-host .gallery-slide-next-leave-to {
+  transform: translate3d(-18%, 0, 0);
+  opacity: 0;
+}
+
+.product-expanded-slide-host .gallery-slide-prev-enter-from {
+  transform: translate3d(-18%, 0, 0);
+  opacity: 0;
+}
+
+.product-expanded-slide-host .gallery-slide-prev-leave-to {
+  transform: translate3d(18%, 0, 0);
+  opacity: 0;
+}
+
+.product-expanded-slide-host .gallery-slide-next-enter-to,
+.product-expanded-slide-host .gallery-slide-next-leave-from,
+.product-expanded-slide-host .gallery-slide-prev-enter-to,
+.product-expanded-slide-host .gallery-slide-prev-leave-from {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-expanded-slide-host .gallery-slide-next-enter-active,
+  .product-expanded-slide-host .gallery-slide-next-leave-active,
+  .product-expanded-slide-host .gallery-slide-prev-enter-active,
+  .product-expanded-slide-host .gallery-slide-prev-leave-active {
+    --gallery-slide-duration: 0.01ms;
+    transition: opacity 0.01ms linear;
+    transform: none !important;
+  }
+
+  .product-expanded-slide-host .gallery-slide-next-enter-from,
+  .product-expanded-slide-host .gallery-slide-next-leave-to,
+  .product-expanded-slide-host .gallery-slide-prev-enter-from,
+  .product-expanded-slide-host .gallery-slide-prev-leave-to {
+    transform: none;
+    opacity: 0;
+  }
+}

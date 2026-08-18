@@ -1,0 +1,372 @@
+/* Minimal artist store — clean B&W editorial (inspired by bycparker.com) */
+:root {
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-sans);
+
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-product-image-bg: #ffffff;
+  --color-text: #000000;
+  --color-text-muted: #555555;
+  --color-border: #e5e5e5;
+  --color-border-strong: #000000;
+  --color-accent: #000000;
+  --color-error: #000000;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 5rem;
+
+  --radius-sm: 0;
+  --shadow-border: none;
+  --shadow-float: none;
+
+  --max-width-page: 72rem;
+  --max-width-narrow: 36rem;
+  --header-padding-x: 9.5rem;
+  --font-size-base: 1.0625rem;
+  --focus-ring: 0 0 0 1px var(--color-text);
+
+  --nav-scroll-distance: 120px;
+  --site-header-bar-height-expanded: 5.5rem;
+  --site-header-bar-height-compact: 4.25rem;
+  --site-header-padding-y-expanded: 1.65rem;
+  --site-header-padding-y-compact: 0.75rem;
+  --site-header-mobile-padding-y-expanded: 1rem;
+  --site-header-mobile-padding-y-compact: 0.65rem;
+
+  --nav-inset-x: clamp(12px, 3.5vw, 20px);
+  --nav-float-top: 10px;
+  --nav-pill-radius: 999px;
+  --nav-pill-padding-x: 1.125rem;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --nav-scroll-distance: 160px;
+    --nav-inset-x: clamp(20px, 4vw, 56px);
+    --nav-float-top: 14px;
+    --nav-pill-padding-x: 1.5rem;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-text);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  opacity: 0.65;
+}
+
+.app-brand {
+  opacity: 1;
+}
+
+.app-brand:hover,
+.app-brand:active {
+  opacity: 1;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  margin: 0;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: none;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-text);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+button.product-close-button:focus,
+button.product-close-button:focus-visible,
+button.product-close-button:focus-within,
+a.product-close-button:focus,
+a.product-close-button:focus-visible,
+a.product-close-button:focus-within {
+  outline: none;
+  box-shadow: var(--product-close-shadow, 0 2px 10px rgba(0, 0, 0, 0.1));
+}
+
+button.product-floating-circle-button:focus,
+button.product-floating-circle-button:focus-visible,
+button.product-floating-circle-button:focus-within,
+a.product-floating-circle-button:focus,
+a.product-floating-circle-button:focus-visible,
+a.product-floating-circle-button:focus-within {
+  outline: none;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+button.product-close-button:hover:focus,
+button.product-close-button:hover:focus-visible,
+a.product-close-button:hover:focus,
+a.product-close-button:hover:focus-visible {
+  box-shadow: var(--product-close-shadow-hover, 0 3px 12px rgba(0, 0, 0, 0.14));
+}
+
+button:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-text);
+  color: var(--color-surface);
+  border-color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #333333;
+  border-color: #333333;
+  color: var(--color-surface);
+  opacity: 1;
+}
+
+.btn-primary:active:not(:disabled) {
+  background: #000000;
+  opacity: 1;
+}
+
+.btn-ghost,
+.btn-outline {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-text);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.btn-ghost:hover:not(:disabled),
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-text);
+  color: var(--color-surface);
+  opacity: 1;
+}
+
+input[type='text'],
+input[type='password'],
+input[type='number'],
+input[type='email'],
+input[type='url'],
+textarea,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.65rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: none;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-text);
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: auto;
+  accent-color: var(--color-text);
+}
+
+label {
+  cursor: pointer;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+}
+
+table.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-md);
+  font-size: 0.9375rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+  border-radius: 0;
+}
+
+table.table th,
+table.table td {
+  border: 1px solid var(--color-border);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.table th {
+  font-weight: 500;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+}
+
+table.table tbody tr:nth-child(even) {
+  background: var(--color-surface);
+}
+
+table.table code {
+  font-size: 0.8125em;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+}
+
+.error {
+  color: var(--color-error);
+  margin: 0;
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.8125rem;
+  margin-top: var(--space-xs);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.card-surface {
+  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.page-title,
+.page-hero-title {
+  font-family: var(--font-sans);
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  margin: 0 0 var(--space-xl);
+  color: var(--color-text);
+}
+
+button.is-icon {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.25rem;
+  line-height: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+button.is-icon:hover:not(:disabled) {
+  background: transparent;
+  opacity: 0.5;
+}
+
+button.is-icon:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: var(--space-md);
+}
+
+.table-scroll .table {
+  margin-top: 0;
+}
+
+/* Gallery product overlay — block interaction with page beneath */
+body.gallery-product-open #app {
+  pointer-events: none;
+  user-select: none;
+}
+
+body.gallery-product-open .product-detail-overlay {
+  pointer-events: auto;
+  user-select: auto;
+}
