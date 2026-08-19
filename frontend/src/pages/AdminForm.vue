@@ -1,8 +1,8 @@
 <template>
   <div class="admin-page">
     <header class="admin-page-header">
-      <h1 class="admin-page-header__title">Edit listing</h1>
-      <router-link to="/admin/listings" class="admin-page-header__btn">← Listing</router-link>
+      <h1 class="admin-page-header__title">Edit wanna do</h1>
+      <router-link to="/admin/listings" class="admin-page-header__btn">← Wanna Do's</router-link>
     </header>
 
     <p v-if="loadError" class="error admin-page-header__status">{{ loadError }}</p>

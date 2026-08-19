@@ -27,11 +27,14 @@ const AdminLayout = () => import('../components/admin/AdminLayout.vue');
 const AdminDashboard = () => import('../pages/admin/AdminDashboard.vue');
 const AdminOrders = () => import('../pages/admin/AdminOrders.vue');
 const AdminListings = () => import('../pages/admin/AdminListings.vue');
+const AdminGallery = () => import('../pages/admin/AdminGallery.vue');
 const AdminCustomize = () => import('../pages/admin/AdminCustomize.vue');
 const AdminSettings = () => import('../pages/admin/AdminSettings.vue');
 const AdminForm = () => import('../pages/AdminForm.vue');
 const AdminCreate = () => import('../pages/AdminCreate.vue');
-const AdminInstagramAi = () => import('../pages/AdminInstagramAi.vue');
+const AdminPortfolioCreate = () => import('../pages/AdminPortfolioCreate.vue');
+const AdminPortfolioForm = () => import('../pages/AdminPortfolioForm.vue');
+// const AdminInstagramAi = () => import('../pages/AdminInstagramAi.vue');
 
 const routes = [
     { path: '/', name: 'home', component: Home },
@@ -70,8 +73,11 @@ const routes = [
             { path: 'dashboard', name: 'admin-dashboard', component: AdminDashboard },
             { path: 'orders', name: 'admin-orders', component: AdminOrders },
             { path: 'listings', name: 'admin-listings', component: AdminListings },
+            { path: 'gallery', name: 'admin-gallery', component: AdminGallery },
+            { path: 'gallery/new', name: 'admin-gallery-new', component: AdminPortfolioCreate },
+            { path: 'gallery/edit/:id', name: 'admin-gallery-edit', component: AdminPortfolioForm, props: true },
             { path: 'customize', name: 'admin-customize', component: AdminCustomize },
-            { path: 'ai', name: 'admin-ai', component: AdminInstagramAi },
+            // { path: 'ai', name: 'admin-ai', component: AdminInstagramAi },
             { path: 'settings', name: 'admin-settings', component: AdminSettings },
             { path: 'new', name: 'admin-new', component: AdminCreate },
             { path: 'edit/:id', name: 'admin-edit', component: AdminForm, props: true }

@@ -1,9 +1,9 @@
 <template>
   <div class="admin-page admin-listings">
     <header class="admin-page-header">
-      <h1 class="admin-page-header__title">Wanna Do's</h1>
-      <router-link to="/admin/new" class="admin-page-header__btn admin-page-header__btn--primary">
-        Add wanna do
+      <h1 class="admin-page-header__title">Gallery</h1>
+      <router-link to="/admin/gallery/new" class="admin-page-header__btn admin-page-header__btn--primary">
+        Add work
       </router-link>
     </header>
 
@@ -16,45 +16,46 @@
 
       <p v-if="error" class="error admin-page-header__status">{{ error }}</p>
       <p v-else-if="!items.length" class="admin-float admin-float--padded admin-page-empty">
-        No products yet.
-        <router-link to="/admin/new">Create your first listing</router-link>
+        No finished work yet.
+        <router-link to="/admin/gallery/new">Add your first piece</router-link>
       </p>
 
       <template v-else>
       <AdminListSortBar
         v-model="sortBy"
-        select-id="listings-sort"
+        select-id="gallery-sort"
         :options="LISTING_SORT_OPTIONS"
       />
 
-      <ul class="admin-mobile-cards" aria-label="Listings">
-        <li v-for="p in sortedItems" :key="'m-' + p._id" class="admin-mobile-card admin-mobile-card--listing">
+      <ul class="admin-mobile-cards" aria-label="Gallery">
+        <li v-for="item in sortedItems" :key="'m-' + item._id" class="admin-mobile-card admin-mobile-card--listing">
           <div class="admin-mobile-card__corner">
             <span
               class="admin-status-pill admin-mobile-card__status"
-              :class="p.is_active ? 'admin-status-pill--active' : 'admin-status-pill--inactive'"
+              :class="item.is_active ? 'admin-status-pill--active' : 'admin-status-pill--inactive'"
             >
-              {{ statusLabel(p) }}
+              {{ statusLabel(item) }}
             </span>
             <AdminListingActionsMenu
-              :product-id="p._id"
-              :title="p.title"
-              :is-active="p.is_active"
-              :open="openMenuId === p._id"
-              @toggle="toggleMenu(p._id)"
+              :product-id="item._id"
+              :title="displayTitle(item)"
+              :is-active="item.is_active"
+              edit-base="/admin/gallery/edit"
+              :open="openMenuId === item._id"
+              @toggle="toggleMenu(item._id)"
               @close="closeMenu"
-              @toggle-active="onToggle(p)"
-              @delete="onDelete(p)"
+              @toggle-active="onToggle(item)"
+              @delete="onDelete(item)"
             />
           </div>
-          <h3 class="admin-mobile-card__title">{{ p.title }}</h3>
+          <h3 class="admin-mobile-card__title">{{ displayTitle(item) }}</h3>
           <div class="admin-mobile-card__body">
             <div class="admin-mobile-card__media" aria-hidden="true">
               <div class="admin-data-table__thumb admin-data-table__thumb--lg">
                 <img
-                  v-if="thumbUrl(p)"
-                  :src="thumbUrl(p)"
-                  :alt="thumbAlt(p)"
+                  v-if="thumbUrl(item)"
+                  :src="thumbUrl(item)"
+                  :alt="thumbAlt(item)"
                   width="56"
                   height="56"
                   loading="lazy"
@@ -62,16 +63,6 @@
                 <span v-else class="admin-data-table__thumb-placeholder">—</span>
               </div>
             </div>
-            <dl class="admin-mobile-card__meta admin-mobile-card__meta--stats-row">
-            <div class="admin-mobile-card__stat">
-              <dt>Price</dt>
-              <dd>{{ formatPrice(p.price_cents) }}</dd>
-            </div>
-            <div class="admin-mobile-card__stat">
-              <dt>Stock</dt>
-              <dd>{{ p.quantity_available ?? '—' }}</dd>
-            </div>
-            </dl>
           </div>
         </li>
       </ul>
@@ -83,20 +74,18 @@
             <tr>
               <th>Image</th>
               <th>Title</th>
-              <th>Price</th>
-              <th>Stock</th>
               <th>Status</th>
               <th class="admin-data-table__actions-cell"></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in sortedItems" :key="p._id">
+            <tr v-for="item in sortedItems" :key="item._id">
               <td>
                 <div class="admin-data-table__thumb" aria-hidden="true">
                   <img
-                    v-if="thumbUrl(p)"
-                    :src="thumbUrl(p)"
-                    :alt="thumbAlt(p)"
+                    v-if="thumbUrl(item)"
+                    :src="thumbUrl(item)"
+                    :alt="thumbAlt(item)"
                     width="48"
                     height="48"
                     loading="lazy"
@@ -104,27 +93,26 @@
                   <span v-else class="admin-data-table__thumb-placeholder">—</span>
                 </div>
               </td>
-              <td class="admin-data-table__title-cell">{{ p.title }}</td>
-              <td class="admin-data-table__cell--nowrap">{{ formatPrice(p.price_cents) }}</td>
-              <td>{{ p.quantity_available ?? '—' }}</td>
+              <td class="admin-data-table__title-cell">{{ displayTitle(item) }}</td>
               <td>
                 <span
                   class="admin-status-pill"
-                  :class="p.is_active ? 'admin-status-pill--active' : 'admin-status-pill--inactive'"
+                  :class="item.is_active ? 'admin-status-pill--active' : 'admin-status-pill--inactive'"
                 >
-                  {{ statusLabel(p) }}
+                  {{ statusLabel(item) }}
                 </span>
               </td>
               <td class="admin-data-table__actions-cell">
                 <AdminListingActionsMenu
-                  :product-id="p._id"
-                  :title="p.title"
-                  :is-active="p.is_active"
-                  :open="openMenuId === p._id"
-                  @toggle="toggleMenu(p._id)"
+                  :product-id="item._id"
+                  :title="displayTitle(item)"
+                  :is-active="item.is_active"
+                  edit-base="/admin/gallery/edit"
+                  :open="openMenuId === item._id"
+                  @toggle="toggleMenu(item._id)"
                   @close="closeMenu"
-                  @toggle-active="onToggle(p)"
-                  @delete="onDelete(p)"
+                  @toggle-active="onToggle(item)"
+                  @delete="onDelete(item)"
                 />
               </td>
             </tr>
@@ -140,15 +128,14 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import {
-  getAdminProducts,
-  deleteAdminProduct,
-  toggleAdminProductActive
+  getAdminPortfolio,
+  deleteAdminPortfolio,
+  toggleAdminPortfolioActive
 } from '../../services/api.js';
-import { formatMoneyFromCents } from '../../utils/money.js';
 import {
-  primaryProductImageUrl,
-  productTitle
-} from '../../utils/storefrontProduct.js';
+  primaryPortfolioImageUrl,
+  portfolioTitle
+} from '../../utils/portfolioDisplay.js';
 import { LISTING_SORT_OPTIONS, sortProducts } from '../../utils/adminListSort.js';
 import AdminListingActionsMenu from '../../components/admin/AdminListingActionsMenu.vue';
 import AdminListSortBar from '../../components/admin/AdminListSortBar.vue';
@@ -163,21 +150,22 @@ const openMenuId = ref(null);
 
 const sortedItems = computed(() => sortProducts(items.value, sortBy.value));
 
-function formatPrice(cents) {
-  return formatMoneyFromCents(cents, 'usd');
+function displayTitle(item) {
+  const title = item?.title != null ? String(item.title).trim() : '';
+  return title || 'Untitled';
 }
 
-function thumbUrl(product) {
-  return primaryProductImageUrl(product);
+function thumbUrl(item) {
+  return primaryPortfolioImageUrl(item);
 }
 
-function thumbAlt(product) {
-  const primary = product?.product_images?.find((i) => i?.is_primary) || product?.product_images?.[0];
-  return primary?.alt_text || productTitle(product);
+function thumbAlt(item) {
+  const primary = item?.portfolio_images?.find((i) => i?.is_primary) || item?.portfolio_images?.[0];
+  return primary?.alt_text || portfolioTitle(item);
 }
 
-function statusLabel(product) {
-  return product.is_active ? 'Active' : 'Inactive';
+function statusLabel(item) {
+  return item.is_active ? 'Active' : 'Inactive';
 }
 
 function toggleMenu(id) {
@@ -196,7 +184,7 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    items.value = await getAdminProducts();
+    items.value = await getAdminPortfolio();
   } catch (e) {
     error.value = e.message || 'Failed to load';
   } finally {
@@ -213,19 +201,19 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocumentClick);
 });
 
-async function onToggle(p) {
+async function onToggle(item) {
   try {
-    await toggleAdminProductActive(p._id);
+    await toggleAdminPortfolioActive(item._id);
     await load();
   } catch (e) {
-    alert(e.message || 'Could not update listing status');
+    alert(e.message || 'Could not update status');
   }
 }
 
-async function onDelete(p) {
-  if (!window.confirm(`Delete "${p.title}"? (soft-delete — hidden from shop)`)) return;
+async function onDelete(item) {
+  if (!window.confirm(`Delete "${displayTitle(item)}"? It will be hidden from the gallery.`)) return;
   try {
-    await deleteAdminProduct(p._id);
+    await deleteAdminPortfolio(item._id);
     await load();
   } catch (e) {
     alert(e.message || 'Delete failed');

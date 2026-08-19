@@ -64,6 +64,14 @@ export function getProducts() {
     return fetchJson('/api/products');
 }
 
+export function getPortfolio() {
+    return fetchJson('/api/portfolio');
+}
+
+export function getPortfolioBySlug(slug) {
+    return fetchJson(`/api/portfolio-piece/${encodeURIComponent(slug)}`);
+}
+
 export function getPublicSocialLinks() {
     return fetchJson('/api/site/social-links');
 }
@@ -289,6 +297,40 @@ export function deleteAdminProduct(id) {
 
 export function toggleAdminProductActive(id) {
     return fetchJson(`/api/admin/products/${encodeURIComponent(id)}/toggle-active`, {
+        method: 'PATCH'
+    });
+}
+
+export function getAdminPortfolio() {
+    return fetchJson('/api/admin/portfolio');
+}
+
+export function getAdminPortfolioById(id) {
+    return fetchJson(`/api/admin/portfolio/${encodeURIComponent(id)}`);
+}
+
+export function createAdminPortfolio(body) {
+    return fetchJson('/api/admin/portfolio', {
+        method: 'POST',
+        body
+    });
+}
+
+export function updateAdminPortfolio(id, body) {
+    return fetchJson(`/api/admin/portfolio/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body
+    });
+}
+
+export function deleteAdminPortfolio(id) {
+    return fetchJson(`/api/admin/portfolio/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+    });
+}
+
+export function toggleAdminPortfolioActive(id) {
+    return fetchJson(`/api/admin/portfolio/${encodeURIComponent(id)}/toggle-active`, {
         method: 'PATCH'
     });
 }

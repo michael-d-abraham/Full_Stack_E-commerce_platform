@@ -17,6 +17,8 @@ const adminUploadRoutes = require('./routes/adminUpload');
 const adminOrderRoutes = require('./routes/adminOrders');
 const adminDashboardRoutes = require('./routes/adminDashboard');
 const adminUsersRoutes = require('./routes/adminUsers');
+const adminPortfolioRoutes = require('./routes/adminPortfolio');
+const { listRouter: portfolioListRouter, detailRouter: portfolioDetailRouter } = require('./routes/portfolioCatalog');
 const { attachAdminUser, requireAdminRole } = require('./middleware/adminAuth');
 const { isProduction } = require('./sessionConfig');
 const { sessionMiddlewareOptions } = require('./sessionStore');
@@ -156,6 +158,7 @@ function createApp() {
     app.use('/api/admin/users', ...requireAdmin, adminUsersRoutes);
     app.use('/api/admin', ...requireAdmin, adminUploadRoutes);
     app.use('/api/admin/products', ...requireAdmin, adminProductRoutes);
+    app.use('/api/admin/portfolio', ...requireAdmin, adminPortfolioRoutes);
     app.use('/api/admin/orders', ...requireAdmin, adminOrderRoutes);
     app.use('/api/admin/dashboard', ...requireAdmin, adminDashboardRoutes);
     app.use('/api/admin/site', ...requireAdmin, adminSiteSettingsRoutes);
@@ -163,6 +166,8 @@ function createApp() {
     app.use('/api/contact', contactRateLimiter, contactRoutes);
     app.use('/api/products', listRouter);
     app.use('/api/product', detailRouter);
+    app.use('/api/portfolio', portfolioListRouter);
+    app.use('/api/portfolio-piece', portfolioDetailRouter);
     app.post('/api/create-checkout-session', checkoutRateLimiter, createCheckoutSessionHandler);
     app.use('/api/orders', ordersRoutes);
     app.use('/api/admin/ai', ...requireAdmin, aiIgRoutes);

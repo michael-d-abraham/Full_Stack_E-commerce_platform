@@ -21,6 +21,7 @@
             ref="productDetailRef"
             :slug="slug"
             :initial-product="initialProduct"
+            :content-type="contentType"
             overlay
             @close="emit('close')"
             @lightbox-change="galleryLightboxOpen = $event"
@@ -52,6 +53,10 @@ const props = defineProps({
   open: {
     type: Boolean,
     default: true
+  },
+  contentType: {
+    type: String,
+    default: 'product'
   }
 });
 
