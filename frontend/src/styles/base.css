@@ -43,6 +43,11 @@
   --nav-float-top: 10px;
   --nav-pill-radius: 999px;
   --nav-pill-padding-x: 1.125rem;
+
+  /* Layered footer reveal — set by useSiteFooterHeight when footer mounts */
+  --footer-height: 0px;
+  --z-footer: 0;
+  --z-content: 10;
 }
 
 @media (min-width: 769px) {

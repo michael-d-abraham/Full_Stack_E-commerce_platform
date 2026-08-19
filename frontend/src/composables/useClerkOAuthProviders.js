@@ -1,6 +1,7 @@
 import { computed } from 'vue';
 import { useClerk } from '@clerk/vue';
 import { OAUTH_PROVIDERS, getOAuthProviderData } from '@clerk/shared/oauth';
+import { isClerkEnabled } from '../utils/clerkConfig.js';
 
 function readSocialSettings(clerk) {
     if (!clerk) {
@@ -18,6 +19,14 @@ function readSocialSettings(clerk) {
  * Falls back to Google when settings are not yet available so Gmail sign-in stays visible.
  */
 export function useClerkOAuthProviders() {
+    if (!isClerkEnabled()) {
+        return {
+            providers: computed(() => []),
+            knownProviders: OAUTH_PROVIDERS,
+            clerk: computed(() => null)
+        };
+    }
+
     const clerk = useClerk();
 
     const providers = computed(() => {

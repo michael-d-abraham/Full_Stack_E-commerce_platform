@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import fs from 'fs';
 import path from 'path';
@@ -53,38 +53,43 @@ function sharedCjsToEsmPlugin() {
     };
 }
 
-export default defineConfig({
-    root: path.join(__dirname, 'frontend'),
-    // Clerk and other secrets live in the repo-root .env (not frontend/.env).
-    envDir: path.resolve(__dirname),
-    define: {
-        __APP_COMMIT_SHA__: JSON.stringify(appCommitSha)
-    },
-    plugins: [vue(), sharedCjsToEsmPlugin()],
-    resolve: {
-        alias: {
-            '@': path.join(__dirname, 'frontend', 'src'),
-            '@shared': sharedDir
-        }
-    },
-    preview: {
-        proxy: {
-            '/api': {
-                target: 'http://localhost:3000',
-                changeOrigin: true
-            }
-        }
-    },
-    server: {
-        fs: {
-            allow: [path.resolve(__dirname)]
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, path.resolve(__dirname), '');
+    const apiTarget = `http://localhost:${env.PORT || '3000'}`;
+
+    return {
+        root: path.join(__dirname, 'frontend'),
+        // Clerk and other secrets live in the repo-root .env (not frontend/.env).
+        envDir: path.resolve(__dirname),
+        define: {
+            __APP_COMMIT_SHA__: JSON.stringify(appCommitSha)
         },
-        port: 5173,
-        proxy: {
-            '/api': {
-                target: 'http://localhost:3000',
-                changeOrigin: true
+        plugins: [vue(), sharedCjsToEsmPlugin()],
+        resolve: {
+            alias: {
+                '@': path.join(__dirname, 'frontend', 'src'),
+                '@shared': sharedDir
+            }
+        },
+        preview: {
+            proxy: {
+                '/api': {
+                    target: apiTarget,
+                    changeOrigin: true
+                }
+            }
+        },
+        server: {
+            fs: {
+                allow: [path.resolve(__dirname)]
+            },
+            port: 5173,
+            proxy: {
+                '/api': {
+                    target: apiTarget,
+                    changeOrigin: true
+                }
             }
         }
-    }
+    };
 });

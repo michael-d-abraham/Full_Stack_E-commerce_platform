@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
 import { watch } from 'vue';
-import { useAuth } from '@clerk/vue';
 import { getAdminSession } from '../services/api.js';
+import { isClerkEnabled } from '../utils/clerkConfig.js';
+import { useAuthWhenEnabled } from '../composables/useClerkWhenEnabled.js';
 import {
     ensureStorefrontNavLoaded,
     hasStorefrontNavCache,
@@ -13,6 +14,7 @@ import {
 import { startNavProgress, finishNavProgress } from '../composables/useNavProgress.js';
 
 const Gallery = () => import('../pages/Gallery.vue');
+const WannaDos = () => import('../pages/WannaDos.vue');
 const Contact = () => import('../pages/Contact.vue');
 const BookAppointment = () => import('../pages/BookAppointment.vue');
 const Checkout = () => import('../pages/Checkout.vue');
@@ -34,6 +36,7 @@ const AdminInstagramAi = () => import('../pages/AdminInstagramAi.vue');
 const routes = [
     { path: '/', name: 'home', component: Home },
     { path: '/gallery', name: 'gallery', component: Gallery },
+    { path: '/wanna-dos', name: 'wanna-dos', component: WannaDos },
     { path: '/checkout', name: 'checkout', component: Checkout },
     { path: '/order-success', name: 'order-success', component: OrderSuccess },
     {
@@ -79,6 +82,10 @@ const routes = [
     { path: '/admin/instagram-ai', redirect: '/admin/ai' }
 ];
 
+function isProductGridRoute(name) {
+    return name === 'gallery' || name === 'wanna-dos';
+}
+
 const router = createRouter({
     history: createWebHistory(),
     routes,
@@ -87,7 +94,7 @@ const router = createRouter({
             return savedPosition;
         }
 
-        if (to.name === 'gallery' && from.name === 'gallery') {
+        if (isProductGridRoute(to.name) && to.name === from.name) {
             return false;
         }
 
@@ -110,7 +117,8 @@ function waitForClerkLoaded(isLoaded) {
 }
 
 router.beforeEach(async (to, from) => {
-    const isGalleryOverlayToggle = to.name === 'gallery' && from.name === 'gallery';
+    const isGalleryOverlayToggle =
+        isProductGridRoute(to.name) && to.name === from.name;
     const isSamePlace = to.fullPath === from.fullPath;
     if (!isSamePlace && !isGalleryOverlayToggle) {
         startNavProgress();
@@ -135,7 +143,19 @@ router.beforeEach(async (to, from) => {
         return true;
     }
 
-    const { isLoaded, isSignedIn } = useAuth();
+    if (!isClerkEnabled()) {
+        try {
+            sessionStorage.setItem(
+                'admin_login_notice',
+                'Admin sign-in requires Clerk. Set VITE_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY in .env, then restart the dev servers.'
+            );
+        } catch {
+            /* ignore */
+        }
+        return { name: 'admin-login', query: { redirect: to.fullPath } };
+    }
+
+    const { isLoaded, isSignedIn } = useAuthWhenEnabled();
     await waitForClerkLoaded(isLoaded);
 
     if (!isSignedIn.value) {

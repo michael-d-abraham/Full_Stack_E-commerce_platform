@@ -1,23 +1,28 @@
 <template>
   <div class="app">
-    <SiteHeader
-      v-if="!isAdminRoute"
-      ref="siteHeaderRef"
-      :hide-for-gallery-product="hideHeaderForGalleryProduct"
-    />
-    <CartDrawer v-if="!isAdminRoute && showCart" />
-    <NavProgress />
-    <main
-      class="app-main"
-      :class="{
-        'app-main--admin': isAdminRoute,
-        'app-main--home': isHomeRoute
-      }"
+    <div
+      class="site-content"
+      :class="{ 'site-content--has-footer': showSocialFooter }"
     >
-      <div class="app-main__inner">
-        <RouteTransition />
-      </div>
-    </main>
+      <SiteHeader
+        v-if="!isAdminRoute"
+        ref="siteHeaderRef"
+        :hide-for-gallery-product="hideHeaderForGalleryProduct"
+      />
+      <CartDrawer v-if="!isAdminRoute && showCart" />
+      <NavProgress />
+      <main
+        class="app-main"
+        :class="{
+          'app-main--admin': isAdminRoute,
+          'app-main--home': isHomeRoute
+        }"
+      >
+        <div class="app-main__inner">
+          <RouteTransition />
+        </div>
+      </main>
+    </div>
     <SiteFooter v-if="showSocialFooter" />
   </div>
 </template>
@@ -32,6 +37,7 @@ import NavProgress from './components/loading/NavProgress.vue';
 import RouteTransition from './components/loading/RouteTransition.vue';
 import { useCart } from './composables/useCart.js';
 import { useMobileNav } from './composables/useMobileNav.js';
+import { useSiteFooterHeight } from './composables/useSiteFooterHeight.js';
 import { hydrateCartFromServer } from './utils/cart.js';
 import { ensureStorefrontNavLoaded } from './composables/useStorefrontNav.js';
 import { useStorefrontLabels } from './composables/useStorefrontLabels.js';
@@ -45,16 +51,23 @@ const siteHeaderRef = ref(null);
 
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isHomeRoute = computed(() => route.name === 'home');
-const isGalleryProductOpen = computed(
-  () =>
-    (route.name === 'wanna-dos' &&
-      typeof route.query.product === 'string' &&
-      Boolean(route.query.product)) ||
-    (route.name === 'gallery' &&
-      typeof route.query.work === 'string' &&
-      Boolean(route.query.work))
-);
+const isGalleryProductOpen = computed(() => {
+  const product = route.query.product;
+  const hasProduct = typeof product === 'string' && Boolean(product);
+  return (
+  (route.name === 'wanna-dos' || route.name === 'gallery') && hasProduct
+  );
+});
 const hideHeaderForGalleryProduct = computed(() => isGalleryProductOpen.value);
+
+const showSocialFooter = computed(() => {
+  const name = route.name;
+  return name === 'home' || name === 'gallery' || name === 'wanna-dos' || name === 'contact' || name === 'book-appointment';
+});
+
+const { syncFooterHeight } = useSiteFooterHeight({
+  isActive: showSocialFooter
+});
 
 function onEscape(event) {
   if (event.key === 'Escape' && mobileMenuOpen.value) {
@@ -72,7 +85,10 @@ watch(
   () => {
     closeMobileMenu();
     siteHeaderRef.value?.resetHeader();
-    nextTick(() => siteHeaderRef.value?.syncSiteHeaderOffset());
+    nextTick(() => {
+      siteHeaderRef.value?.syncSiteHeaderOffset();
+      syncFooterHeight();
+    });
   }
 );
 
@@ -87,16 +103,12 @@ onMounted(() => {
   ensureSiteBrandLoaded();
   window.addEventListener('keydown', onEscape);
   syncBodyHeaderClasses();
+  syncFooterHeight();
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onEscape);
   document.body.classList.remove('mobile-menu-open', 'cart-open');
-});
-
-const showSocialFooter = computed(() => {
-  const name = route.name;
-  return name === 'home' || name === 'gallery' || name === 'wanna-dos' || name === 'contact' || name === 'book-appointment';
 });
 </script>
 
@@ -156,7 +168,6 @@ const showSocialFooter = computed(() => {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
 }
 
 .app:has(.admin-shell) {

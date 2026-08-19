@@ -1,9 +1,9 @@
 <template>
   <StorefrontProductGridPage
-    route-name="gallery"
-    :page-title="galleryPageTitle"
-    :empty-message="galleryEmptyMessage"
-    :section-label="gallerySectionLabel"
+    route-name="wanna-dos"
+    :page-title="wannaDosPageTitle"
+    :empty-message="wannaDosEmptyMessage"
+    :section-label="wannaDosSectionLabel"
   />
 </template>
 
@@ -11,5 +11,5 @@
 import StorefrontProductGridPage from '../components/product/StorefrontProductGridPage.vue';
 import { useStorefrontLabels } from '../composables/useStorefrontLabels.js';
 
-const { galleryPageTitle, galleryEmptyMessage, gallerySectionLabel } = useStorefrontLabels();
+const { wannaDosPageTitle, wannaDosEmptyMessage, wannaDosSectionLabel } = useStorefrontLabels();
 </script>

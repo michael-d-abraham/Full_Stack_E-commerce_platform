@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSignIn, useSignUp } from '@clerk/vue';
+import { useSignInWhenEnabled, useSignUpWhenEnabled } from '../../composables/useClerkWhenEnabled.js';
 import { useClerkOAuthProviders } from '../../composables/useClerkOAuthProviders.js';
 import { clerkErrorMessage } from '../../utils/clerkErrors.js';
 
@@ -43,8 +43,8 @@ const props = defineProps({
 const emit = defineEmits(['error', 'start']);
 
 const { providers } = useClerkOAuthProviders();
-const { isLoaded: signInLoaded, signIn } = useSignIn();
-const { isLoaded: signUpLoaded, signUp } = useSignUp();
+const { isLoaded: signInLoaded, signIn } = useSignInWhenEnabled();
+const { isLoaded: signUpLoaded, signUp } = useSignUpWhenEnabled();
 const busyStrategy = ref('');
 
 function labelFor(provider) {

@@ -22,8 +22,10 @@
       <p v-if="notice" class="admin-auth__notice" role="status">{{ notice }}</p>
       <p v-if="error" class="error admin-auth__error" role="alert">{{ error }}</p>
 
+      <AdminClerkSetupNotice v-if="!clerkEnabled" />
+
       <!-- Sign in -->
-      <template v-if="step === 'sign-in'">
+      <template v-else-if="step === 'sign-in'">
         <AdminAuthOAuthButtons
           mode="sign-in"
           :disabled="!isReady || busy"
@@ -209,18 +211,20 @@
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useAuth, useSignIn } from '@clerk/vue';
 import SiteBrandMark from '../components/brand/SiteBrandMark.vue';
 import AdminAuthOAuthButtons from '../components/admin/AdminAuthOAuthButtons.vue';
+import AdminClerkSetupNotice from '../components/admin/AdminClerkSetupNotice.vue';
 import { useSiteBrand, ensureSiteBrandLoaded } from '../composables/useSiteBrand.js';
+import { clerkIsEnabled, useAuthWhenEnabled, useSignInWhenEnabled } from '../composables/useClerkWhenEnabled.js';
 import { clerkErrorMessage } from '../utils/clerkErrors.js';
 import '../styles/admin-auth.css';
 
 const route = useRoute();
 const router = useRouter();
+const clerkEnabled = clerkIsEnabled();
 const { brandHomeAriaLabel } = useSiteBrand();
-const { isLoaded: authLoaded, isSignedIn } = useAuth();
-const { isLoaded, signIn, setActive } = useSignIn();
+const { isLoaded: authLoaded, isSignedIn } = useAuthWhenEnabled();
+const { isLoaded, signIn, setActive } = useSignInWhenEnabled();
 
 const step = ref('sign-in');
 const email = ref('');
@@ -499,6 +503,9 @@ onMounted(() => {
 watch(
   [authLoaded, isSignedIn],
   ([loaded, signedIn]) => {
+    if (!clerkEnabled) {
+      return;
+    }
     if (loaded && signedIn) {
       router.replace(redirectTarget.value);
     }

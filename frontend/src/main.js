@@ -12,6 +12,7 @@ import './styles/admin-data-table.css';
 import './styles/admin-customize.css';
 import './styles/mobile.css';
 import './styles/site-header.css';
+import './styles/site-footer.css';
 import './styles/loading.css';
 import { isClerkEnabled, getClerkPublishableKey } from './utils/clerkConfig.js';
 
