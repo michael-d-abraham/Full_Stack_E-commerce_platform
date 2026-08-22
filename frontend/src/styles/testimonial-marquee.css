@@ -225,6 +225,13 @@
   background: var(--testimonial-section-bg);
 }
 
+/* Layered footer reveal: sticky footer overlaps the page bottom — keep cards visible */
+@media (min-width: 769px) {
+  .home-testimonials {
+    padding-bottom: calc(var(--space-2xl) + var(--footer-height, 12rem));
+  }
+}
+
 .home-testimonials__background {
   position: absolute;
   inset: 0;

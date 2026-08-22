@@ -44,7 +44,7 @@
 }
 
 @media (min-width: 641px) {
-  /* —— Testimonials: marquee band between hero and about —— */
+  /* —— Testimonials: marquee band below about —— */
   .home-testimonials {
     padding: var(--space-2xl) 0;
   }

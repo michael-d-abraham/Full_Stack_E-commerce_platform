@@ -19,15 +19,15 @@
           :quote="content.hero_quote"
           :title="content.hero_title"
         />
-        <HomeTestimonialMarquee
-          :background-image-url="content.featured_background_image_url"
-        />
         <HomeAboutSection
           :section-title="content.about_title"
           :header="content.about_header"
           :text="content.about_text"
           :image-url="content.about_image_url"
           :background-image-url="content.about_background_image_url"
+        />
+        <HomeTestimonialMarquee
+          :background-image-url="content.featured_background_image_url"
         />
       </template>
     </PageReveal>
