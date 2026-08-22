@@ -3,26 +3,31 @@
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Core palette — flat blush composition (admin + storefront) */
-  --color-bg: #fff1f8;
-  --color-surface: #fff1f8;
-  --color-highlight: #fff1f8;
-  --color-product-image-bg: var(--color-highlight);
-  --color-text: #6e6e73;
-  --color-text-muted: #95959a;
-  --color-heading: var(--color-text);
-  --color-border: #e5e5e5;
-  --color-border-strong: #111111;
-  --color-accent: #111111;
-  --color-accent-hover: #2a2a2a;
-  --color-accent-muted: #999999;
-  --color-error: var(--color-text);
+  /* Four colors only — white + pinks (no black or grey) */
+  --color-white: #ffffff;
+  --color-light-pink: #fff1f8;
+  --color-pink: #f0b8d0;
+  --color-really-pink: #c94b73;
+
+  --color-bg: var(--color-light-pink);
+  --color-surface: var(--color-pink);
+  --color-highlight: var(--color-white);
+  --color-product-image-bg: var(--color-white);
+  --color-text: var(--color-really-pink);
+  --color-text-muted: var(--color-pink);
+  --color-heading: var(--color-really-pink);
+  --color-border: var(--color-pink);
+  --color-border-strong: var(--color-really-pink);
+  --color-accent: var(--color-really-pink);
+  --color-accent-hover: var(--color-really-pink);
+  --color-accent-muted: var(--color-pink);
+  --color-error: var(--color-really-pink);
 
   /* RGB channels (for alpha compositing) */
-  --color-text-rgb: 110, 110, 115;
-  --color-accent-rgb: 17, 17, 17;
-  --color-highlight-rgb: 255, 241, 248;
-  --color-surface-rgb: 255, 241, 248;
+  --color-text-rgb: 201, 75, 115;
+  --color-accent-rgb: 201, 75, 115;
+  --color-highlight-rgb: 255, 255, 255;
+  --color-surface-rgb: 240, 184, 208;
   --color-bg-rgb: 255, 241, 248;
 
   /* Overlays & scrims */

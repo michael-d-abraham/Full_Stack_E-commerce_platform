@@ -243,12 +243,12 @@
 }
 
 .add-to-cart-button:hover:not(:disabled) {
-  background: #222;
+  background: var(--color-accent);
   opacity: 1;
 }
 
 .add-to-cart-button:disabled {
-  background: #999;
+  background: var(--color-pink);
   cursor: not-allowed;
 }
 
