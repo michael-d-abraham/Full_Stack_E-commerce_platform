@@ -34,7 +34,7 @@ defineEmits(['click']);
   width: 100%;
   height: 42px;
   background: var(--color-text);
-  color: var(--color-highlight);
+  color: var(--color-text);
   border: 0;
   border-radius: 0;
   font-size: 16px;
@@ -52,7 +52,7 @@ defineEmits(['click']);
 }
 
 .add-to-cart-button:disabled {
-  background: var(--color-pink);
+  background: var(--color-accent);
   cursor: not-allowed;
 }
 </style>

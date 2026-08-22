@@ -226,7 +226,7 @@ onMounted(async () => {
 
 .load-more-button:hover:not(:disabled) {
   background: var(--color-text);
-  color: var(--color-highlight);
+  color: var(--color-text);
   opacity: 1;
 }
 

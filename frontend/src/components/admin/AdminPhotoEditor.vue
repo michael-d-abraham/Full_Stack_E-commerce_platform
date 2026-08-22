@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
 .photo-editor__btn--on {
   border-color: var(--color-accent);
   background: var(--color-accent);
-  color: var(--color-highlight);
+  color: var(--color-text);
 }
 
 .photo-editor__btn--text {

@@ -22,15 +22,17 @@ Brand constraints in **this file override** any Apple HIG recommendation. Use HI
 
 | Role | Token | Hex |
 |------|-------|-----|
-| Background | `--color-bg` | `#FFF1F8` |
-| Surface | `--color-surface` | `#F5F5F3` |
-| Highlight | `--color-highlight` | `#FFFFFF` |
-| Text | `--color-text` | `#111111` |
-| Muted text | `--color-text-muted` | `#6E6E73` |
-| Border | `--color-border` | `#E5E5E5` |
+| Background | `--color-bg` | `#FFF4F9` |
+| Highlight | `--color-highlight` | `#FAE9F1` |
+| Surface | `--color-surface` | `#FAE9F1` |
+| Border | `--color-border` | `#F3DDE7` |
+| Text | `--color-text` | `#FFFFFF` |
+| Muted text | `--color-text-muted` | `rgba(255,255,255,0.78)` |
+| **Heading / title** | `--color-heading` | `#FFFFFF` |
+| Accent (buttons, frames) | `--color-accent` | `#E8B8CC` |
 
 - Product image stages use `--color-highlight` / `--color-product-image-bg`.
-- On dark fills (primary buttons, inverted hovers), text uses `--color-highlight` — not `--color-surface`.
+- On accent fills (primary buttons, inverted hovers), text uses `--color-text` (white).
 - Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).
 - System sans stack (`--font-sans`), not SF Pro imports.
 - Soft blush editorial aesthetic — restrained materials, not iOS chrome or heavy glassmorphism.

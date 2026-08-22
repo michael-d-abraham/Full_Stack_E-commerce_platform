@@ -141,7 +141,7 @@ defineEmits(['pick', 'remove']);
   align-items: center;
   justify-content: center;
   background: var(--color-overlay-scrim);
-  color: var(--color-highlight);
+  color: var(--color-text);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
