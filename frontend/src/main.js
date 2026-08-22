@@ -6,6 +6,7 @@ import './styles/gallery-art-presentation.css';
 import './styles/product-expanded-image.css';
 import './styles/gallery-product-grid.css';
 import './styles/home-page-layout.css';
+import './styles/testimonial-marquee.css';
 import './styles/contact-page-layout.css';
 import './styles/hero-display.css';
 import './styles/admin-data-table.css';

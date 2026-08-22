@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../pages/Home.vue';
-import { watch } from 'vue';
 import { getAdminSession } from '../services/api.js';
 import { isClerkEnabled } from '../utils/clerkConfig.js';
-import { useAuthWhenEnabled } from '../composables/useClerkWhenEnabled.js';
+import {
+    getClerkSessionToken,
+    resolveAdminRedirectTarget
+} from '../services/clerkToken.js';
 import {
     ensureStorefrontNavLoaded,
     hasStorefrontNavCache,
@@ -108,18 +110,28 @@ const router = createRouter({
     }
 });
 
-function waitForClerkLoaded(isLoaded) {
-    if (isLoaded.value) {
-        return Promise.resolve();
+const ADMIN_SESSION_NOTICE =
+    'Signed in with Clerk, but the API could not verify your session. Confirm CLERK_SECRET_KEY matches your publishable key in .env and restart the Node API server.';
+
+function setAdminLoginNotice(message) {
+    try {
+        sessionStorage.setItem('admin_login_notice', message);
+    } catch {
+        /* ignore */
     }
-    return new Promise((resolve) => {
-        const stop = watch(isLoaded, (loaded) => {
-            if (loaded) {
-                stop();
-                resolve();
-            }
-        });
-    });
+}
+
+async function verifyClerkAdminApiSession() {
+    const token = await getClerkSessionToken();
+    if (!token) {
+        return false;
+    }
+    try {
+        await getAdminSession();
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 router.beforeEach(async (to, from) => {
@@ -146,44 +158,37 @@ router.beforeEach(async (to, from) => {
     }
 
     if (to.name === 'admin-login' || to.name === 'admin-sign-up' || to.name === 'admin-sso-callback') {
+        if (!isClerkEnabled() && (to.name === 'admin-sign-up' || to.name === 'admin-sso-callback')) {
+            return { name: 'admin-login' };
+        }
+        if (isClerkEnabled() && to.name === 'admin-login') {
+            const verified = await verifyClerkAdminApiSession();
+            if (verified) {
+                return resolveAdminRedirectTarget(to.query.redirect);
+            }
+        }
         return true;
     }
 
     if (!isClerkEnabled()) {
         try {
-            sessionStorage.setItem(
-                'admin_login_notice',
-                'Admin sign-in requires Clerk. Set VITE_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY in .env, then restart the dev servers.'
-            );
-        } catch {
-            /* ignore */
-        }
-        return { name: 'admin-login', query: { redirect: to.fullPath } };
-    }
-
-    const { isLoaded, isSignedIn } = useAuthWhenEnabled();
-    await waitForClerkLoaded(isLoaded);
-
-    if (!isSignedIn.value) {
-        return { name: 'admin-login', query: { redirect: to.fullPath } };
-    }
-
-    try {
-        await getAdminSession();
-        return true;
-    } catch (err) {
-        if (err?.status === 401) {
-            try {
-                sessionStorage.setItem(
-                    'admin_login_notice',
-                    'Your sign-in could not be kept active. Try again after the site redeploys, or contact support if this continues.'
-                );
-            } catch {
-                /* ignore */
+            await getAdminSession();
+            return true;
+        } catch (err) {
+            if (err?.status === 401) {
+                return { name: 'admin-login', query: { redirect: to.fullPath } };
             }
+            return { name: 'admin-login', query: { redirect: to.fullPath } };
         }
+    }
+
+    const verified = await verifyClerkAdminApiSession();
+    if (!verified) {
+        setAdminLoginNotice(ADMIN_SESSION_NOTICE);
         return { name: 'admin-login', query: { redirect: to.fullPath } };
     }
+
+    return true;
 });
 
 router.afterEach((to, from) => {

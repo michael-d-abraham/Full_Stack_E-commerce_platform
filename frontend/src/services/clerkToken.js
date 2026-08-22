@@ -14,3 +14,25 @@ export async function getClerkSessionToken() {
         return null;
     }
 }
+
+/**
+ * Resolve a safe post-login admin path from router query.redirect.
+ */
+export function resolveAdminRedirectTarget(queryRedirect) {
+    if (
+        typeof queryRedirect === 'string' &&
+        queryRedirect.startsWith('/admin') &&
+        !queryRedirect.startsWith('/admin/login') &&
+        !queryRedirect.startsWith('/admin/sign-up')
+    ) {
+        return queryRedirect;
+    }
+    return '/admin/dashboard';
+}
+
+/**
+ * True when Clerk has an active session token in the browser.
+ */
+export async function hasClerkSessionToken() {
+    return Boolean(await getClerkSessionToken());
+}

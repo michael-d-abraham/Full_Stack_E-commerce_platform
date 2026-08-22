@@ -6,9 +6,8 @@
           <div class="skeleton-stack">
             <Skeleton variant="title" width="70%" />
             <Skeleton variant="title" width="55%" />
-            <Skeleton variant="text" width="20%" />
-            <div class="home-page__skeleton-grid">
-              <Skeleton v-for="n in 3" :key="n" variant="card" height="16rem" />
+            <div class="home-page__skeleton-marquee">
+              <Skeleton v-for="n in 3" :key="n" variant="card" height="12rem" />
             </div>
           </div>
         </div>
@@ -20,11 +19,8 @@
           :quote="content.hero_quote"
           :title="content.hero_title"
         />
-        <HomeFeaturedProducts
-          v-if="featuredProducts.length"
-          :section-title="content.featured_title"
+        <HomeTestimonialMarquee
           :background-image-url="content.featured_background_image_url"
-          :products="featuredProducts"
         />
         <HomeAboutSection
           :section-title="content.about_title"
@@ -42,13 +38,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { getPublicHomePage } from '../services/api.js';
 import { createSwrCache } from '../composables/createSwrCache.js';
-import {
-  ensureProductsList,
-  getCachedProductsList,
-  seedProductCache
-} from '../composables/useProductCache.js';
 import HomeHero from '../components/home/HomeHero.vue';
-import HomeFeaturedProducts from '../components/home/HomeFeaturedProducts.vue';
+import HomeTestimonialMarquee from '../components/home/HomeTestimonialMarquee.vue';
 import HomeAboutSection from '../components/home/HomeAboutSection.vue';
 import PageReveal from '../components/loading/PageReveal.vue';
 import Skeleton from '../components/loading/Skeleton.vue';
@@ -62,46 +53,20 @@ const homeCache = createSwrCache({
 });
 
 const content = ref(homeCache.getCached());
-const catalogProducts = ref(getCachedProductsList() || []);
 const error = ref('');
 
 const ready = computed(() => Boolean(content.value) || Boolean(error.value));
-
-const featuredProducts = computed(() => {
-  if (!content.value?.featured_products?.length || !catalogProducts.value.length) {
-    return [];
-  }
-  const byId = new Map(catalogProducts.value.map((p) => [String(p._id), p]));
-  return content.value.featured_products
-    .map((slot) => (slot.product_id ? byId.get(String(slot.product_id)) : null))
-    .filter(Boolean);
-});
 
 onMounted(async () => {
   error.value = '';
   prefetchRouteChunks(['gallery', 'product']);
   try {
-    const [homeData, products] = await Promise.all([
-      homeCache.ensure(() => getPublicHomePage(), {
-        onUpdate(data) {
-          content.value = data;
-        }
-      }),
-      ensureProductsList({
-        onUpdate(list) {
-          catalogProducts.value = list;
-        }
-      })
-    ]);
+    const homeData = await homeCache.ensure(() => getPublicHomePage(), {
+      onUpdate(data) {
+        content.value = data;
+      }
+    });
     content.value = homeData;
-    catalogProducts.value = Array.isArray(products) ? products : [];
-    seedProductCache(catalogProducts.value, { prefetchImages: false });
-    if (featuredProducts.value.length) {
-      seedProductCache(featuredProducts.value, {
-        prefetchImages: true,
-        updateListCache: false
-      });
-    }
   } catch (e) {
     if (!content.value) {
       error.value = e.message || 'Failed to load home page';
@@ -127,16 +92,15 @@ onMounted(async () => {
   padding: var(--space-lg) var(--space-md);
 }
 
-.home-page__skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.home-page__skeleton-marquee {
+  display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  overflow: hidden;
 }
 
-@media (max-width: 768px) {
-  .home-page__skeleton-grid {
-    grid-template-columns: 1fr;
-  }
+.home-page__skeleton-marquee :deep(.skeleton) {
+  flex: 0 0 min(85vw, 320px);
+  min-width: 200px;
 }
 </style>
