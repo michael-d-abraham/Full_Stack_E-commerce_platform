@@ -5,6 +5,14 @@
 .admin-customize {
   width: 100%;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.admin-customize > .admin-float + .admin-float {
+  margin-top: 0;
 }
 
 .admin-customize .admin-float-card__title {

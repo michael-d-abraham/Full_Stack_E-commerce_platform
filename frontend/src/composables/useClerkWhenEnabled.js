@@ -10,10 +10,11 @@ export function useAuthWhenEnabled() {
     if (!isClerkEnabled()) {
         const isLoaded = ref(true);
         const isSignedIn = ref(false);
+        const signOut = ref(async () => undefined);
         return {
             isLoaded,
             isSignedIn,
-            signOut: async () => undefined
+            signOut
         };
     }
     return useAuth();

@@ -26,6 +26,25 @@
 
       <!-- Sign in -->
       <template v-else-if="step === 'sign-in'">
+        <template v-if="alreadySignedIn">
+          <p class="admin-auth__lede">You're already signed in.</p>
+          <p v-if="error" class="error admin-auth__error" role="alert">{{ error }}</p>
+          <button
+            type="button"
+            class="btn-primary admin-auth__submit"
+            :disabled="busy"
+            @click="continueToDashboard"
+          >
+            {{ busy ? 'Opening dashboard…' : 'Continue to dashboard' }}
+          </button>
+          <div class="admin-auth__actions">
+            <button type="button" class="admin-auth__text-btn" :disabled="busy" @click="onSignOut">
+              Sign out
+            </button>
+          </div>
+        </template>
+
+        <template v-else>
         <AdminAuthOAuthButtons
           mode="sign-in"
           :disabled="!isReady || busy"
@@ -75,6 +94,7 @@
             {{ busy ? 'Signing in…' : 'Sign in' }}
           </button>
         </form>
+        </template>
       </template>
 
     <!-- Forgot: request code -->
@@ -217,13 +237,14 @@ import AdminClerkSetupNotice from '../components/admin/AdminClerkSetupNotice.vue
 import { useSiteBrand, ensureSiteBrandLoaded } from '../composables/useSiteBrand.js';
 import { clerkIsEnabled, useAuthWhenEnabled, useSignInWhenEnabled } from '../composables/useClerkWhenEnabled.js';
 import { clerkErrorMessage } from '../utils/clerkErrors.js';
+import { getAdminSession, logoutAdmin } from '../services/api.js';
 import '../styles/admin-auth.css';
 
 const route = useRoute();
 const router = useRouter();
 const clerkEnabled = clerkIsEnabled();
 const { brandHomeAriaLabel } = useSiteBrand();
-const { isLoaded: authLoaded, isSignedIn } = useAuthWhenEnabled();
+const { isLoaded: authLoaded, isSignedIn, signOut } = useAuthWhenEnabled();
 const { isLoaded, signIn, setActive } = useSignInWhenEnabled();
 
 const step = ref('sign-in');
@@ -236,6 +257,7 @@ const busy = ref(false);
 const statusDelayElapsed = ref(false);
 
 const isReady = computed(() => Boolean(isLoaded.value && authLoaded.value));
+const alreadySignedIn = computed(() => isReady.value && Boolean(isSignedIn.value));
 const showStatus = computed(() => busy.value || (!isReady.value && statusDelayElapsed.value));
 
 const title = computed(() => {
@@ -256,6 +278,9 @@ const lede = computed(() => {
     return 'Choose a new password for your admin account.';
   }
   if (step.value === 'sign-in') {
+    if (isReady.value && isSignedIn.value) {
+      return '';
+    }
     return 'Sign in to manage the gallery.';
   }
   return '';
@@ -279,6 +304,40 @@ const redirectTarget = computed(() => {
   }
   return '/admin/dashboard';
 });
+
+async function continueToDashboard() {
+  error.value = '';
+  busy.value = true;
+  try {
+    await getAdminSession();
+    await router.replace(redirectTarget.value);
+  } catch (e) {
+    error.value =
+      e?.status === 401
+        ? 'Your sign-in could not be verified by the server. Try signing out and back in, or restart the dev servers.'
+        : e?.message || 'Could not open the dashboard. Is the API server running?';
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function onSignOut() {
+  error.value = '';
+  busy.value = true;
+  try {
+    if (isSignedIn.value && signOut.value) {
+      await signOut.value();
+    }
+  } catch {
+    /* still clear legacy session */
+  }
+  try {
+    await logoutAdmin();
+  } catch {
+    /* ignore */
+  }
+  busy.value = false;
+}
 
 async function finishSession(sessionId) {
   await setActive.value({ session: sessionId });
@@ -320,6 +379,10 @@ function resetToSignIn() {
 async function onSignIn() {
   error.value = '';
   if (!isReady.value || !signIn.value) return;
+  if (isSignedIn.value) {
+    await continueToDashboard();
+    return;
+  }
 
   busy.value = true;
   try {
@@ -501,13 +564,13 @@ onMounted(() => {
 });
 
 watch(
-  [authLoaded, isSignedIn],
-  ([loaded, signedIn]) => {
+  [authLoaded, isSignedIn, () => route.path],
+  ([loaded, signedIn, path]) => {
     if (!clerkEnabled) {
       return;
     }
-    if (loaded && signedIn) {
-      router.replace(redirectTarget.value);
+    if (loaded && signedIn && path === '/admin/login' && step.value === 'sign-in') {
+      continueToDashboard();
     }
   },
   { immediate: true }

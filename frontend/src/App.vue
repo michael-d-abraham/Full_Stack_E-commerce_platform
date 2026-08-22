@@ -147,6 +147,14 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+.app-main--admin:has(.admin-shell) .app-main__inner > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-main__inner {
   max-width: var(--max-width-page);
   margin: 0 auto;

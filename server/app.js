@@ -141,10 +141,17 @@ function createApp() {
         const { clerkMiddleware } = require('@clerk/express');
         const publishableKey =
             process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY;
+        const clientOrigin = parseOrigin(process.env.CLIENT_URL || process.env.FRONTEND_URL);
+        const authorizedParties = [
+            clientOrigin,
+            'http://localhost:5173',
+            'http://127.0.0.1:5173'
+        ].filter(Boolean);
         app.use(
             clerkMiddleware({
                 publishableKey,
-                secretKey: process.env.CLERK_SECRET_KEY
+                secretKey: process.env.CLERK_SECRET_KEY,
+                authorizedParties
             })
         );
     }
