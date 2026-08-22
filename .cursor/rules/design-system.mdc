@@ -1,0 +1,88 @@
+---
+description: Madd Lines universal design system — editorial B&W with Apple HIG review lens (brand overrides HIG defaults)
+globs:
+  - frontend/**
+alwaysApply: true
+---
+
+# Madd Lines design system
+
+Master UI rule for this project. Topic details live in scoped rules:
+
+- **Header scroll pill** → `site-header.mdc`
+- **Product circle controls** → `mobile-floating-circle-buttons.mdc`
+
+## Rule hierarchy
+
+Brand constraints in **this file override** any Apple HIG recommendation. Use HIG as a review checklist only — not as a reason to add iOS chrome, tab bars, SF Pro, accent colors, or heavy glass.
+
+## Brand (do not override)
+
+- Monochrome palette from `frontend/src/styles/base.css` (`--color-*`). No accent colors unless explicitly requested.
+- Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).
+- System sans stack (`--font-sans`), not SF Pro imports.
+- Editorial B&W monochrome — not iOS chrome, not heavy glassmorphism.
+
+## Breakpoints
+
+| Breakpoint | Use |
+|------------|-----|
+| **768px / 769px** | Storefront header: desktop nav vs mobile hamburger. See `site-header.mdc`. |
+| **640px** | Product UI, mobile storefront pass, parallax, `mobile-safe-*` insets. `useMediaQuery('(max-width: 640px)')`. |
+
+Do not use 640px for header nav layout. Do not use 768px for product gallery or overlay logic.
+
+## Touch & layout
+
+- **Minimum tap target:** 44×44px on mobile (`ProductFloatingCircleButton--lg` for close).
+- Use `mobile-safe-container` / `--mobile-safe-inset-x`; `mobile-safe-bleed` for full-bleed media.
+- `touch-action: manipulation` and `-webkit-tap-highlight-color: transparent` on interactive controls.
+
+## Materials & controls
+
+- **Frosted floating controls:** extend `ProductFloatingCircleButton` — never duplicate in one-off buttons. See `mobile-floating-circle-buttons.mdc`.
+- Circle buttons and header controls keep frosted/normal shadow on focus — **never** `box-shadow: var(--focus-ring)`.
+
+## Motion
+
+- Short ease transitions (~0.15–0.26s). Always `@media (prefers-reduced-motion: reduce)`.
+- Parallax only via `useScrollParallax` / `useSectionBackgroundParallax`.
+- **Storefront header:** continuous `--nav-scroll` via `useSiteHeaderScroll` — not binary `.scrolled`, not hide-on-scroll. See `site-header.mdc`.
+
+## Content & images
+
+- Prefer `SmartImage` for photos.
+- Skeleton placeholders over spinners for content loads.
+
+## Vue / CSS conventions
+
+- Vue 3 SFCs; composables in `frontend/src/composables/`
+- Scoped styles: extend shared tokens and components over copying CSS blocks
+- Accessibility: descriptive `aria-label` on controls; icons `aria-hidden`
+
+## When adding UI
+
+```vue
+<!-- ✅ Extend shared control -->
+<ProductFloatingCircleButton icon="expand" placement="stage-enlarge" aria-label="View full size" />
+
+<!-- ❌ One-off frosted circle -->
+<button class="my-random-circle-btn">...</button>
+```
+
+## Design review checklist (HIG-inspired)
+
+Use when auditing UI — **filtered through brand above**:
+
+1. **Accessibility** — contrast ≥4.5:1 for body text, 44px tap targets on mobile, screen reader labels, don't rely on color alone
+2. **Visual hierarchy** — consistent spacing, clear type scale, restrained materials
+3. **Interaction** — loading/empty states, action feedback, confirm destructive actions
+4. **Content** — concise labels, sentence case for UI text
+
+**Do not apply from HIG:** SF Pro, bottom tab bars, Liquid Glass-heavy UI, platform chrome, mandatory dark mode, iOS navigation patterns.
+
+## Mobile product UI (≤640px)
+
+On visual-only refactors, do not change routing, swipe handlers, lightbox open/close logic, cart behavior, or gallery index state unless explicitly asked.
+
+Key files: `ProductDetail.vue`, `ProductDetailOverlay.vue`, `ProductImageGallery.vue`, `MobileFullscreenImageViewer.vue`.

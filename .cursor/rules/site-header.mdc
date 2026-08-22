@@ -1,0 +1,92 @@
+---
+description: Storefront scroll-progress site header — architecture, tokens, and pitfalls
+globs:
+  - frontend/src/components/layout/SiteHeader.vue
+  - frontend/src/styles/site-header.css
+  - frontend/src/composables/useSiteHeaderScroll.js
+  - frontend/src/components/mobile/MobileMenuDrawer.vue
+  - frontend/src/App.vue
+alwaysApply: false
+---
+
+# Scroll-progress site header
+
+Part of the Madd Lines design system (`design-system.mdc`). Master brand and breakpoint rules live there.
+
+## Architecture
+
+```
+base.css (tokens)
+  → site-header.css (all header/nav surface styles)
+  → SiteHeader.vue (template + composable wiring)
+  → App.vue (<SiteHeader v-if="!isAdminRoute" ref="siteHeaderRef" />)
+```
+
+| File | Role |
+|------|------|
+| `SiteHeader.vue` | Storefront header component; owns `headerRef` / `headerBarRef` |
+| `useSiteHeaderScroll.js` | Passive scroll + rAF; writes `--nav-scroll` to DOM (no Vue re-renders) |
+| `site-header.css` | Pill shell, glass `::before`, bar layout, nav link states |
+| `MobileMenuDrawer.vue` | Mobile links dropdown (teleport backdrop + absolute drawer) |
+
+Admin routes use `AdminLayout.vue` — do not change storefront header for admin.
+
+## `--nav-scroll` (0 → 1)
+
+- `0` = page top (transparent shell, no glass/shadow)
+- `1` = fully scrolled / menu or cart open (glass pill, float offset, shadow)
+
+```js
+progress = clamp(scrollY / --nav-scroll-distance, 0, 1)
+headerEl.style.setProperty('--nav-scroll', progress.toFixed(3))
+```
+
+Distance tokens: **120px** mobile (≤768px), **160px** desktop (≥769px) in `base.css`.
+
+When `isScrollLocked()` (mobile menu or cart drawer): force `1` via JS + `.site-header--menu-open`.
+
+## What scroll animates vs what stays fixed
+
+**Animate with `--nav-scroll` only:**
+- `top` float offset (`--nav-float-top`)
+- `::before` opacity, backdrop blur, frosted background
+- Border color opacity, box-shadow
+- (Vertical detach only — logo/nav move down with shell)
+
+**Must stay constant at all scroll positions** (do not interpolate):
+- Shell `width`: `calc(100% - 2 * var(--nav-inset-x))`
+- Shell position: `left: 50%; transform: translateX(-50%)`
+- `border-radius`: always `var(--nav-pill-radius)` (999px)
+- Bar height: `--site-header-bar-height-compact` (desktop)
+- Bar padding: `--nav-pill-padding-x` (horizontal), compact mobile padding-y
+- Logo scale (no shrink on scroll)
+
+**Pitfall:** Interpolating shell width from `100%` → pill width shifts logo/nav horizontally even when bar padding is constant. Keep pill width centered at all times; only surface treatment changes.
+
+## Layout offset
+
+`--site-header-height` on `<html>` is pinned to the **compact bar height** (measured once via `ResizeObserver`). Content padding does not change mid-scroll.
+
+`html.has-fixed-site-header` enables `scroll-padding-top` in `mobile.css`.
+
+## Breakpoints
+
+- **768px / 769px** — storefront header desktop vs mobile hamburger grid (not 640px)
+- **640px** — product UI, cart icon, parallax (separate convention; see `design-system.mdc`)
+
+## Gallery product overlay
+
+`hideForGalleryProduct` prop → `.is-gallery-hidden` (`translateX(-50%) translateY(-110%)`). `body.gallery-product-open` disables transitions.
+
+## Visual direction
+
+- Editorial B&W monochrome — not iOS chrome, not heavy glassmorphism
+- Restrained frosted pill on scroll; transparent integrated shell at top
+- Link states: 0.2s opacity/underline; respect `prefers-reduced-motion` (snap 0/1)
+
+## Do not
+
+- Reintroduce `useAutoHideSiteHeader` or hide-on-scroll-down
+- Put header CSS back inline in `App.vue`
+- Interpolate bar height, padding, logo scale, or shell width with `--nav-scroll`
+- Use `box-shadow: var(--focus-ring)` on header controls (global button focus rule)

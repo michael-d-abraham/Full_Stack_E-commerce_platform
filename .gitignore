@@ -18,8 +18,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Cursor
-.cursor/
+# Cursor (keep rules versioned)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 
 # Logs
 logs/
