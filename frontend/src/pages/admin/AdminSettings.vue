@@ -3,7 +3,7 @@
     <header class="admin-page-header">
       <h1 class="admin-page-header__title">Settings</h1>
       <div class="admin-page-header__end">
-        <UserButton />
+        <UserButton v-if="clerkEnabled" />
       </div>
     </header>
 
@@ -83,7 +83,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { UserButton, useAuth, useUser } from '@clerk/vue';
+import { UserButton } from '@clerk/vue';
+import {
+  clerkIsEnabled,
+  useAuthWhenEnabled,
+  useUserWhenEnabled
+} from '../../composables/useClerkWhenEnabled.js';
 import {
   logoutAdmin,
   listAdminUsers,
@@ -93,8 +98,9 @@ import {
 } from '../../services/api.js';
 
 const router = useRouter();
-const { signOut, isSignedIn } = useAuth();
-const { user } = useUser();
+const clerkEnabled = clerkIsEnabled();
+const { signOut, isSignedIn } = useAuthWhenEnabled();
+const { user } = useUserWhenEnabled();
 
 const busyLogout = ref(false);
 const busyInvite = ref(false);

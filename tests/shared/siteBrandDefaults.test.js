@@ -11,10 +11,15 @@ function alwaysValidUrl() {
 }
 
 describe('siteBrandDefaults', () => {
-    it('resolveSiteName falls back to PERM when empty', () => {
+    it('resolveSiteName falls back to Madd Lines when empty', () => {
         expect(resolveSiteName('')).toBe(DEFAULT_SITE_NAME);
         expect(resolveSiteName('   ')).toBe(DEFAULT_SITE_NAME);
         expect(resolveSiteName(null)).toBe(DEFAULT_SITE_NAME);
+    });
+
+    it('resolveSiteName remaps legacy PERM to Madd Lines', () => {
+        expect(resolveSiteName('PERM')).toBe(DEFAULT_SITE_NAME);
+        expect(resolveSiteName('perm')).toBe(DEFAULT_SITE_NAME);
     });
 
     it('resolveSiteName returns trimmed custom name', () => {

@@ -49,12 +49,13 @@ const props = defineProps({
   productId: { type: String, required: true },
   title: { type: String, default: 'listing' },
   isActive: { type: Boolean, default: true },
-  open: { type: Boolean, default: false }
+  open: { type: Boolean, default: false },
+  editBase: { type: String, default: '/admin/edit' }
 });
 
 const emit = defineEmits(['toggle', 'close', 'toggle-active', 'delete']);
 
-const editTo = computed(() => `/admin/edit/${props.productId}`);
+const editTo = computed(() => `${props.editBase}/${props.productId}`);
 
 const toggleLabel = computed(() => (props.isActive ? 'Disable' : 'Enable'));
 

@@ -84,7 +84,7 @@ onUnmounted(() => {
 .admin-shell {
   --admin-sidebar-width: 15.5rem;
   width: 100%;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -93,7 +93,7 @@ onUnmounted(() => {
 }
 
 .admin-shell__content {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -168,7 +168,7 @@ onUnmounted(() => {
 }
 
 .admin-shell__main {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   width: 100%;
   max-width: none;
@@ -185,11 +185,12 @@ onUnmounted(() => {
   .admin-shell {
     flex-direction: row;
     overflow: hidden;
+    min-height: 0;
   }
 
   .admin-shell__content {
     margin-left: var(--admin-sidebar-width);
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
   }
@@ -200,19 +201,25 @@ onUnmounted(() => {
 
   .admin-shell__main {
     padding: 2rem 2.5rem 3rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 0;
   }
 }
 
 @media (max-width: 767px) {
   .admin-shell__content {
     min-height: 0;
-    flex: 1;
+    flex: 1 1 auto;
   }
 
   .admin-shell__main {
     padding: 1.25rem max(16px, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-bottom))
       max(16px, env(safe-area-inset-right));
     overflow-x: clip;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 0;
   }
 }
 </style>

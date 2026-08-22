@@ -1,9 +1,9 @@
 <template>
   <div class="admin-page admin-listings">
     <header class="admin-page-header">
-      <h1 class="admin-page-header__title">Listing</h1>
+      <h1 class="admin-page-header__title">Wanna Do's</h1>
       <router-link to="/admin/new" class="admin-page-header__btn admin-page-header__btn--primary">
-        New listing
+        Add wanna do
       </router-link>
     </header>
 

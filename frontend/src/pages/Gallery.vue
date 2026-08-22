@@ -1,25 +1,23 @@
 <template>
   <div class="gallery-page">
     <header class="gallery-header">
-      <h1 class="page-hero-title gallery-header__title">Gallery</h1>
+      <h1 class="page-hero-title gallery-header__title">{{ galleryPageTitle }}</h1>
     </header>
 
     <p v-if="loading" class="gallery-status">Loading…</p>
     <p v-else-if="error" class="error">{{ error }}</p>
-    <p v-else-if="!products.length" class="gallery-status">No products yet.</p>
+    <p v-else-if="!works.length" class="gallery-status">{{ galleryEmptyMessage }}</p>
 
     <template v-else>
-      <section class="gallery-section" aria-label="Product gallery">
+      <section class="gallery-section" :aria-label="gallerySectionLabel">
         <div class="gallery-container mobile-safe-container">
           <div class="gallery-wall">
             <div class="product-grid product-grid--gallery">
-              <GalleryProductCard
-                v-for="p in visibleProducts"
-                :key="p._id"
-                :product="p"
-                :show-add-to-cart="false"
-                navigation-mode="emit"
-                @open="openProduct"
+              <GalleryPortfolioCard
+                v-for="work in visibleWorks"
+                :key="work._id"
+                :work="work"
+                @open="openWork"
               />
             </div>
           </div>
@@ -36,9 +34,10 @@
     <ProductDetailOverlay
       v-if="overlaySlug"
       :slug="overlaySlug"
-      :initial-product="overlayInitialProduct"
+      :initial-product="overlayInitialWork"
+      content-type="portfolio"
       :open="isOverlayOpen"
-      @close="closeProduct"
+      @close="closeWork"
       @after-leave="onOverlayAfterLeave"
     />
   </div>
@@ -47,74 +46,74 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getProducts } from '../services/api.js';
-import {
-  seedProductCache,
-  prefetchProduct
-} from '../composables/useProductCache.js';
-import GalleryProductCard from '../components/product/GalleryProductCard.vue';
+import { getPortfolio } from '../services/api.js';
+import GalleryPortfolioCard from '../components/portfolio/GalleryPortfolioCard.vue';
 import ProductDetailOverlay from '../components/product/ProductDetailOverlay.vue';
+import { useStorefrontLabels } from '../composables/useStorefrontLabels.js';
+
+const { galleryPageTitle, gallerySectionLabel, galleryEmptyMessage } = useStorefrontLabels();
 
 const PAGE_SIZE = 8;
 
 const route = useRoute();
 const router = useRouter();
 
-const products = ref([]);
+const works = ref([]);
 const loading = ref(true);
 const error = ref('');
 const visibleCount = ref(PAGE_SIZE);
 const overlaySlug = ref(null);
 
-const visibleProducts = computed(() => products.value.slice(0, visibleCount.value));
-const hasMore = computed(() => visibleCount.value < products.value.length);
+const visibleWorks = computed(() => works.value.slice(0, visibleCount.value));
+const hasMore = computed(() => visibleCount.value < works.value.length);
 
-const activeProductSlug = computed(() => {
+const activeWorkSlug = computed(() => {
   const product = route.query.product;
   return typeof product === 'string' && product ? product : null;
 });
 
-const isOverlayOpen = computed(() => Boolean(activeProductSlug.value));
+const isOverlayOpen = computed(() => Boolean(activeWorkSlug.value));
 
-const overlayInitialProduct = computed(() => {
+const overlayInitialWork = computed(() => {
   if (!overlaySlug.value) {
     return null;
   }
-  return products.value.find((p) => p.slug === overlaySlug.value) ?? null;
+  const work = works.value.find((w) => w.slug === overlaySlug.value);
+  if (!work) {
+    return null;
+  }
+  return {
+    ...work,
+    product_images: work.portfolio_images || []
+  };
 });
 
 function expandVisibleCountForSlug(slug) {
   if (!slug) {
     return;
   }
-  const index = products.value.findIndex((p) => p.slug === slug);
+  const index = works.value.findIndex((w) => w.slug === slug);
   if (index < 0 || index < visibleCount.value) {
     return;
   }
   visibleCount.value = Math.min(
     Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE,
-    products.value.length
+    works.value.length
   );
 }
 
 watch(
-  activeProductSlug,
+  activeWorkSlug,
   (slug) => {
     if (slug) {
       overlaySlug.value = slug;
       expandVisibleCountForSlug(slug);
-      prefetchProduct(slug);
     }
   },
   { immediate: true }
 );
 
-watch(visibleProducts, (visible) => {
-  seedProductCache(visible);
-}, { deep: true });
-
-function openProduct(slug) {
-  prefetchProduct(slug);
+function openWork(slug) {
   router.push({
     name: 'gallery',
     query: { product: slug },
@@ -122,11 +121,10 @@ function openProduct(slug) {
   });
 }
 
-function closeProduct() {
+function closeWork() {
   if (!route.query.product) {
     return;
   }
-  // Return to the prior page (home, gallery grid, etc.) when opened in-app.
   if (window.history.state?.productOverlayOpened) {
     router.back();
     return;
@@ -135,28 +133,25 @@ function closeProduct() {
 }
 
 function onOverlayAfterLeave() {
-  if (!activeProductSlug.value) {
+  if (!activeWorkSlug.value) {
     overlaySlug.value = null;
   }
 }
 
 function loadMore() {
-  visibleCount.value = Math.min(visibleCount.value + PAGE_SIZE, products.value.length);
+  visibleCount.value = Math.min(visibleCount.value + PAGE_SIZE, works.value.length);
 }
 
 onMounted(async () => {
   loading.value = true;
   error.value = '';
   try {
-    products.value = await getProducts();
-    seedProductCache(products.value);
-    visibleCount.value = Math.min(PAGE_SIZE, products.value.length || PAGE_SIZE);
-    expandVisibleCountForSlug(activeProductSlug.value);
-    if (activeProductSlug.value) {
-      prefetchProduct(activeProductSlug.value);
-    }
+    const list = await getPortfolio();
+    works.value = Array.isArray(list) ? list : [];
+    visibleCount.value = Math.min(PAGE_SIZE, works.value.length || PAGE_SIZE);
+    expandVisibleCountForSlug(activeWorkSlug.value);
   } catch (e) {
-    error.value = e.message || 'Failed to load products';
+    error.value = e.message || 'Failed to load gallery';
   } finally {
     loading.value = false;
   }
@@ -267,5 +262,4 @@ onMounted(async () => {
     height: 44px;
   }
 }
-
 </style>

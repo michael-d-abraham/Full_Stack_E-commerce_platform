@@ -31,6 +31,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.SKIP_DB_AUTO_CONNECT) {
 
 const Product = require('./models/Product');
 const ProductImage = require('./models/ProductImage');
+const PortfolioWork = require('./models/PortfolioWork');
+const PortfolioImage = require('./models/PortfolioImage');
 const Order = require('./models/Order');
 const OrderItem = require('./models/OrderItem');
 const AdminUser = require('./models/AdminUser');
@@ -43,6 +45,8 @@ const AiGeneration = require('./models/AiGeneration');
 module.exports = {
     Product,
     ProductImage,
+    PortfolioWork,
+    PortfolioImage,
     Order,
     OrderItem,
     AdminUser,

@@ -25,7 +25,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'header',
-    validator: (value) => ['header', 'footer', 'admin'].includes(value)
+    validator: (value) => ['header', 'footer', 'footer-anchor', 'admin'].includes(value)
   },
   to: {
     type: [String, Object],
@@ -92,6 +92,31 @@ const linkProps = computed(() => {
 
 .site-brand-mark--footer .site-brand-mark__text {
   font-size: 1rem;
+}
+
+.site-brand-mark--footer-anchor {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  justify-content: center;
+}
+
+.site-brand-mark--footer-anchor .site-brand-mark__text {
+  font-size: clamp(3rem, 14vw, 9rem);
+  line-height: 0.95;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.site-brand-mark--footer-anchor.site-brand-mark--image {
+  min-height: 0;
+}
+
+.site-brand-mark--footer-anchor .site-brand-mark__logo {
+  height: clamp(3rem, 12vw, 7rem);
+  max-width: min(100%, 48rem);
 }
 
 .site-brand-mark--admin .site-brand-mark__text {

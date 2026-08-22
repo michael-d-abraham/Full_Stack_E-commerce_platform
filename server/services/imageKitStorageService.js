@@ -6,6 +6,7 @@ const { normalizeImageKitFileId } = require('../utils/imageKitFileIds');
 
 const ALLOWED_FOLDERS = new Set([
     'products',
+    'portfolio',
     'site/hero',
     'site/hero-background',
     'site/featured-background',

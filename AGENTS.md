@@ -4,6 +4,43 @@ Project conventions and pitfalls learned from prior sessions. Cursor rules in [`
 
 ---
 
+## Storefront scroll-progress header
+
+**Breakpoint:** desktop nav vs mobile hamburger at **768px** (`769px` media queries). Product UI uses 640px separately.
+
+**Key files**
+
+| Area | Files |
+|------|--------|
+| Header component | `frontend/src/components/layout/SiteHeader.vue` |
+| Scroll composable | `frontend/src/composables/useSiteHeaderScroll.js` |
+| Header CSS | `frontend/src/styles/site-header.css` |
+| Design tokens | `frontend/src/styles/base.css` (`--nav-*`, `--site-header-*`) |
+| Mobile drawer | `frontend/src/components/mobile/MobileMenuDrawer.vue` |
+| App wiring | `frontend/src/App.vue` (`<SiteHeader ref="siteHeaderRef" />`) |
+
+**Architecture:** `base.css` tokens → `site-header.css` → `SiteHeader.vue` → `App.vue`. Do not put header styles back in `App.vue`.
+
+**Scroll progress:** JS sets `--nav-scroll` (0–1) directly on `<header class="site-header">` via rAF + passive scroll listener — **no reactive Vue ref** for progress. CSS interpolates surface only.
+
+```js
+progress = clamp(scrollY / --nav-scroll-distance, 0, 1)  // 120px mobile, 160px desktop
+```
+
+**At top (`--nav-scroll: 0`):** centered pill shell (same width as scrolled), transparent, no glass/shadow.
+
+**Scrolled (`--nav-scroll: 1`):** same shell dimensions; adds float offset, frosted `::before` glass, border, shadow. Menu/cart open forces `1`.
+
+**Critical — constant dimensions:** Shell width (`calc(100% - 2 * var(--nav-inset-x))`), centering (`left: 50%; transform: translateX(-50%)`), bar height, bar padding, and logo size must **not** interpolate with `--nav-scroll`. Only animate top offset, glass, border, and shadow. Interpolating shell width causes logo/nav to slide horizontally (common bug).
+
+**Content offset:** `--site-header-height` on `<html>` uses compact bar height; `ResizeObserver` in composable. Pinned so main padding does not jump mid-scroll.
+
+**Gallery overlay:** `hideForGalleryProduct` → `.is-gallery-hidden`. Gallery open uses `body.gallery-product-open`.
+
+See [.cursor/rules/site-header.mdc](.cursor/rules/site-header.mdc) for full conventions.
+
+---
+
 ## Mobile product UI (≤640px)
 
 **Breakpoint:** `useMediaQuery('(max-width: 640px)')` — used across product pages, overlays, and gallery.

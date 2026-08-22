@@ -31,8 +31,9 @@
       </div>
 
       <div class="product-page__details product-page__details--stacked">
-        <header v-if="product" class="product-page__intro gallery-plaque-typography">
+        <header v-if="product && (hasDisplayTitle || formattedPrice)" class="product-page__intro gallery-plaque-typography">
           <ProductInfo
+            v-if="hasDisplayTitle"
             :title="productTitle(product)"
             :show-price="false"
           />
@@ -48,7 +49,6 @@
         <ProductDescription
           v-if="showMobileDetails"
           :text="product?.description || ''"
-          :meta-lines="mobileDetailLines"
           collapsible
           :collapsed-lines="0"
         />
@@ -61,7 +61,7 @@
           <div class="product-skeleton product-skeleton--line product-skeleton--line-short" />
         </div>
 
-        <div class="product-page__purchase">
+        <div v-if="showCart && contentType === 'product'" class="product-page__purchase">
           <AddToCartButton
             v-if="product"
             :label="addButtonLabel"
@@ -86,8 +86,8 @@
         <ProductCloseButton
           class="detail__close"
           flush
-          back-to="/gallery"
-          :label="imageLightboxOpen ? 'Close enlarged image' : 'Close and return to gallery'"
+          :back-to="detailBackTo"
+          :label="detailCloseLabel"
           as-button
           @close="onDesktopClose"
         />
@@ -115,20 +115,18 @@
           </div>
 
           <div class="detail__info gallery-plaque-typography gallery-plaque-typography--start">
-            <h1 class="page-title gallery-product-title">{{ productTitle(product) }}</h1>
+            <h1 v-if="hasDisplayTitle" class="page-title gallery-product-title">{{ productTitle(product) }}</h1>
 
-            <p v-if="product.price_cents != null" class="price gallery-product-price">
-              {{ formatMoneyFromCents(product.price_cents, product.currency || 'usd') }}
+            <p v-if="formattedPrice != null" class="price gallery-product-price">
+              {{ formattedPrice }}
             </p>
 
             <ProductDescription
               :text="product.description || ''"
-              :meta-lines="productMetaLines(product)"
               collapsible
             />
 
-            <div class="detail__purchase">
-              <p v-if="showStock" class="meta stock">Available: {{ product.quantity_available }}</p>
+            <div v-if="showCart && contentType === 'product'" class="detail__purchase">
               <AddToCartButton
                 :label="addButtonLabel"
                 :disabled="!canBuy || added"
@@ -169,15 +167,13 @@ import {
   refreshProductInBackground,
   isProductDetailComplete
 } from '../composables/useProductCache.js';
+import { getPortfolioBySlug } from '../services/api.js';
 import { addToCart } from '../utils/cart.js';
 import { useCart } from '../composables/useCart.js';
 import { useMediaQuery } from '../composables/useMediaQuery.js';
 import { formatMoneyFromCents } from '../utils/money.js';
-import {
-  productTitle,
-  productMetaLines,
-  hasProductMeta
-} from '../utils/storefrontProduct.js';
+import { productTitle } from '../utils/storefrontProduct.js';
+import { useStorefrontLabels } from '../composables/useStorefrontLabels.js';
 import ProductCloseButton from '../components/product/ProductCloseButton.vue';
 import ProductImageGallery from '../components/product/ProductImageGallery.vue';
 import ProductInfo from '../components/product/ProductInfo.vue';
@@ -194,6 +190,11 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  contentType: {
+    type: String,
+    default: 'product',
+    validator: (value) => value === 'product' || value === 'portfolio'
+  },
   initialProduct: {
     type: Object,
     default: null
@@ -209,8 +210,45 @@ const useOverlayCloseTeleport = computed(
   () => isMobile.value && Boolean(overlayControlsEl.value)
 );
 const { openDrawer } = useCart();
+const { showCart } = useStorefrontLabels();
+
+const detailBackTo = computed(() =>
+  props.contentType === 'portfolio' ? '/gallery' : '/wanna-dos'
+);
+
+const detailCloseLabel = computed(() =>
+  props.contentType === 'portfolio'
+    ? imageLightboxOpen.value
+      ? 'Close enlarged image'
+      : 'Close and return to gallery'
+    : imageLightboxOpen.value
+      ? 'Close enlarged image'
+      : 'Close and return to wanna do\'s'
+);
+
+function mapPortfolioToProductShape(work) {
+  if (!work) {
+    return null;
+  }
+  return {
+    _id: work._id,
+    id: work.id,
+    slug: work.slug,
+    title: work.title,
+    description: work.description,
+    product_images: work.portfolio_images || work.product_images || [],
+    price_cents: null,
+    currency: 'usd'
+  };
+}
 
 function resolveCachedProduct(slug) {
+  if (props.contentType === 'portfolio') {
+    if (props.initialProduct?.slug === slug) {
+      return mapPortfolioToProductShape(props.initialProduct);
+    }
+    return null;
+  }
   const cached = getCachedProduct(slug);
   if (cached) {
     return cached;
@@ -223,7 +261,7 @@ function resolveCachedProduct(slug) {
 
 const cachedProduct = resolveCachedProduct(props.slug);
 const product = ref(cachedProduct);
-if (cachedProduct?.slug) {
+if (cachedProduct?.slug && props.contentType === 'product') {
   setCachedProduct(cachedProduct.slug, cachedProduct, {
     complete: isProductDetailComplete(cachedProduct.slug)
   });
@@ -247,6 +285,9 @@ const imageList = computed(() => {
 });
 
 const formattedPrice = computed(() => {
+  if (props.contentType === 'portfolio') {
+    return null;
+  }
   if (product.value?.price_cents == null) return null;
   return formatMoneyFromCents(
     product.value.price_cents,
@@ -254,10 +295,11 @@ const formattedPrice = computed(() => {
   );
 });
 
-const showStock = computed(() => {
-  const q = product.value?.quantity_available;
-  return q != null && typeof q === 'number';
+const hasDisplayTitle = computed(() => {
+  const title = product.value?.title != null ? String(product.value.title).trim() : '';
+  return Boolean(title);
 });
+
 
 const canBuy = computed(() => {
   const q = product.value?.quantity_available;
@@ -273,29 +315,33 @@ const addButtonLabel = computed(() => {
   return 'Add to Cart';
 });
 
-const productMeta = computed(() => (product.value ? productMetaLines(product.value) : []));
-
-const mobileDetailLines = computed(() => {
-  const lines = [...productMeta.value];
-  if (showStock.value && product.value) {
-    lines.push(`Available: ${product.value.quantity_available}`);
-  }
-  return lines;
-});
-
-const showProductDescription = computed(() => {
-  if (!product.value) {
-    return false;
-  }
-  return Boolean(String(product.value.description || '').trim()) || hasProductMeta(product.value);
-});
-
 const showMobileDetails = computed(() => {
   if (!product.value) {
     return false;
   }
-  return showProductDescription.value || showStock.value;
+  return Boolean(String(product.value.description || '').trim());
 });
+
+async function loadPortfolio(slug, requestId) {
+  loading.value = true;
+  error.value = '';
+  try {
+    const work = await getPortfolioBySlug(slug);
+    if (requestId !== loadRequestId || props.slug !== slug) {
+      return;
+    }
+    product.value = mapPortfolioToProductShape(work);
+  } catch (e) {
+    if (requestId !== loadRequestId || props.slug !== slug) {
+      return;
+    }
+    error.value = e.status === 404 ? 'Work not found.' : e.message || 'Failed to load work';
+  } finally {
+    if (requestId === loadRequestId && props.slug === slug) {
+      loading.value = false;
+    }
+  }
+}
 
 function onDesktopClose() {
   if (imageLightboxOpen.value) {
@@ -370,6 +416,16 @@ async function load() {
 
   if (product.value?.slug !== slug) {
     imageLightboxOpen.value = false;
+  }
+
+  if (props.contentType === 'portfolio') {
+    if (cached) {
+      product.value = cached;
+      loading.value = false;
+      return;
+    }
+    await loadPortfolio(slug, requestId);
+    return;
   }
 
   if (cached) {

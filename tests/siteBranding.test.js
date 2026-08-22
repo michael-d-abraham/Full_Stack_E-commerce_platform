@@ -35,7 +35,7 @@ describe('site branding API', () => {
     beforeAll(() => startTestDatabase());
     afterAll(() => stopTestDatabase());
 
-    it('GET /api/site/site-branding defaults to PERM text mode', async () => {
+    it('GET /api/site/site-branding defaults to Madd Lines text mode', async () => {
         const res = await request(app).get('/api/site/site-branding');
         expect(res.status).toBe(200);
         expect(res.body).toEqual({

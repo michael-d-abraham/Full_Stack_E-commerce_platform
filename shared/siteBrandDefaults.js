@@ -1,4 +1,4 @@
-const DEFAULT_SITE_NAME = 'PERM';
+const DEFAULT_SITE_NAME = 'Madd Lines';
 const MAX_SITE_NAME_LENGTH = 80;
 const SITE_NAME_MODES = ['text', 'image'];
 
@@ -16,6 +16,9 @@ function normalizeSiteNameMode(value) {
 
 function resolveSiteName(value) {
     const normalized = normalizeOptionalText(value);
+    if (normalized.toUpperCase() === 'PERM') {
+        return DEFAULT_SITE_NAME;
+    }
     return normalized || DEFAULT_SITE_NAME;
 }
 
