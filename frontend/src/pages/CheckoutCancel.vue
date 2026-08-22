@@ -50,7 +50,7 @@ function goToPreview() {
   display: inline-block;
   font-size: 0.6875rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   text-decoration: underline;
   text-underline-offset: 0.25em;
   color: var(--color-text);

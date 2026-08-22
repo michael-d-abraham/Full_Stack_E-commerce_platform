@@ -36,6 +36,10 @@ const homePageSchema = new mongoose.Schema(
         about_text: { type: String, default: '' },
         about_image_url: { type: String, default: '' },
         about_image_file_id: { type: String, default: '' },
+        about_me_left_image_url: { type: String, default: '' },
+        about_me_left_image_file_id: { type: String, default: '' },
+        about_me_right_image_url: { type: String, default: '' },
+        about_me_right_image_file_id: { type: String, default: '' },
         about_background_image_url: { type: String, default: '' },
         about_background_image_file_id: { type: String, default: '' }
     },

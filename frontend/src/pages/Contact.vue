@@ -1,167 +1,32 @@
 <template>
   <div class="contact-page">
-    <h1 class="page-hero-title">{{ pageTitle }}</h1>
+    <h1 class="page-hero-title">{{ page.page_title }}</h1>
 
     <div
       class="contact-page__layout"
-      :class="{ 'contact-page__layout--no-hero': !showHeroImage }"
+      :class="{ 'contact-page__layout--no-hero': !page.show_hero_image }"
     >
-      <div v-if="showHeroImage && heroImageUrl" class="contact-page__hero">
+      <div v-if="page.show_hero_image && page.heroImageUrl" class="contact-page__hero">
         <img
           class="contact-page__hero-img"
-          :src="heroImageUrl"
+          :src="page.heroImageUrl"
           alt="Artist portrait"
         />
       </div>
 
-      <form class="form contact-page__form" @submit.prevent="onSubmit" autocomplete="on">
-        <label>
-          {{ formNameLabel }}
-          <input v-model.trim="name" name="name" type="text" autocomplete="name" required>
-        </label>
-        <label for="contact-visitor-email">
-          {{ formEmailLabel }}
-          <input
-            id="contact-visitor-email"
-            v-model.trim="email"
-            name="visitor_email"
-            type="email"
-            autocomplete="email"
-            required
-          >
-        </label>
-        <label>
-          {{ formSubjectLabel }}
-          <input v-model.trim="subject" name="subject" type="text" required>
-        </label>
-        <label>
-          {{ formMessageLabel }}
-          <textarea v-model.trim="message" name="message" rows="6" required></textarea>
-        </label>
-        <p v-if="submitted" class="contact-page__sent" role="status">{{ successMessage }}</p>
-        <p v-if="submitError" class="error contact-form__error">{{ submitError }}</p>
-        <button type="submit" class="btn-primary" :disabled="busy">
-          {{ busy ? 'Submitting…' : formSubmitLabel }}
-        </button>
-      </form>
+      <ContactForm field-id-prefix="contact-page" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getPublicContactHero, submitContactForm } from '../services/api.js';
-import { applyContactPageDefaults } from '../constants/contactPageDefaults.js';
-import { isValidEmail } from '@shared/email.js';
-import { createSwrCache } from '../composables/createSwrCache.js';
-import { buildImageKitSrc } from '../utils/imageKitUrl.js';
+import { onMounted } from 'vue';
+import ContactForm from '../components/contact/ContactForm.vue';
+import { useContactPage } from '../composables/useContactPage.js';
 
-const CONTACT_KEY = 'artist-portfolio-contact-page';
-const contactCache = createSwrCache({
-  storageKey: CONTACT_KEY,
-  storage: typeof sessionStorage !== 'undefined' ? sessionStorage : null,
-  ttlMs: 1000 * 60 * 60
-});
+const { page, ensureContactPage } = useContactPage();
 
-const heroImageUrl = ref('');
-const showHeroImage = ref(true);
-const pageTitle = ref('Contact');
-const formNameLabel = ref('Name');
-const formEmailLabel = ref('Your email');
-const formSubjectLabel = ref('Subject');
-const formMessageLabel = ref('Message');
-const formSubmitLabel = ref('Submit');
-const successMessage = ref('Message sent successfully.');
-
-const name = ref('');
-const email = ref('');
-const subject = ref('');
-const message = ref('');
-const submitted = ref(false);
-const busy = ref(false);
-const submitError = ref('');
-
-function validateForm() {
-  if (!String(name.value).trim()) return 'Name is required.';
-  if (!String(email.value).trim()) return 'Email is required.';
-  if (!isValidEmail(String(email.value).trim())) {
-    return 'Enter a valid email address.';
-  }
-  if (!String(subject.value).trim()) return 'Subject is required.';
-  if (!String(message.value).trim()) return 'Message is required.';
-  return null;
-}
-
-function applyPageConfig(data) {
-  const config = applyContactPageDefaults({
-    ...data,
-    contact_hero_image_url: data?.image_url || ''
-  });
-  showHeroImage.value = config.show_hero_image;
-  const rawUrl = config.contact_hero_image_url;
-  heroImageUrl.value = rawUrl ? buildImageKitSrc(rawUrl, { width: 1200, quality: 80 }) : '';
-  pageTitle.value = config.page_title;
-  formNameLabel.value = config.form_name_label;
-  formEmailLabel.value = config.form_email_label;
-  formSubjectLabel.value = config.form_subject_label;
-  formMessageLabel.value = config.form_message_label;
-  formSubmitLabel.value = config.form_submit_label;
-  successMessage.value = config.success_message;
-}
-
-const cachedContact = contactCache.getCached();
-if (cachedContact) {
-  applyPageConfig(cachedContact);
-}
-
-async function onSubmit() {
-  submitError.value = '';
-  submitted.value = false;
-  const validationError = validateForm();
-  if (validationError) {
-    submitError.value = validationError;
-    return;
-  }
-
-  busy.value = true;
-  try {
-    const result = await submitContactForm({
-      name: name.value,
-      email: email.value,
-      subject: subject.value,
-      message: message.value
-    });
-    successMessage.value = result.message || successMessage.value;
-    submitted.value = true;
-    name.value = '';
-    email.value = '';
-    subject.value = '';
-    message.value = '';
-  } catch (e) {
-    submitError.value = e.message || 'Unable to send message.';
-  } finally {
-    busy.value = false;
-  }
-}
-
-onMounted(async () => {
-  try {
-    const data = await contactCache.ensure(() => getPublicContactHero(), {
-      onUpdate(next) {
-        applyPageConfig(next);
-      }
-    });
-    applyPageConfig(data);
-  } catch {
-    if (!contactCache.hasCache()) {
-      applyPageConfig({});
-    }
-  }
+onMounted(() => {
+  ensureContactPage();
 });
 </script>
-
-<style scoped>
-.contact-form__error {
-  margin: 0;
-}
-</style>

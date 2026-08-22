@@ -1,4 +1,4 @@
-const { isValidObjectId } = require('./objectIdValidation');
+const { isValidGalleryWorkLabel } = require('../../shared/galleryLabels');
 
 function isNonEmptyString(value) {
     return value != null && String(value).trim() !== '';
@@ -52,9 +52,34 @@ function validateYearCreated(value, errors) {
     if (!result.ok) errors.push(result.error);
 }
 
-function validateProductImagesArray(images, errors) {
+function validateGalleryLabel(body, errors, { required = false } = {}) {
+    if (body.label === undefined) {
+        if (required) {
+            errors.push('label is required');
+        }
+        return;
+    }
+    if (typeof body.label !== 'string') {
+        errors.push('label must be a string');
+        return;
+    }
+    const trimmed = String(body.label).trim();
+    if (!trimmed) {
+        errors.push('label is required');
+        return;
+    }
+    if (!isValidGalleryWorkLabel(trimmed)) {
+        errors.push('label must be one of the allowed gallery labels');
+    }
+}
+
+function validateProductImagesArray(images, errors, { isCreate = false } = {}) {
     if (!Array.isArray(images)) {
         errors.push('images must be an array');
+        return;
+    }
+    if (isCreate && images.length === 0) {
+        errors.push('At least one photo is required');
         return;
     }
     images.forEach((img, i) => {
@@ -78,25 +103,7 @@ function validateProductImagesArray(images, errors) {
     });
 }
 
-function validateCommonProductFields(body, errors, isCreate) {
-    if (isCreate) {
-        if (!isNonEmptyString(body.title)) {
-            errors.push('title is required');
-        }
-        if (body.description == null || String(body.description).trim() === '') {
-            errors.push('description is required');
-        }
-        if (body.price_cents === undefined || body.price_cents === null) {
-            errors.push('price_cents is required');
-        }
-    } else {
-        if (body.title !== undefined && !isNonEmptyString(body.title)) {
-            errors.push('title cannot be empty');
-        }
-        if (body.description !== undefined && String(body.description).trim() === '') {
-            errors.push('description cannot be empty');
-        }
-    }
+function validateCommonProductFields(body, errors) {
     if (body.price_cents !== undefined && body.price_cents !== null) {
         validatePriceCents(body.price_cents, 'price_cents', errors);
     }
@@ -126,9 +133,12 @@ function validateProductCreateBody(body) {
     if (body == null || typeof body !== 'object') {
         return { errors: ['Request body must be a JSON object'] };
     }
-    validateCommonProductFields(body, errors, true);
-    if (body.images !== undefined) {
-        validateProductImagesArray(body.images, errors);
+    validateCommonProductFields(body, errors);
+    validateGalleryLabel(body, errors, { required: true });
+    if (body.images === undefined) {
+        errors.push('At least one photo is required');
+    } else {
+        validateProductImagesArray(body.images, errors, { isCreate: true });
     }
     return errors.length ? { errors } : null;
 }
@@ -142,9 +152,13 @@ function validateProductUpdateBody(body) {
         return { errors: ['Request body must be a JSON object'] };
     }
     const errors = [];
-    validateCommonProductFields(body, errors, false);
+    validateCommonProductFields(body, errors);
+    validateGalleryLabel(body, errors);
     if (body.images !== undefined) {
         validateProductImagesArray(body.images, errors);
+        if (Array.isArray(body.images) && body.images.length === 0) {
+            errors.push('At least one photo is required');
+        }
     }
     return errors.length ? { errors } : null;
 }

@@ -95,6 +95,8 @@ function collectStoredHomePageFileIds(homePage) {
     return collectFileIdsFromValues(
         resolveHeroImageFileIds(base),
         base.about_image_file_id,
+        base.about_me_left_image_file_id,
+        base.about_me_right_image_file_id,
         base.hero_background_image_file_id,
         base.featured_background_image_file_id,
         base.about_background_image_file_id
@@ -109,6 +111,8 @@ function collectParsedHomePageFileIds(homePage) {
     return collectFileIdsFromValues(
         homePage.hero_image_file_ids,
         homePage.about_image_file_id,
+        homePage.about_me_left_image_file_id,
+        homePage.about_me_right_image_file_id,
         homePage.hero_background_image_file_id,
         homePage.featured_background_image_file_id,
         homePage.about_background_image_file_id

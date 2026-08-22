@@ -228,7 +228,7 @@ onMounted(() => {
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .admin-settings-list__items {

@@ -1,8 +1,7 @@
-/** Fixed style labels for finished gallery work. */
+/** Fixed style tags for gallery work and wanna-do listings. */
 const GALLERY_WORK_LABELS = [
     'Blackwork',
     'Fine line',
-    'Realism',
     'Shading',
     'Color',
     'Floral'

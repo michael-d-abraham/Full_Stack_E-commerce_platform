@@ -87,6 +87,15 @@ describe('shared/homePageDefaults', () => {
         expect(merged.about_header).toBe('About line');
     });
 
+    it('mergeHomePageTextDefaults includes about-me pair urls', () => {
+        const merged = mergeHomePageTextDefaults({
+            about_me_left_image_url: 'https://example.com/left.jpg',
+            about_me_right_image_url: 'https://example.com/right.jpg'
+        });
+        expect(merged.about_me_left_image_url).toBe('https://example.com/left.jpg');
+        expect(merged.about_me_right_image_url).toBe('https://example.com/right.jpg');
+    });
+
     it('mergeHomePageTextDefaults does not copy about_header into hero_quote', () => {
         const merged = mergeHomePageTextDefaults({
             about_header: 'About only'

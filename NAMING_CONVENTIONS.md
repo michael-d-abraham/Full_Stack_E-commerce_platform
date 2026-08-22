@@ -23,6 +23,7 @@ QuantityStepper.vue
 | `Admin` | Admin panel UI |
 | `Cart` | Cart drawer / cart UI |
 | `Home` | Homepage sections |
+| `Marquee` | Shared home marquee track / tiles (reviews + artwork) |
 | `Product` | Product detail / gallery cards |
 | `Social` | Social links / icons |
 
@@ -33,6 +34,7 @@ components/
   admin/
   cart/
   home/
+  marquee/
   mobile/
   product/
   social/

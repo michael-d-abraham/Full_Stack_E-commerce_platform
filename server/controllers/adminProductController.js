@@ -40,7 +40,13 @@ async function getAdminProductDetailById(id) {
 }
 
 function applyProductFieldsFromBody(target, body, isCreate) {
-    if (body.title !== undefined) {
+    if (body.label !== undefined) {
+        target.label = String(body.label).trim();
+        if (target.label) {
+            target.title = target.label;
+        }
+    }
+    if (body.title !== undefined && body.label === undefined) {
         target.title = String(body.title).trim();
     }
     if (body.description !== undefined) {
@@ -138,17 +144,20 @@ const createAdminProduct = async (req, res) => {
                 return res.status(400).json({ error: 'Slug already exists' });
             }
         } else {
-            slug = await buildUniqueProductSlug(body.title);
+            slug = await buildUniqueProductSlug(body.label || body.title || 'listing');
             if (!slug) {
-                return res.status(400).json({ error: 'slug could not be generated from title' });
+                return res.status(400).json({ error: 'slug could not be generated' });
             }
         }
 
+        const label = body.label != null ? String(body.label).trim() : '';
+        const title = label || (body.title != null ? String(body.title).trim() : 'listing');
         const doc = {
-            title: String(body.title).trim(),
+            title,
+            label,
             slug,
-            description: String(body.description).trim(),
-            price_cents: body.price_cents,
+            description: body.description != null ? String(body.description).trim() : '',
+            price_cents: body.price_cents != null ? body.price_cents : 0,
             currency: body.currency != null ? String(body.currency).trim().toLowerCase() : 'usd',
             quantity_available: body.quantity_available !== undefined ? body.quantity_available : 0,
             size_label: normalizeNullableStringInput(body.size_label) ?? null,
@@ -197,6 +206,8 @@ const updateAdminProduct = async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
+        const previousLabel = product.label || '';
+        const previousTitle = product.title;
         const fieldResult = applyProductFieldsFromBody(product, body, false);
         if (!fieldResult.ok) {
             return res.status(400).json({ error: fieldResult.error });
@@ -214,7 +225,13 @@ const updateAdminProduct = async (req, res) => {
                 }
                 product.slug = nextSlug;
             }
-        } else if (body.title !== undefined && String(body.title).trim() !== product.title) {
+        } else if (body.label !== undefined && String(body.label).trim() !== previousLabel) {
+            const nextSlug = await buildUniqueProductSlug(body.label || 'listing', product._id);
+            if (!nextSlug) {
+                return res.status(400).json({ error: 'slug could not be generated' });
+            }
+            product.slug = nextSlug;
+        } else if (body.title !== undefined && String(body.title).trim() !== previousTitle) {
             const nextSlug = await buildUniqueProductSlug(body.title, product._id);
             if (!nextSlug) {
                 return res.status(400).json({ error: 'slug could not be generated from title' });

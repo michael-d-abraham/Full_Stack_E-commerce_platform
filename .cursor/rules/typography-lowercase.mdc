@@ -1,0 +1,45 @@
+---
+description: Storefront and admin UI copy is always lowercase — no capitals, no uppercase CSS
+globs:
+  - frontend/**
+alwaysApply: true
+---
+
+# All-lowercase type
+
+No capital letters anywhere in the product UI. Brand constraint — do not override.
+
+## Required
+
+- Visible copy is **lowercase**: headings, nav, buttons, labels, placeholders, legal, empty states, toasts.
+- CSS: inherit `text-transform: lowercase` from `body`. Never set `uppercase`, `capitalize`, or `full-width`.
+- Do not use `font-variant: small-caps` (it reads as capitals).
+- New hardcoded strings in Vue/JS must be written in lowercase (`gallery`, not `Gallery`).
+
+```vue
+<!-- ✅ -->
+<button class="btn-primary">submit</button>
+<h2>about me</h2>
+
+<!-- ❌ -->
+<button class="btn-primary">Submit</button>
+<h2>About Me</h2>
+```
+
+```css
+/* ✅ */
+.home-about__title {
+  letter-spacing: 0.22em;
+}
+
+/* ❌ */
+.home-about__title {
+  text-transform: uppercase;
+  font-variant: small-caps;
+}
+```
+
+## Exceptions
+
+- Code, file names, env vars, URLs, and API keys are unchanged.
+- User-typed form values may be stored as entered; **display** still lowercases via CSS.

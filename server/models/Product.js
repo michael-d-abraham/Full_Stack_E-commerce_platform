@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    title: { type: String, required: true },
+    title: { type: String, default: '' },
+    label: { type: String, default: '' },
     slug: { type: String, required: true, unique: true },
-    description: { type: String, required: true, default: '' },
-    price_cents: { type: Number, required: true },
+    description: { type: String, default: '' },
+    price_cents: { type: Number, default: 0 },
     currency: { type: String, required: true, default: 'usd' },
     quantity_available: { type: Number, required: true, default: 0 },
     size_label: { type: String, default: null },

@@ -1,4 +1,4 @@
-const DEFAULT_SITE_NAME = 'Madd Lines';
+const DEFAULT_SITE_NAME = 'madd lines';
 const MAX_SITE_NAME_LENGTH = 80;
 const SITE_NAME_MODES = ['text', 'image'];
 

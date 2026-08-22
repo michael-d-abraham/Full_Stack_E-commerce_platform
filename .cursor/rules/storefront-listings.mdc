@@ -1,0 +1,47 @@
+---
+description: Gallery and wanna-do listings are photos plus a required style tag
+globs:
+  - frontend/src/pages/AdminCreate.vue
+  - frontend/src/pages/AdminForm.vue
+  - frontend/src/pages/admin/AdminListings.vue
+  - frontend/src/components/product/**
+  - frontend/src/pages/Gallery.vue
+  - server/utils/productValidation.js
+  - server/models/Product.js
+  - shared/galleryLabels.js
+  - shared/productDisplay.js
+alwaysApply: false
+---
+
+# Storefront listings
+
+Gallery work and wanna-do listings share one shape: **photos + required style tag**. Do not bring back title, description, or price as required create/edit fields unless the user asks.
+
+## Tags
+
+Source of truth: `shared/galleryLabels.js`.
+
+Current tags: Blackwork, Fine line, Shading, Color, Floral.
+
+**Realism is removed.** Do not add it back. Do not invent a second tag list in Vue.
+
+UI still displays lowercase via CSS; stored label strings stay as written in `GALLERY_WORK_LABELS`.
+
+## Validation
+
+`server/utils/productValidation.js` requires:
+
+- a valid `label`
+- at least one photo
+
+`title`, `description`, and `price_cents` default empty / `0` on `Product`. Create must not fail if those are missing.
+
+## Admin + cards
+
+- Create / edit (`AdminCreate.vue`, `AdminForm.vue`): tag select + photos (+ active on edit)
+- List (`AdminListings.vue`): image + tag + status — no price/stock columns
+- Storefront cards: picture + tag only
+
+## Stale API
+
+`npm run server` watches `server/` and `shared/`. If old validation errors still appear (`title is required`, …), the Express process did not reload — restart it.

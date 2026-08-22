@@ -657,6 +657,10 @@ function toAdminHomePagePayload(doc) {
         about_text: normalizeOptionalText(base.about_text),
         about_image_url: normalizeOptionalText(base.about_image_url),
         about_image_file_id: normalizeOptionalText(base.about_image_file_id),
+        about_me_left_image_url: normalizeOptionalText(base.about_me_left_image_url),
+        about_me_left_image_file_id: normalizeOptionalText(base.about_me_left_image_file_id),
+        about_me_right_image_url: normalizeOptionalText(base.about_me_right_image_url),
+        about_me_right_image_file_id: normalizeOptionalText(base.about_me_right_image_file_id),
         about_background_image_url: normalizeOptionalText(base.about_background_image_url),
         about_background_image_file_id: normalizeOptionalText(base.about_background_image_file_id)
     };
@@ -696,6 +700,26 @@ function normalizeHomePageInput(body) {
         return { errors };
     }
     const about_image_file_id = normalizeOptionalText(body.about_image_file_id);
+
+    const about_me_left_image_url = normalizeOptionalImageUrl(
+        body.about_me_left_image_url,
+        'about_me_left_image_url',
+        errors
+    );
+    if (about_me_left_image_url === null) {
+        return { errors };
+    }
+    const about_me_left_image_file_id = normalizeOptionalText(body.about_me_left_image_file_id);
+
+    const about_me_right_image_url = normalizeOptionalImageUrl(
+        body.about_me_right_image_url,
+        'about_me_right_image_url',
+        errors
+    );
+    if (about_me_right_image_url === null) {
+        return { errors };
+    }
+    const about_me_right_image_file_id = normalizeOptionalText(body.about_me_right_image_file_id);
 
     const hero_background_image_url = normalizeOptionalImageUrl(
         body.hero_background_image_url,
@@ -767,6 +791,10 @@ function normalizeHomePageInput(body) {
             about_text: normalizeOptionalText(body.about_text),
             about_image_url,
             about_image_file_id,
+            about_me_left_image_url,
+            about_me_left_image_file_id,
+            about_me_right_image_url,
+            about_me_right_image_file_id,
             hero_background_image_url,
             hero_background_image_file_id,
             featured_background_image_url,

@@ -6,7 +6,6 @@ describe('galleryLabels', () => {
         expect(GALLERY_WORK_LABELS).toEqual([
             'Blackwork',
             'Fine line',
-            'Realism',
             'Shading',
             'Color',
             'Floral'
@@ -22,7 +21,7 @@ describe('galleryLabels', () => {
 describe('portfolioTitle', () => {
     it('prefers label over legacy title', () => {
         expect(
-            portfolioTitle({ label: 'Realism', title: 'Floral forearm', slug: 'floral-forearm' })
-        ).toBe('Realism');
+            portfolioTitle({ label: 'Floral', title: 'Floral forearm', slug: 'floral-forearm' })
+        ).toBe('Floral');
     });
 });

@@ -1,0 +1,46 @@
+---
+description: Wire customize/home images through Mongo + ImageKit the same way existing slots do
+globs:
+  - frontend/src/pages/AdminHomePage.vue
+  - frontend/src/components/admin/AdminHomePagePreview.vue
+  - frontend/src/components/admin/AdminHomePreviewImageSlot.vue
+  - server/services/siteSettingsService.js
+  - server/services/imageKitStorageService.js
+  - server/models/SiteSettings.js
+  - server/utils/imageKitFileIds.js
+  - shared/homePageDefaults.js
+alwaysApply: false
+---
+
+# Admin site images
+
+Every customize photo lives on the singleton `site_settings` doc (`key: 'default'`). Load and save through the same admin APIs as the existing slots — do not invent a parallel store.
+
+| Surface | GET / PUT |
+|---|---|
+| Home (hero, about, about-me pair, backgrounds) | `/api/admin/site/home-page` |
+| Public home | `/api/site/home-page` |
+
+## New home image checklist
+
+Copy an existing slot (`about_image_url` / `about_image_file_id`) through all of these:
+
+1. `shared/homePageDefaults.js` — default + `mergeHomePageTextDefaults` (public gets URLs, not file IDs)
+2. `server/models/SiteSettings.js` — `homePageSchema`
+3. `siteSettingsService.js` — `toAdminHomePagePayload` + `normalizeHomePageInput`
+4. `imageKitFileIds.js` — collect file IDs so replaces/clears delete the old ImageKit file
+5. `AdminHomePage.vue` — form, `applySettings`, `payloadFromForm`, pick / clear, persist
+6. `AdminHomePagePreview.vue` — slot bound to the same form fields
+7. Storefront reader (`Home.vue` or the section) using the public URL fields
+8. Tests: `homePageDefaults`, `imageKitFileIds`, `siteImageFileIds`, and the folder table in `tests/security.test.js`
+
+## ImageKit folders (hard fail)
+
+`imageKitStorageService.ALLOWED_FOLDERS` rejects unknown folders with `INVALID_FOLDER`. A new slot that uploads to a folder not on that list never reaches Mongo.
+
+- Prefer an existing folder (`site/about`, `site/hero`, …) unless you need a new one.
+- If you add a folder, update `ALLOWED_FOLDERS` **and** the `it.each` list in `tests/security.test.js`.
+
+Allowed today: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/featured-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`.
+
+Portrait-style editor options should match about: `outputFileName`, `outputMime: 'image/jpeg'`, `preserveSourceFormat: false`.

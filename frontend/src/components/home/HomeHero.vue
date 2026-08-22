@@ -1,5 +1,5 @@
 <template>
-  <section class="home-hero" aria-label="Hero">
+  <section id="landing" class="home-hero" aria-label="Hero">
     <div class="home-hero__stage">
       <blockquote v-if="quotePhrases.length" class="home-hero__quote">
         <p
@@ -159,8 +159,7 @@ function scrollToNext() {
   font-weight: 400;
   line-height: 1.12;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   color: var(--color-text);
   quotes: none;
 }

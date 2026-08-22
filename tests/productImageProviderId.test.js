@@ -42,6 +42,7 @@ async function adminCookie() {
 
 function productBody(overrides = {}) {
     return {
+        label: 'Fine line',
         title: 'Test piece',
         description: 'A test listing',
         price_cents: 10000,

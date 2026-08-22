@@ -16,7 +16,10 @@ function primaryProductImageUrl(product) {
 }
 
 function displayProductName(product) {
-    const title = product?.title || (product?.slug ? String(product.slug) : 'Product');
+    const label = product?.label != null ? String(product.label).trim() : '';
+    const title = label
+        || product?.title
+        || (product?.slug ? String(product.slug) : 'Product');
     const format = product?.format ? String(product.format).trim() : '';
     if (format && !title.toLowerCase().includes(format.toLowerCase())) {
         return `${title} — ${format}`;

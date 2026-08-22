@@ -269,6 +269,7 @@ describe('admin upload-image folder routing', () => {
         ['site/featured-background', '/site/featured-background'],
         ['site/about-background', '/site/about-background'],
         ['site/about', '/site/about'],
+        ['site/about-me', '/site/about-me'],
         ['site/contact', '/site/contact'],
         ['site/logo', '/site/logo']
     ])('POST /api/admin/upload-image passes folder %s', async (folder, imageKitFolder) => {

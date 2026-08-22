@@ -19,33 +19,18 @@
         <span></span>
         <span></span>
       </button>
-      <SiteBrandMark to="/" variant="header" class="app-brand" :aria-label="brandHomeAriaLabel" />
+      <SiteBrandMark
+        to="/"
+        variant="header"
+        class="app-brand"
+        :aria-label="brandHomeAriaLabel"
+        @click="goToLanding"
+      />
       <nav class="app-nav app-nav--desktop" aria-label="Main">
-        <router-link to="/" class="app-nav__link" exact-active-class="app-nav__link--active">
-          Home
-        </router-link>
-        <router-link to="/gallery" class="app-nav__link" active-class="app-nav__link--active">
-          {{ galleryNavLabel }}
-        </router-link>
-        <router-link to="/wanna-dos" class="app-nav__link" active-class="app-nav__link--active">
-          {{ wannaDosNavLabel }}
-        </router-link>
-        <router-link
-          v-if="showContactNav"
-          to="/contact"
-          class="app-nav__link"
+        <StorefrontSectionNav
+          link-class="app-nav__link"
           active-class="app-nav__link--active"
-        >
-          Contact
-        </router-link>
-        <router-link
-          v-if="showBookNav"
-          to="/book"
-          class="app-nav__link"
-          active-class="app-nav__link--active"
-        >
-          Book
-        </router-link>
+        />
       </nav>
       <div v-if="showCart" class="app-header__end">
         <CartIcon />
@@ -56,16 +41,17 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch } from 'vue';
 import CartIcon from '../cart/CartIcon.vue';
 import MobileMenuDrawer from '../mobile/MobileMenuDrawer.vue';
 import SiteBrandMark from '../brand/SiteBrandMark.vue';
 import { useCart } from '../../composables/useCart.js';
 import { useMobileNav } from '../../composables/useMobileNav.js';
 import { useSiteHeaderScroll } from '../../composables/useSiteHeaderScroll.js';
-import { showContactNav, showBookNav } from '../../composables/useStorefrontNav.js';
 import { useStorefrontLabels } from '../../composables/useStorefrontLabels.js';
 import { useSiteBrand } from '../../composables/useSiteBrand.js';
+import StorefrontSectionNav from './StorefrontSectionNav.vue';
+import { useStorefrontSectionNav } from '../../composables/useStorefrontSectionNav.js';
 
 defineProps({
   hideForGalleryProduct: {
@@ -75,9 +61,10 @@ defineProps({
 });
 
 const { brandHomeAriaLabel } = useSiteBrand();
-const { galleryNavLabel, wannaDosNavLabel, showCart } = useStorefrontLabels();
+const { showCart } = useStorefrontLabels();
 const { drawerOpen } = useCart();
 const { mobileMenuOpen, toggleMobileMenu } = useMobileNav();
+const { goToLanding } = useStorefrontSectionNav();
 
 const headerRef = ref(null);
 const headerBarRef = ref(null);

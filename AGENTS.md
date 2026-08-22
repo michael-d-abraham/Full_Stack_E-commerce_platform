@@ -7,8 +7,12 @@ UI and design rules live in [`.cursor/rules/`](.cursor/rules/). Read them before
 | Rule | When to read |
 |------|----------------|
 | [`design-system.mdc`](.cursor/rules/design-system.mdc) | **Always** — master design system (brand, breakpoints, motion, HIG review lens) |
+| [`typography-lowercase.mdc`](.cursor/rules/typography-lowercase.mdc) | **Always** — no capital letters; all UI type is lowercase |
 | [`site-header.mdc`](.cursor/rules/site-header.mdc) | Header scroll pill, nav, `MobileMenuDrawer`, `--nav-scroll` |
 | [`mobile-floating-circle-buttons.mdc`](.cursor/rules/mobile-floating-circle-buttons.mdc) | Product gallery circle controls, placements, pitfalls |
+| [`admin-site-images.mdc`](.cursor/rules/admin-site-images.mdc) | Customize / home photos — same Mongo + ImageKit path as existing slots |
+| [`storefront-listings.mdc`](.cursor/rules/storefront-listings.mdc) | Gallery + wanna-dos: photos + required style tag only |
+| [`home-sections.mdc`](.cursor/rules/home-sections.mdc) | Home stack, shared marquee, about-me pair |
 
 Brand constraints in `design-system.mdc` override any Apple HIG recommendation.
 

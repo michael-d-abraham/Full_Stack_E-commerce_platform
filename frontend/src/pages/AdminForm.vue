@@ -1,8 +1,8 @@
 <template>
   <div class="admin-page">
     <header class="admin-page-header">
-      <h1 class="admin-page-header__title">Edit wanna do</h1>
-      <router-link to="/admin/listings" class="admin-page-header__btn">← Wanna Do's</router-link>
+      <h1 class="admin-page-header__title">edit wanna do</h1>
+      <router-link to="/admin/listings" class="admin-page-header__btn">← wanna do's</router-link>
     </header>
 
     <p v-if="loadError" class="error admin-page-header__status">{{ loadError }}</p>
@@ -11,67 +11,43 @@
         <div class="skeleton-stack admin-float admin-float--padded" aria-hidden="true">
           <Skeleton variant="title" />
           <Skeleton variant="line" />
-          <Skeleton variant="line" />
           <Skeleton variant="card" height="10rem" />
-          <Skeleton variant="button" width="8rem" />
         </div>
       </template>
 
       <div class="admin-float admin-float--padded">
       <form @submit.prevent="onSubmit">
         <div class="field">
-          <label for="title">Title *</label>
-          <input id="title" v-model="form.title" type="text" autocomplete="off" />
-          <p class="help">Changing the title may update the shop URL slug automatically.</p>
-          <p v-if="fieldErrors.title" class="field-error">{{ fieldErrors.title }}</p>
+          <label for="wanna-do-label">tag *</label>
+          <select id="wanna-do-label" v-model="form.label" required>
+            <option disabled value="">select a style</option>
+            <option v-for="option in GALLERY_WORK_LABELS" :key="option" :value="option">
+              {{ option }}
+            </option>
+          </select>
         </div>
         <div class="field">
-          <label for="description">Description *</label>
-          <textarea id="description" v-model="form.description" rows="6" />
-          <p v-if="fieldErrors.description" class="field-error">{{ fieldErrors.description }}</p>
-        </div>
-        <div class="field">
-          <label for="format">Format</label>
-          <input id="format" v-model="form.format" type="text" placeholder="e.g. Canvas" />
-        </div>
-        <div class="field">
-          <label for="size">Size</label>
-          <input id="size" v-model="form.size_label" type="text" />
-        </div>
-        <div class="field">
-          <label for="year">Year</label>
-          <input id="year" v-model.number="form.year_created" type="number" min="1900" max="2100" />
-        </div>
-        <div class="field">
-          <label for="price">Price (USD)</label>
-          <input id="price" v-model.number="priceDollars" type="number" min="0" step="0.01" />
-        </div>
-        <div class="field">
-          <label for="qty">Quantity in stock</label>
-          <input id="qty" v-model.number="form.quantity_available" type="number" min="0" step="1" />
-        </div>
-        <div class="field">
-          <span class="label-text">Pictures</span>
+          <span class="label-text">photos *</span>
           <AdminProductImages
             v-model="imageRows"
             v-model:primary-index="primaryImageIndex"
             upload-folder="products"
             :disabled="submitting"
+            help-text=""
           />
         </div>
         <div class="field">
           <label>
             <input v-model="form.is_active" type="checkbox" />
-            Active (visible in shop when in stock)
+            active (visible with wanna do's)
           </label>
         </div>
-        <p v-if="slugHint" class="help">Shop slug: <code>{{ slugHint }}</code></p>
         <p v-if="submitError" class="error">{{ submitError }}</p>
         <div class="actions">
           <button type="submit" class="admin-panel__btn-primary" :disabled="submitting">
-            {{ submitting ? 'Saving…' : 'Save' }}
+            {{ submitting ? 'saving…' : 'save' }}
           </button>
-          <router-link to="/admin/listings">Cancel</router-link>
+          <router-link to="/admin/listings">cancel</router-link>
         </div>
       </form>
     </div>
@@ -86,7 +62,7 @@ import PageReveal from '../components/loading/PageReveal.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getAdminProductById, updateAdminProduct } from '../services/api.js';
 import AdminProductImages, { buildProductImagesPayload } from '../components/admin/AdminProductImages.vue';
-import { dollarsToCents } from '../utils/money.js';
+import { GALLERY_WORK_LABELS } from '../constants/galleryLabels.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -101,81 +77,21 @@ const props = defineProps({
 const productId = computed(() => props.id || route.params.id);
 
 const form = reactive({
-  title: '',
-  description: '',
-  format: '',
-  size_label: '',
-  year_created: null,
-  quantity_available: 0,
+  label: '',
   is_active: true
 });
 
-const priceDollars = ref(0);
-const slugHint = ref('');
 const imageRows = ref([]);
 const primaryImageIndex = ref(0);
-
-const fieldErrors = reactive({
-  title: '',
-  description: ''
-});
-
 const loadingProduct = ref(false);
 const loadError = ref('');
 const submitError = ref('');
 const submitting = ref(false);
 
-function clearFieldErrors() {
-  fieldErrors.title = '';
-  fieldErrors.description = '';
-}
-
-function validate() {
-  clearFieldErrors();
-  let ok = true;
-  if (!String(form.title).trim()) {
-    fieldErrors.title = 'Title is required';
-    ok = false;
-  }
-  if (!String(form.description).trim()) {
-    fieldErrors.description = 'Description is required';
-    ok = false;
-  }
-  return ok;
-}
-
-function buildUpdateBody() {
-  const body = {
-    title: String(form.title).trim(),
-    description: String(form.description).trim(),
-    price_cents: dollarsToCents(priceDollars.value),
-    quantity_available: form.quantity_available,
-    is_active: !!form.is_active,
-    currency: 'usd'
-  };
-  const format = String(form.format || '').trim();
-  body.format = format || null;
-  const size = String(form.size_label || '').trim();
-  body.size_label = size || null;
-  if (form.year_created != null && Number.isInteger(form.year_created)) {
-    body.year_created = form.year_created;
-  } else {
-    body.year_created = null;
-  }
-  body.images = buildProductImagesPayload(imageRows.value, primaryImageIndex.value);
-  return body;
-}
-
 function populateFromProduct(p) {
-  form.title = p.title ?? '';
-  form.description = p.description ?? '';
-  form.format = p.format ?? '';
-  form.size_label = p.size_label ?? '';
-  form.year_created = p.year_created ?? null;
-  form.quantity_available = p.quantity_available ?? 0;
+  const nextLabel = String(p.label || p.title || '').trim();
+  form.label = GALLERY_WORK_LABELS.includes(nextLabel) ? nextLabel : '';
   form.is_active = !!p.is_active;
-  priceDollars.value = p.price_cents != null ? p.price_cents / 100 : 0;
-  slugHint.value = p.slug ?? '';
   const imgs = Array.isArray(p.product_images) ? p.product_images : [];
   imageRows.value = imgs.map((img) => ({
     id: img._id,
@@ -188,7 +104,7 @@ function populateFromProduct(p) {
 
 async function loadProduct() {
   if (!productId.value) {
-    loadError.value = 'Missing id';
+    loadError.value = 'missing id';
     return;
   }
   loadingProduct.value = true;
@@ -197,7 +113,7 @@ async function loadProduct() {
     const p = await getAdminProductById(productId.value);
     populateFromProduct(p);
   } catch (e) {
-    loadError.value = e.message || 'Failed to load';
+    loadError.value = e.message || 'failed to load';
   } finally {
     loadingProduct.value = false;
   }
@@ -211,23 +127,29 @@ watch(
 
 async function onSubmit() {
   submitError.value = '';
-  if (!validate()) return;
-  if (!productId.value) {
-    submitError.value = 'Missing id';
+  const images = buildProductImagesPayload(imageRows.value, primaryImageIndex.value);
+  if (!String(form.label).trim()) {
+    submitError.value = 'select a tag.';
     return;
   }
-  const cents = dollarsToCents(priceDollars.value);
-  if (!Number.isInteger(cents)) {
-    submitError.value = 'Enter a valid price';
+  if (!images.length) {
+    submitError.value = 'upload at least one photo.';
+    return;
+  }
+  if (!productId.value) {
+    submitError.value = 'missing id';
     return;
   }
   submitting.value = true;
   try {
-    const updated = await updateAdminProduct(productId.value, buildUpdateBody());
-    slugHint.value = updated.slug ?? slugHint.value;
+    await updateAdminProduct(productId.value, {
+      label: String(form.label).trim(),
+      is_active: !!form.is_active,
+      images
+    });
     router.push('/admin/listings');
   } catch (e) {
-    submitError.value = e.message || 'Save failed';
+    submitError.value = e.message || 'save failed';
   } finally {
     submitting.value = false;
   }

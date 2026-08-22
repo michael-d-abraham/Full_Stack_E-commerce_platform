@@ -154,12 +154,16 @@ Admin selects file in AdminPhotoUploadFlow.vue
   → POST /api/admin/upload-image  (multipart/form-data, field: "image")
   → uploadProductImage middleware (multer memory storage, max 10 MB, image MIME only)
   → adminUploadController → imageKitStorageService
-       folder: products | portfolio | site/*
+       folder: allowlisted key (see ALLOWED_FOLDERS)
   → returns { image_url, file_id }
   → stored on ProductImage / PortfolioImage / SiteSettings
 ```
 
+Allowed folders: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/featured-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`. Unknown folders throw `INVALID_FOLDER` and the file never reaches Mongo.
+
 Image URLs are ImageKit CDN URLs. `frontend/src/utils/imageKitUrl.js` applies resize transforms. R2 remains in env validation as leftover, not the upload path.
+
+Home customize images (including the about-me left/right pair) are fields on `SiteSettings.home_page`, loaded/saved via `GET`/`PUT /api/admin/site/home-page`. Public storefront reads `GET /api/site/home-page`.
 
 ---
 
@@ -306,7 +310,7 @@ All `/admin/*` routes (except `/admin/login`) nest inside `AdminLayout.vue` as c
 
 | Model | Collection | Key Fields |
 |---|---|---|
-| `Product` | `products` | `title`, `slug` (unique), `price_cents`, `quantity_available`, `stripe_product_id`, `stripe_price_id`, `is_active`, `deleted_at` |
+| `Product` | `products` | `label` (required style tag), `title` / `description` / `price_cents` (optional defaults), `slug` (unique), `quantity_available`, `stripe_product_id`, `stripe_price_id`, `is_active`, `deleted_at` |
 | `ProductImage` | `product_images` | `product_id`, `image_url`, `sort_order`, `is_primary`, `deleted_at` |
 | `Order` | `orders` | `order_number` (unique), `customer_email`, `stripe_checkout_session_id`, `status`, `fulfillment_status`, `total_cents`, `stripe_snapshot` |
 | `OrderItem` | `order_items` | `order_id`, `product_id`, `unit_price_cents`, `quantity`, `line_total_cents` |
@@ -323,7 +327,7 @@ All `/admin/*` routes (except `/admin/login`) nest inside `AdminLayout.vue` as c
 
 | Path | Component |
 |---|---|
-| `/` | `Home.vue` (hero → about → testimonial marquee) |
+| `/` | `Home.vue` (hero → about → about me → my art → artwork marquee → wanna do’s → reviews) |
 | `/gallery` | `Gallery.vue` (portfolio works; overlay via `?product=`) |
 | `/wanna-dos` | `WannaDos.vue` (products) |
 | `/book` | `BookAppointment.vue` |

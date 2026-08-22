@@ -12,10 +12,9 @@
         :src="primaryProductImageUrl(product)"
         :alt="thumbAlt(product)"
       />
-      <GalleryProductPlaque
-        :title="productTitle(product)"
-        :price="formatMoneyFromCents(product.price_cents, product.currency || 'usd')"
-      />
+      <div v-if="showTitle" class="product-info gallery-product-meta gallery-plaque gallery-plaque-typography">
+        <h3 class="product-title gallery-product-title">{{ productTitle(product) }}</h3>
+      </div>
     </component>
 
     <template v-else>
@@ -68,7 +67,6 @@
 <script setup>
 import { computed } from 'vue';
 import GalleryArtFrame from './GalleryArtFrame.vue';
-import GalleryProductPlaque from './GalleryProductPlaque.vue';
 import { addToCart } from '../../utils/cart.js';
 import { formatMoneyFromCents } from '../../utils/money.js';
 import {
@@ -90,6 +88,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['added', 'open']);
+
+const showTitle = computed(() => {
+  const label = String(props.product?.label || props.product?.title || '').trim();
+  return Boolean(label);
+});
 
 const detailRoute = computed(() => ({
   name: 'gallery',

@@ -65,6 +65,7 @@ async function adminCookie() {
 
 function productBody(overrides = {}) {
     return {
+        label: 'Fine line',
         title: 'Cleanup test piece',
         description: 'Test listing',
         price_cents: 5000,
@@ -242,7 +243,7 @@ describe('ImageKit cleanup on replace/remove', () => {
             .put(`/api/admin/products/${created.body._id}`)
             .set('Cookie', cookie)
             .send({
-                images: []
+                images: [{ image_url: 'https://assets.example.com/products/other.jpg', is_primary: true }]
             });
 
         expect(updated.status).toBe(200);

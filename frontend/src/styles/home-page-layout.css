@@ -10,8 +10,7 @@
   font-weight: 300;
   line-height: 1.15;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   color: var(--color-text);
   white-space: pre-line;
   quotes: none;
@@ -38,14 +37,128 @@
   pointer-events: none;
 }
 
+/* Home bands stack as opaque sheets over the sticky footer */
+.home-hero,
+.home-about,
+.home-about-me,
+.home-my-art,
+.home-artwork,
+.home-wanna-dos,
+.home-testimonials {
+  position: relative;
+  isolation: isolate;
+  background: var(--color-bg);
+}
+
+#landing,
+#about,
+#about-me,
+#my-art,
+#gallery,
+#wanna-dos,
+#contact,
+#book {
+  scroll-margin-top: var(--site-header-height, 76px);
+}
+
+.home-hero { z-index: 1; }
+.home-about { z-index: 2; }
+.home-about-me { z-index: 3; }
+.home-my-art { z-index: 4; }
+.home-artwork { z-index: 5; }
+.home-wanna-dos { z-index: 6; }
+.home-testimonials { z-index: 7; }
+
+.home-placeholder__container {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-xl) 32px var(--space-2xl);
+}
+
+.home-placeholder__masthead {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.home-placeholder__title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
+  font-size: clamp(0.9375rem, 2vw, 1.25rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+
+.home-placeholder__divider {
+  width: 3.5rem;
+  height: 1px;
+  margin: 0 auto;
+  background: currentColor;
+  opacity: 0.28;
+}
+
+.home-placeholder__copy {
+  margin: 0 auto;
+  max-width: 36rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.home-placeholder__media {
+  width: min(100%, 28rem);
+  height: 12rem;
+  margin: var(--space-xl) auto 0;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+}
+
+.home-placeholder__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: var(--space-lg) auto 0;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--color-text);
+  background: transparent;
+  color: var(--color-text);
+  text-decoration: none;
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8125rem;
+}
+
+.home-placeholder__container:has(.home-placeholder__cta) {
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .home-placeholder__container {
+    padding: var(--space-xl) var(--mobile-safe-inset-x);
+  }
+
+  .home-placeholder__media {
+    height: 9rem;
+  }
+
+  .home-placeholder__cta {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
 /* —— Hero: full-viewport museum opening (layout lives in HomeHero.vue) —— */
 .home-hero {
   /* reserved for shared home-page spacing hooks if needed */
 }
 
 @media (min-width: 641px) {
-  /* —— Testimonials: marquee band below about —— */
-  .home-testimonials {
+  .home-marquee {
     padding: var(--space-2xl) 0;
   }
 

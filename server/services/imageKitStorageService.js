@@ -12,6 +12,7 @@ const ALLOWED_FOLDERS = new Set([
     'site/featured-background',
     'site/about-background',
     'site/about',
+    'site/about-me',
     'site/contact',
     'site/logo'
 ]);

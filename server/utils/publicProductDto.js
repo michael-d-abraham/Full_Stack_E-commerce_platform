@@ -50,6 +50,7 @@ function basePublicFields(product) {
         _id: id,
         id,
         title: product.title,
+        label: product.label != null ? String(product.label) : '',
         slug: product.slug,
         price_cents: product.price_cents,
         currency: product.currency || 'usd',

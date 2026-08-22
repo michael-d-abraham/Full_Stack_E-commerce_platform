@@ -19,61 +19,20 @@
     :aria-hidden="!mobileMenuOpen"
     @click.stop
   >
-    <router-link
-      to="/"
-      class="mobile-menu-drawer__link"
-      exact-active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      Home
-    </router-link>
-    <router-link
-      to="/gallery"
-      class="mobile-menu-drawer__link"
+    <StorefrontSectionNav
+      link-class="mobile-menu-drawer__link"
       active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      {{ galleryNavLabel }}
-    </router-link>
-    <router-link
-      to="/wanna-dos"
-      class="mobile-menu-drawer__link"
-      active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      {{ wannaDosNavLabel }}
-    </router-link>
-    <router-link
-      v-if="showContactNav"
-      to="/contact"
-      class="mobile-menu-drawer__link"
-      active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      Contact
-    </router-link>
-    <router-link
-      v-if="showBookNav"
-      to="/book"
-      class="mobile-menu-drawer__link"
-      active-class="mobile-menu-drawer__link--active"
-      @click="closeMobileMenu"
-    >
-      Book
-    </router-link>
+    />
   </nav>
 </template>
 
 <script setup>
 import { useMobileNav } from '../../composables/useMobileNav.js';
-import { useStorefrontNav } from '../../composables/useStorefrontNav.js';
-import { useStorefrontLabels } from '../../composables/useStorefrontLabels.js';
+import StorefrontSectionNav from '../layout/StorefrontSectionNav.vue';
 
 defineOptions({ inheritAttrs: false });
 
-const { mobileMenuOpen, closeMobileMenu } = useMobileNav();
-const { showContactNav, showBookNav } = useStorefrontNav();
-const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
+const { mobileMenuOpen } = useMobileNav();
 </script>
 
 <style scoped>
@@ -150,7 +109,7 @@ const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
   font-size: 1rem;
   font-weight: 500;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   min-height: 44px;
   display: flex;
   align-items: center;

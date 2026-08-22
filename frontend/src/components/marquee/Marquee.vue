@@ -8,8 +8,8 @@
     }"
     :style="rootStyle"
   >
-    <div class="marquee__fade marquee__fade--left" aria-hidden="true" />
-    <div class="marquee__fade marquee__fade--right" aria-hidden="true" />
+    <div v-if="showFade" class="marquee__fade marquee__fade--left" aria-hidden="true" />
+    <div v-if="showFade" class="marquee__fade marquee__fade--right" aria-hidden="true" />
     <div class="marquee__viewport">
       <div class="marquee__track">
         <div
@@ -60,6 +60,10 @@ const props = defineProps({
     default: false
   },
   pauseOnHover: {
+    type: Boolean,
+    default: true
+  },
+  showFade: {
     type: Boolean,
     default: true
   }

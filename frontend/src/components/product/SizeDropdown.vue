@@ -31,7 +31,7 @@ const inputId = useId();
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 

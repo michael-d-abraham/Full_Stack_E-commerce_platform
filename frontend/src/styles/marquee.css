@@ -1,0 +1,122 @@
+/* Shared infinite marquee track — used by reviews and artwork */
+
+.marquee {
+  --marquee-duration: 40s;
+  --marquee-gap: 32px;
+  --marquee-fade-width: 80px;
+  --marquee-fade-color: var(--color-bg);
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  gap: var(--marquee-gap);
+}
+
+.marquee__viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll-x var(--marquee-duration) linear infinite;
+  will-change: transform;
+}
+
+.marquee--reverse .marquee__track {
+  animation-direction: reverse;
+}
+
+.marquee--pause-on-hover:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee__sequence {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: var(--marquee-gap);
+}
+
+.marquee--vertical {
+  flex-direction: column;
+}
+
+.marquee--vertical .marquee__track {
+  flex-direction: column;
+  animation-name: marquee-scroll-y;
+}
+
+.marquee--vertical .marquee__sequence {
+  flex-direction: column;
+}
+
+.marquee__fade {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee__fade--left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--marquee-fade-width);
+  background: linear-gradient(to right, var(--marquee-fade-color), transparent);
+}
+
+.marquee__fade--right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: var(--marquee-fade-width);
+  background: linear-gradient(to left, var(--marquee-fade-color), transparent);
+}
+
+.marquee-item {
+  flex-shrink: 0;
+}
+
+@keyframes marquee-scroll-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-scroll-y {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .marquee__track {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  .marquee__fade {
+    display: none;
+  }
+
+  .marquee--pause-on-hover:hover .marquee__track {
+    animation-play-state: running;
+  }
+}

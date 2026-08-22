@@ -11,6 +11,10 @@ import {
 export { displayProductName, primaryProductImage, primaryProductImageUrl };
 
 export function productTitle(product) {
+    const label = product?.label != null ? String(product.label).trim() : '';
+    if (label) {
+        return label;
+    }
     if (product?.title) {
         return product.title;
     }

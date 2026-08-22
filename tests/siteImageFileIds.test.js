@@ -86,6 +86,8 @@ describe('site settings image file ID persistence', () => {
         expect(res.body.hero_image_file_id).toBe('');
         expect(res.body.hero_image_file_ids).toEqual([]);
         expect(res.body.about_image_file_id).toBe('');
+        expect(res.body.about_me_left_image_file_id).toBe('');
+        expect(res.body.about_me_right_image_file_id).toBe('');
         expect(res.body.hero_background_image_file_id).toBe('');
         expect(res.body.featured_background_image_file_id).toBe('');
         expect(res.body.about_background_image_file_id).toBe('');
@@ -198,6 +200,39 @@ describe('site settings image file ID persistence', () => {
         expect(publicRes.body.about_image_url).toBe(ABOUT_URL);
         expect(publicRes.body.hero_image_file_ids).toBeUndefined();
         expect(publicRes.body.about_image_file_id).toBeUndefined();
+    });
+
+    it('saves about me pair images and hides file IDs publicly', async () => {
+        const cookie = await adminCookie();
+        const LEFT_URL = 'https://example.com/about-me-left.jpg';
+        const RIGHT_URL = 'https://example.com/about-me-right.jpg';
+        const LEFT_FILE = 'file_about_me_left';
+        const RIGHT_FILE = 'file_about_me_right';
+
+        const putRes = await request(app)
+            .put('/api/admin/site/home-page')
+            .set('Cookie', cookie)
+            .send(
+                homePageBody({
+                    about_me_left_image_url: LEFT_URL,
+                    about_me_left_image_file_id: LEFT_FILE,
+                    about_me_right_image_url: RIGHT_URL,
+                    about_me_right_image_file_id: RIGHT_FILE
+                })
+            );
+
+        expect(putRes.status).toBe(200);
+        expect(putRes.body.about_me_left_image_url).toBe(LEFT_URL);
+        expect(putRes.body.about_me_left_image_file_id).toBe(LEFT_FILE);
+        expect(putRes.body.about_me_right_image_url).toBe(RIGHT_URL);
+        expect(putRes.body.about_me_right_image_file_id).toBe(RIGHT_FILE);
+
+        const publicRes = await request(app).get('/api/site/home-page');
+        expect(publicRes.status).toBe(200);
+        expect(publicRes.body.about_me_left_image_url).toBe(LEFT_URL);
+        expect(publicRes.body.about_me_right_image_url).toBe(RIGHT_URL);
+        expect(publicRes.body.about_me_left_image_file_id).toBeUndefined();
+        expect(publicRes.body.about_me_right_image_file_id).toBeUndefined();
     });
 
     it('URL-only home page save still works without file IDs', async () => {

@@ -1,13 +1,13 @@
 const DEFAULT_CONTACT_PAGE = {
     show_in_nav: true,
     show_hero_image: true,
-    page_title: 'Contact',
-    form_name_label: 'Name',
-    form_email_label: 'Your email',
-    form_subject_label: 'Subject',
-    form_message_label: 'Message',
-    form_submit_label: 'Submit',
-    success_message: 'Message sent successfully.'
+    page_title: 'contact',
+    form_name_label: 'name',
+    form_email_label: 'your email',
+    form_subject_label: 'subject',
+    form_message_label: 'message',
+    form_submit_label: 'submit',
+    success_message: 'message sent successfully.'
 };
 
 function mergeContactPageLabels(stored) {

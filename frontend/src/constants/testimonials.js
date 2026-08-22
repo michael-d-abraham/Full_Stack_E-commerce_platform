@@ -10,57 +10,57 @@ export const PLACEHOLDER_TESTIMONIALS = [
   {
     id: 'maya-thornton',
     quote:
-      "Stumbled across this portfolio and couldn't stop clicking through it. The interactions feel alive.",
-    name: 'Maya Thornton',
-    role: 'Lead Designer @company',
-    avatarUrl: avatarUrl('Maya Thornton')
+      "stumbled across this portfolio and couldn't stop clicking through it. the interactions feel alive.",
+    name: 'maya thornton',
+    role: 'lead designer @company',
+    avatarUrl: avatarUrl('maya thornton')
   },
   {
     id: 'rafael-osei',
     quote:
-      "The level of craft here sets a new bar. I'm sending this to our entire design team.",
-    name: 'Rafael Osei',
-    role: 'Founder @XYZ',
-    avatarUrl: avatarUrl('Rafael Osei')
+      "the level of craft here sets a new bar. i'm sending this to our entire design team.",
+    name: 'rafael osei',
+    role: 'founder @xyz',
+    avatarUrl: avatarUrl('rafael osei')
   },
   {
     id: 'priya-menon',
     quote:
-      'Rarely do I see someone nail both the engineering and the aesthetics this consistently.',
-    name: 'Priya Menon',
-    role: 'Staff Engineer @coolcompany',
-    avatarUrl: avatarUrl('Priya Menon')
+      'rarely do i see someone nail both the engineering and the aesthetics this consistently.',
+    name: 'priya menon',
+    role: 'staff engineer @coolcompany',
+    avatarUrl: avatarUrl('priya menon')
   },
   {
     id: 'luca-ferreira',
     quote:
-      'Every scroll, every transition — nothing is accidental here. Beautifully intentional work.',
-    name: 'Luca Ferreira',
-    role: 'Creative Director @bigcompany',
-    avatarUrl: avatarUrl('Luca Ferreira')
+      'every scroll, every transition — nothing is accidental here. beautifully intentional work.',
+    name: 'luca ferreira',
+    role: 'creative director @bigcompany',
+    avatarUrl: avatarUrl('luca ferreira')
   },
   {
     id: 'nora-halstrom',
     quote:
-      'This is the portfolio I wish I had built. The micro-interactions alone are worth studying.',
-    name: 'Nora Halstrom',
-    role: 'Co-founder @startup',
-    avatarUrl: avatarUrl('Nora Halstrom')
+      'this is the portfolio i wish i had built. the micro-interactions alone are worth studying.',
+    name: 'nora halstrom',
+    role: 'co-founder @startup',
+    avatarUrl: avatarUrl('nora halstrom')
   },
   {
     id: 'dmitri-volkov',
     quote:
-      'You can feel the hours of iteration behind every component. Exceptional taste.',
-    name: 'Dmitri Volkov',
-    role: 'Design Engineer @pbcompany',
-    avatarUrl: avatarUrl('Dmitri Volkov')
+      'you can feel the hours of iteration behind every component. exceptional taste.',
+    name: 'dmitri volkov',
+    role: 'design engineer @pbcompany',
+    avatarUrl: avatarUrl('dmitri volkov')
   },
   {
     id: 'selin-aydin',
     quote:
-      "I've reviewed hundreds of portfolios this year. This one is in a category of its own.",
-    name: 'Selin Aydın',
-    role: 'Product @another',
-    avatarUrl: avatarUrl('Selin Aydin')
+      "i've reviewed hundreds of portfolios this year. this one is in a category of its own.",
+    name: 'selin aydın',
+    role: 'product @another',
+    avatarUrl: avatarUrl('selin aydin')
   }
 ];

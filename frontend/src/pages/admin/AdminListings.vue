@@ -16,8 +16,8 @@
 
       <p v-if="error" class="error admin-page-header__status">{{ error }}</p>
       <p v-else-if="!items.length" class="admin-float admin-float--padded admin-page-empty">
-        No products yet.
-        <router-link to="/admin/new">Create your first listing</router-link>
+        no wanna do's yet.
+        <router-link to="/admin/new">add your first listing</router-link>
       </p>
 
       <template v-else>
@@ -38,7 +38,7 @@
             </span>
             <AdminListingActionsMenu
               :product-id="p._id"
-              :title="p.title"
+              :title="displayLabel(p)"
               :is-active="p.is_active"
               :open="openMenuId === p._id"
               @toggle="toggleMenu(p._id)"
@@ -47,7 +47,7 @@
               @delete="onDelete(p)"
             />
           </div>
-          <h3 class="admin-mobile-card__title">{{ p.title }}</h3>
+          <h3 class="admin-mobile-card__title">{{ displayLabel(p) }}</h3>
           <div class="admin-mobile-card__body">
             <div class="admin-mobile-card__media" aria-hidden="true">
               <div class="admin-data-table__thumb admin-data-table__thumb--lg">
@@ -62,16 +62,6 @@
                 <span v-else class="admin-data-table__thumb-placeholder">—</span>
               </div>
             </div>
-            <dl class="admin-mobile-card__meta admin-mobile-card__meta--stats-row">
-            <div class="admin-mobile-card__stat">
-              <dt>Price</dt>
-              <dd>{{ formatPrice(p.price_cents) }}</dd>
-            </div>
-            <div class="admin-mobile-card__stat">
-              <dt>Stock</dt>
-              <dd>{{ p.quantity_available ?? '—' }}</dd>
-            </div>
-            </dl>
           </div>
         </li>
       </ul>
@@ -82,9 +72,7 @@
           <thead>
             <tr>
               <th>Image</th>
-              <th>Title</th>
-              <th>Price</th>
-              <th>Stock</th>
+              <th>Label</th>
               <th>Status</th>
               <th class="admin-data-table__actions-cell"></th>
             </tr>
@@ -104,9 +92,7 @@
                   <span v-else class="admin-data-table__thumb-placeholder">—</span>
                 </div>
               </td>
-              <td class="admin-data-table__title-cell">{{ p.title }}</td>
-              <td class="admin-data-table__cell--nowrap">{{ formatPrice(p.price_cents) }}</td>
-              <td>{{ p.quantity_available ?? '—' }}</td>
+              <td class="admin-data-table__title-cell">{{ displayLabel(p) }}</td>
               <td>
                 <span
                   class="admin-status-pill"
@@ -118,7 +104,7 @@
               <td class="admin-data-table__actions-cell">
                 <AdminListingActionsMenu
                   :product-id="p._id"
-                  :title="p.title"
+                  :title="displayLabel(p)"
                   :is-active="p.is_active"
                   :open="openMenuId === p._id"
                   @toggle="toggleMenu(p._id)"
@@ -144,7 +130,6 @@ import {
   deleteAdminProduct,
   toggleAdminProductActive
 } from '../../services/api.js';
-import { formatMoneyFromCents } from '../../utils/money.js';
 import {
   primaryProductImageUrl,
   productTitle
@@ -163,8 +148,8 @@ const openMenuId = ref(null);
 
 const sortedItems = computed(() => sortProducts(items.value, sortBy.value));
 
-function formatPrice(cents) {
-  return formatMoneyFromCents(cents, 'usd');
+function displayLabel(product) {
+  return productTitle(product);
 }
 
 function thumbUrl(product) {
@@ -223,7 +208,7 @@ async function onToggle(p) {
 }
 
 async function onDelete(p) {
-  if (!window.confirm(`Delete "${p.title}"? (soft-delete — hidden from shop)`)) return;
+  if (!window.confirm(`delete "${displayLabel(p)}"? it will be hidden from wanna do's.`)) return;
   try {
     await deleteAdminProduct(p._id);
     await load();

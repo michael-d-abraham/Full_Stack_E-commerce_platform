@@ -130,7 +130,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-heading);
 }
 
@@ -226,7 +226,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
 }
 
@@ -414,7 +414,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
 }
 
@@ -473,7 +473,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
 }
 
@@ -567,7 +567,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-heading);
   text-align: left;
   vertical-align: middle;
@@ -615,7 +615,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  text-transform: capitalize;
+  text-transform: lowercase;
   border: none;
   border-radius: 999px;
   line-height: 1.2;
@@ -672,7 +672,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  text-transform: capitalize;
+  text-transform: lowercase;
   border: none;
   border-radius: 999px;
   cursor: pointer;
@@ -976,7 +976,7 @@
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 
@@ -1379,7 +1379,7 @@
     font-size: 0.625rem;
     font-weight: 600;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--color-text-muted);
     flex-shrink: 0;
   }
@@ -1606,7 +1606,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-status-positive-text);
 }
 
@@ -1684,7 +1684,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-heading);
 }
 

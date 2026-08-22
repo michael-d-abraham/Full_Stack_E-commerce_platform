@@ -1,9 +1,9 @@
 const DEFAULT_BOOK_PAGE = {
     show_in_nav: true,
     booking_url: 'https://app.squareup.com/appointments/book/937xx9jiszps1s/LHGHGV5HBBBQW/start',
-    page_title: 'Book an Appointment',
-    body_text: 'Schedule a tattoo consultation or appointment through Square.',
-    button_label: 'Book with Square'
+    page_title: 'book an appointment',
+    body_text: 'schedule a tattoo consultation or appointment through square.',
+    button_label: 'book with square'
 };
 
 function normalizeOptionalText(value) {

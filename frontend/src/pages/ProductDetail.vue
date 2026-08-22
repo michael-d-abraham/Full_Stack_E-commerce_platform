@@ -289,7 +289,7 @@ const formattedPrice = computed(() => {
   if (props.contentType === 'portfolio') {
     return null;
   }
-  if (product.value?.price_cents == null) return null;
+  if (product.value?.price_cents == null || product.value.price_cents <= 0) return null;
   return formatMoneyFromCents(
     product.value.price_cents,
     product.value.currency || 'usd'
@@ -297,8 +297,10 @@ const formattedPrice = computed(() => {
 });
 
 const hasDisplayTitle = computed(() => {
-  const title = product.value?.title != null ? String(product.value.title).trim() : '';
-  return Boolean(title);
+  if (!product.value) {
+    return false;
+  }
+  return Boolean(productTitle(product.value).trim());
 });
 
 

@@ -10,6 +10,10 @@ describe('shared/productDisplay', () => {
             expect(displayProductName({ title: 'Sunset' })).toBe('Sunset');
         });
 
+        it('prefers listing tag over title', () => {
+            expect(displayProductName({ label: 'Fine line', title: 'Sunset' })).toBe('Fine line');
+        });
+
         it('appends format when not already in title', () => {
             expect(
                 displayProductName({ title: 'Sunset', format: 'Canvas' })

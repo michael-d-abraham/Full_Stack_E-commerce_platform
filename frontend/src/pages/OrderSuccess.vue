@@ -240,7 +240,7 @@ watch(() => route.fullPath, loadOrder);
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 
@@ -313,7 +313,7 @@ watch(() => route.fullPath, loadOrder);
   margin-top: var(--space-sm);
   font-size: 0.875rem;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .totals-row--total dt,

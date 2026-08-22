@@ -231,7 +231,7 @@ defineEmits(['pick-image', 'remove-image']);
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   line-height: 1.4;
   color: var(--color-text);
   border: 1px dashed transparent;

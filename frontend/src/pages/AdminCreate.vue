@@ -1,65 +1,39 @@
 <template>
   <div class="admin-page">
     <header class="admin-page-header">
-      <h1 class="admin-page-header__title">New wanna do</h1>
-      <router-link to="/admin/listings" class="admin-page-header__btn">← Wanna Do's</router-link>
+      <h1 class="admin-page-header__title">new wanna do</h1>
+      <router-link to="/admin/listings" class="admin-page-header__btn">← wanna do's</router-link>
     </header>
 
     <div class="admin-float admin-float--padded">
       <form @submit.prevent="onSubmit">
         <div class="field">
-          <label for="title">Title *</label>
-          <input id="title" v-model="form.title" type="text" autocomplete="off" placeholder="e.g. Swilly Clouds — Canvas" />
-          <p class="help">Shown in the gallery and on the product page. URL slug is generated from this unless you set one below.</p>
+          <label for="wanna-do-label">tag *</label>
+          <select id="wanna-do-label" v-model="form.label" required>
+            <option disabled value="">select a style</option>
+            <option v-for="option in GALLERY_WORK_LABELS" :key="option" :value="option">
+              {{ option }}
+            </option>
+          </select>
         </div>
 
         <div class="field">
-          <label for="desc">Description *</label>
-          <textarea id="desc" v-model="form.description" rows="5" placeholder="Describe the piece" />
-        </div>
-
-        <div class="field">
-          <label for="format">Format</label>
-          <input id="format" v-model="form.format" type="text" placeholder="e.g. Canvas, Poster" />
-          <p class="help">Optional — e.g. print type or medium.</p>
-        </div>
-
-        <div class="field">
-          <label for="size">Size</label>
-          <input id="size" v-model="form.size_label" type="text" placeholder='e.g. 16" × 20"' />
-        </div>
-
-        <div class="field">
-          <label for="year">Year</label>
-          <input id="year" v-model.number="form.year_created" type="number" min="1900" max="2100" step="1" placeholder="Optional" />
-        </div>
-
-        <div class="field">
-          <label for="price">Price (USD) *</label>
-          <input id="price" v-model.number="priceDollars" type="number" min="0" step="0.01" />
-        </div>
-
-        <div class="field">
-          <label for="qty">Quantity in stock *</label>
-          <input id="qty" v-model.number="form.quantity_available" type="number" min="0" step="1" />
-        </div>
-
-        <div class="field">
-          <span class="label-text">Pictures</span>
+          <span class="label-text">photos *</span>
           <AdminProductImages
             v-model="imageRows"
             v-model:primary-index="primaryImageIndex"
             upload-folder="products"
             :disabled="submitting"
+            help-text=""
           />
         </div>
 
         <p v-if="submitError" class="error">{{ submitError }}</p>
         <div class="actions">
           <button type="submit" class="admin-panel__btn-primary" :disabled="submitting">
-            {{ submitting ? 'Saving…' : 'Save listing' }}
+            {{ submitting ? 'saving…' : 'save' }}
           </button>
-          <router-link to="/admin/listings">Cancel</router-link>
+          <router-link to="/admin/listings">cancel</router-link>
         </div>
       </form>
     </div>
@@ -71,59 +45,35 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createAdminProduct } from '../services/api.js';
 import AdminProductImages, { buildProductImagesPayload } from '../components/admin/AdminProductImages.vue';
-import { dollarsToCents } from '../utils/money.js';
+import { GALLERY_WORK_LABELS } from '../constants/galleryLabels.js';
 
 const router = useRouter();
 
 const form = reactive({
-  title: '',
-  description: '',
-  format: '',
-  size_label: '',
-  year_created: null,
-  quantity_available: 0
+  label: ''
 });
 
-const priceDollars = ref(0);
 const imageRows = ref([]);
 const primaryImageIndex = ref(0);
-
-function buildImages() {
-  return buildProductImagesPayload(imageRows.value, primaryImageIndex.value);
-}
+const submitError = ref('');
+const submitting = ref(false);
 
 function buildBody() {
-  const body = {
-    title: String(form.title).trim(),
-    description: String(form.description).trim(),
-    price_cents: dollarsToCents(priceDollars.value),
-    quantity_available: form.quantity_available,
-    currency: 'usd'
+  return {
+    label: String(form.label).trim(),
+    images: buildProductImagesPayload(imageRows.value, primaryImageIndex.value)
   };
-  const format = String(form.format || '').trim();
-  if (format) body.format = format;
-  const size = String(form.size_label || '').trim();
-  if (size) body.size_label = size;
-  if (form.year_created != null && Number.isInteger(form.year_created)) {
-    body.year_created = form.year_created;
-  }
-  const imgs = buildImages();
-  if (imgs.length) body.images = imgs;
-  return body;
 }
 
 function validate() {
-  if (!String(form.title).trim()) return 'Enter a title.';
-  if (!String(form.description).trim()) return 'Enter a description.';
-  const cents = dollarsToCents(priceDollars.value);
-  if (!Number.isInteger(cents)) return 'Enter a valid price.';
-  const q = form.quantity_available;
-  if (typeof q !== 'number' || !Number.isInteger(q) || q < 0) return 'Enter a whole number for quantity.';
+  if (!String(form.label).trim()) {
+    return 'select a tag.';
+  }
+  if (!buildProductImagesPayload(imageRows.value, primaryImageIndex.value).length) {
+    return 'upload at least one photo.';
+  }
   return null;
 }
-
-const submitError = ref('');
-const submitting = ref(false);
 
 async function onSubmit() {
   submitError.value = '';
@@ -137,7 +87,7 @@ async function onSubmit() {
     await createAdminProduct(buildBody());
     router.push('/admin/listings');
   } catch (e) {
-    submitError.value = e.message || 'Save failed';
+    submitError.value = e.message || 'save failed';
   } finally {
     submitting.value = false;
   }

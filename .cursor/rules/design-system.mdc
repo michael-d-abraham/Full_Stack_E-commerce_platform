@@ -11,6 +11,9 @@ Master UI rule for this project. Topic details live in scoped rules:
 
 - **Header scroll pill** → `site-header.mdc`
 - **Product circle controls** → `mobile-floating-circle-buttons.mdc`
+- **Home stack / marquee / about-me** → `home-sections.mdc`
+- **Gallery + wanna-do cards** → `storefront-listings.mdc`
+- **Customize image slots** → `admin-site-images.mdc`
 
 ## Rule hierarchy
 
@@ -38,6 +41,7 @@ Brand constraints in **this file override** any Apple HIG recommendation. Use HI
 - Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).
 - System sans stack (`--font-sans`), not SF Pro imports.
 - Soft blush editorial aesthetic — restrained materials, not iOS chrome or heavy glassmorphism.
+- **All-lowercase type:** no capital letters on the site. See `typography-lowercase.mdc`. Never `text-transform: uppercase` / `capitalize` or `font-variant: small-caps`.
 
 ## Breakpoints
 
@@ -93,7 +97,7 @@ Use when auditing UI — **filtered through brand above**:
 1. **Accessibility** — contrast ≥4.5:1 for body text, 44px tap targets on mobile, screen reader labels, don't rely on color alone
 2. **Visual hierarchy** — consistent spacing, clear type scale, restrained materials
 3. **Interaction** — loading/empty states, action feedback, confirm destructive actions
-4. **Content** — concise labels, sentence case for UI text
+4. **Content** — concise labels, **all lowercase** (never sentence case or title case)
 
 **Do not apply from HIG:** SF Pro, bottom tab bars, Liquid Glass-heavy UI, platform chrome, mandatory dark mode, iOS navigation patterns.
 

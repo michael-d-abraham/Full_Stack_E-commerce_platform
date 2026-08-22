@@ -143,6 +143,37 @@
         </div>
       </div>
     </section>
+
+    <section class="admin-home-preview__about-me" aria-label="about me preview">
+      <div class="admin-home-preview__container">
+        <h3 class="admin-home-preview__block-title">about me</h3>
+        <p class="admin-home-preview__field-hint">
+          two tall photos that sit side by side on the home page, with vertical parallax.
+        </p>
+        <div class="admin-home-preview__about-me-pair">
+          <div class="admin-home-preview__about-me-slot">
+            <span class="admin-home-preview__field-label">left photo</span>
+            <AdminHomePreviewImageSlot
+              :image-url="form.about_me_left_image_url"
+              :disabled="disabled"
+              aria-label="about me left photo"
+              @pick="$emit('pick-image', { type: 'about-me-left' })"
+              @remove="$emit('remove-image', { type: 'about-me-left' })"
+            />
+          </div>
+          <div class="admin-home-preview__about-me-slot">
+            <span class="admin-home-preview__field-label">right photo</span>
+            <AdminHomePreviewImageSlot
+              :image-url="form.about_me_right_image_url"
+              :disabled="disabled"
+              aria-label="about me right photo"
+              @pick="$emit('pick-image', { type: 'about-me-right' })"
+              @remove="$emit('remove-image', { type: 'about-me-right' })"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -170,14 +201,14 @@ defineEmits(['pick-image', 'remove-image']);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 
 .admin-home-preview__field-label {
   font-size: 0.6875rem;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: lowercase;
   letter-spacing: 0.16em;
   color: var(--color-text-muted);
 }
@@ -226,7 +257,8 @@ defineEmits(['pick-image', 'remove-image']);
 }
 
 .admin-home-preview__featured,
-.admin-home-preview__about {
+.admin-home-preview__about,
+.admin-home-preview__about-me {
   position: relative;
   overflow: hidden;
 }
@@ -275,8 +307,7 @@ defineEmits(['pick-image', 'remove-image']);
   line-height: 1.15;
   letter-spacing: 0.08em;
   text-align: center;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   color: var(--color-heading);
   border: 1px dashed var(--color-border);
   background: transparent;
@@ -379,7 +410,7 @@ defineEmits(['pick-image', 'remove-image']);
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   box-sizing: border-box;
   opacity: 0.88;
 }
@@ -411,8 +442,7 @@ defineEmits(['pick-image', 'remove-image']);
   font-size: clamp(0.9375rem, 2vw, 1.25rem);
   font-weight: 300;
   letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   text-align: center;
   color: var(--color-text);
 }
@@ -471,8 +501,7 @@ defineEmits(['pick-image', 'remove-image']);
   font-weight: 300;
   line-height: 1.15;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   color: var(--color-text);
   border: 1px dashed var(--color-border);
   background: transparent;
@@ -488,7 +517,7 @@ defineEmits(['pick-image', 'remove-image']);
 .admin-home-preview__about-text-label {
   font-size: 0.6875rem;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: lowercase;
   letter-spacing: 0.16em;
   color: var(--color-text-muted);
 }
@@ -519,6 +548,36 @@ defineEmits(['pick-image', 'remove-image']);
   min-height: 280px;
 }
 
+.admin-home-preview__about-me {
+  padding: var(--space-lg) var(--space-lg) var(--space-3xl);
+  background: var(--color-bg);
+}
+
+.admin-home-preview__about-me-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.admin-home-preview__about-me-slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.admin-home-preview__about-me-slot :deep(.admin-home-img-slot__hit) {
+  aspect-ratio: 3 / 4;
+  min-height: 16rem;
+}
+
+.admin-home-preview__about-me-slot :deep(.admin-home-img-slot__photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 @media (min-width: 641px) {
   .admin-home-preview__hero-inner {
     max-width: 42rem;
@@ -544,12 +603,14 @@ defineEmits(['pick-image', 'remove-image']);
 @media (max-width: 640px) {
   .admin-home-preview__hero,
   .admin-home-preview__featured,
-  .admin-home-preview__about {
+  .admin-home-preview__about,
+  .admin-home-preview__about-me {
     padding-left: var(--space-md);
     padding-right: var(--space-md);
   }
 
-  .admin-home-preview__featured-grid {
+  .admin-home-preview__featured-grid,
+  .admin-home-preview__about-me-pair {
     grid-template-columns: 1fr;
     gap: var(--space-md);
   }

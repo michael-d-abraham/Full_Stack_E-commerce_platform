@@ -15,8 +15,6 @@ import { startNavProgress, finishNavProgress } from '../composables/useNavProgre
 
 const Gallery = () => import('../pages/Gallery.vue');
 const WannaDos = () => import('../pages/WannaDos.vue');
-const Contact = () => import('../pages/Contact.vue');
-const BookAppointment = () => import('../pages/BookAppointment.vue');
 const Checkout = () => import('../pages/Checkout.vue');
 const OrderSuccess = () => import('../pages/OrderSuccess.vue');
 const CheckoutCancel = () => import('../pages/CheckoutCancel.vue');
@@ -51,8 +49,8 @@ const routes = [
         })
     },
     { path: '/checkout/cancel', name: 'checkout-cancel', component: CheckoutCancel },
-    { path: '/contact', name: 'contact', component: Contact },
-    { path: '/book', name: 'book-appointment', component: BookAppointment },
+    { path: '/contact', redirect: { path: '/', hash: '#contact' } },
+    { path: '/book', redirect: { path: '/', hash: '#book' } },
     { path: '/art/:slug', redirect: { name: 'gallery' } },
     {
         path: '/product/:slug',
@@ -100,6 +98,10 @@ const router = createRouter({
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {
             return savedPosition;
+        }
+
+        if (to.name === 'home' && to.hash) {
+            return false;
         }
 
         if (isProductGridRoute(to.name) && to.name === from.name) {

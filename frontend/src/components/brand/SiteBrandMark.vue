@@ -76,7 +76,7 @@ const linkProps = computed(() => {
   font-family: var(--font-sans);
   font-weight: 900;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .site-brand-mark__logo {

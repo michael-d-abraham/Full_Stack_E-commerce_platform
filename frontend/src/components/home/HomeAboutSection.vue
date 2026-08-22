@@ -1,5 +1,6 @@
 <template>
   <section
+    id="about"
     class="home-about home-section"
     :class="{ 'home-section--has-background': Boolean(backgroundImageUrl) }"
     aria-labelledby="home-about-heading"
@@ -132,8 +133,7 @@ const visibleStatement = computed(() => {
   font-size: clamp(0.9375rem, 2vw, 1.25rem);
   font-weight: 300;
   letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   line-height: 1.35;
   color: var(--color-text);
 }
@@ -229,8 +229,7 @@ const visibleStatement = computed(() => {
   font-size: 0.8125rem;
   font-weight: 300;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-variant: small-caps;
+  text-transform: lowercase;
   color: var(--color-text);
   text-decoration: underline;
   text-underline-offset: 0.3em;

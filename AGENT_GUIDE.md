@@ -229,7 +229,7 @@ Copy the displayed `whsec_...` value into `.env` as `STRIPE_WEBHOOK_SECRET`.
 | Command | What it does |
 |---|---|
 | `npm run dev:all` | Start Express + Vite together (recommended for development) |
-| `npm run server` | Start Express only (port 3000) |
+| `npm run server` | Start Express only (`PORT`, default 3000; this project often uses 3002). Watches `server/` and `shared/` (`node --watch-path`) so backend + shared defaults reload. If old validation errors persist after a code change, the watcher missed it — restart the process. |
 | `npm run dev` | Start Vite only (port 5173) |
 | `npm run build` | Build SPA to `frontend/dist/` |
 | `npm run preview` | Preview production build (Vite preview server, also proxies `/api`) |
@@ -274,17 +274,21 @@ There is no admin registration UI. Accounts are managed entirely via these env v
 | `STRIPE_SUCCESS_URL` | No | Override the Stripe success redirect URL. **Must contain `{CHECKOUT_SESSION_ID}`** or the server will fall back to default and log an error |
 | `STRIPE_CANCEL_URL` | No | Override the Stripe cancel redirect URL |
 
-### Cloudflare R2 (image uploads)
+### ImageKit (live uploads)
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `R2_ACCESS_KEY_ID` | For uploads | R2 API token key ID |
-| `R2_SECRET_ACCESS_KEY` | For uploads | R2 API token secret |
-| `R2_BUCKET_NAME` | For uploads | Bucket name |
-| `R2_ENDPOINT` | For uploads | S3-compatible endpoint, e.g. `https://<account_id>.r2.cloudflarestorage.com` |
-| `R2_PUBLIC_URL` | For uploads | Public base URL (no trailing slash), e.g. `https://assets.yourdomain.com` |
+| `IMAGEKIT_PUBLIC_KEY` | For uploads | ImageKit public key |
+| `IMAGEKIT_PRIVATE_KEY` | For uploads | ImageKit private key |
+| `IMAGEKIT_URL_ENDPOINT` | For uploads | CDN endpoint, e.g. `https://ik.imagekit.io/<id>` |
 
-If these are unset, the upload endpoint will fail. Existing product image URLs in the database still display fine (they are stored absolute URLs).
+Uploads go through `imageKitStorageService.js`. Folders are allowlisted — unknown `folder` values fail with `INVALID_FOLDER` and never persist. See `.cursor/rules/admin-site-images.mdc`.
+
+R2 env vars may still appear in `.env.example`. `r2StorageService.js` is leftover, not the upload path.
+
+### Cloudflare R2 (unused leftover)
+
+R2 credentials are not the live upload path. Existing absolute image URLs in Mongo still display if they point at an old host.
 
 ### Email (Resend)
 
@@ -305,9 +309,11 @@ If these are unset, the upload endpoint will fail. Existing product image URLs i
 
 ## Known Constraints
 
-### Product images live in Cloudflare R2
+### Product and site images live in ImageKit
 
-Image files are never stored locally or in MongoDB. Only the public URL (`image_url`) is stored in the `ProductImage` collection. The browser loads images directly from R2 — the Express server never proxies them. If R2 credentials are absent, image uploads fail, but existing listing images continue to display.
+Image files are never stored locally or in MongoDB. Only the public URL (and ImageKit `file_id` for cleanup) is stored. The browser loads images from the ImageKit CDN — Express never proxies bytes. If ImageKit env vars are missing, new uploads fail; existing URLs still display.
+
+Home customize photos (`about_image_url`, `about_me_*`, backgrounds, hero) all live on `SiteSettings.home_page`. Add new slots by copying an existing field through schema, defaults, admin GET/PUT, file-ID cleanup, admin preview, and the public home payload. Do not invent a second store.
 
 ### Orders are created through Stripe, not directly
 
@@ -333,6 +339,10 @@ There are no API keys, JWTs, or bearer tokens. All admin API calls rely on the `
 
 `app.js` registers `express.raw({ type: 'application/json' })` on `/api/webhooks/stripe` **before** `express.json()`. If you reorder middleware mounts in `app.js`, the webhook signature verification will break.
 
+### Gallery and wanna-do listings are photos + a tag
+
+Create/edit validation requires a style tag from `shared/galleryLabels.js` and at least one photo. Title, description, and price are optional. Tags: Blackwork, Fine line, Shading, Color, Floral (Realism is gone). See `.cursor/rules/storefront-listings.mdc`.
+
 ### Product soft deletes
 
 Products are never hard-deleted. `DELETE /api/admin/products/:id` sets `deleted_at` to the current timestamp (`softDeleteAdminProduct`). Active public queries always filter `{ deleted_at: null, is_active: true }`. Do not change this without updating every query that reads products.
@@ -341,7 +351,7 @@ Products are never hard-deleted. `DELETE /api/admin/products/:id` sets `deleted_
 
 ## Safe Development Workflow
 
-1. **Create a feature branch.** Never commit directly to `main`.
+1. **Create a feature branch.** Never commit directly to `main`. **Never force-push `main`.** Other agents may be working on the same repo in parallel.
 
 2. **Backend changes:** Routes live in `server/routes/`, handlers in `server/controllers/`, logic in `server/services/`. Keep this layering — do not put DB queries in controllers or route files.
 

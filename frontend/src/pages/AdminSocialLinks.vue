@@ -247,7 +247,7 @@ async function onSubmit() {
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 
@@ -269,7 +269,7 @@ async function onSubmit() {
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
 }
 
@@ -313,7 +313,7 @@ async function onSubmit() {
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
 }
 
@@ -336,7 +336,7 @@ async function onSubmit() {
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
   cursor: pointer;
   margin: 0;

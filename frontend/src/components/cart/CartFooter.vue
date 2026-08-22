@@ -48,7 +48,7 @@ defineEmits(['checkout']);
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text-muted);
 }
 

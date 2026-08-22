@@ -1,0 +1,34 @@
+---
+description: Home page section order, shared marquee, and about-me photo pair
+globs:
+  - frontend/src/pages/Home.vue
+  - frontend/src/components/home/**
+  - frontend/src/components/marquee/**
+  - frontend/src/styles/home-page-layout.css
+  - frontend/src/styles/marquee*.css
+  - frontend/src/constants/storefrontSections.js
+alwaysApply: false
+---
+
+# Home sections
+
+## Stack (do not reorder unless asked)
+
+Hero → About → About me → My Art → Artwork marquee → Wanna Do’s → Reviews
+
+Section ids live in `frontend/src/constants/storefrontSections.js`. Header one-page nav scrolls to those hashes (`useStorefrontSectionNav`). Do not use 640px for header layout — header breakpoint is 768px (`site-header.mdc`).
+
+## Shared marquee
+
+Reviews and the artwork strip use the **same** motion and tile size:
+
+- `HomeMarqueeSection.vue` — track, 40s loop, 32px gap, fades, pause on hover
+- `MarqueeTile.vue` — 360×280 (320×240 mobile), same radius / shadow / spotlight
+
+Do not fork a second marquee CSS file or a different tile size for reviews vs artwork. Reviews use the quote variant; artwork is image-only in the same tile.
+
+## About me pair
+
+`HomeAboutMeSection.vue`: two tall columns (~88vh / 78vh mobile) with `useScrollParallax` at different Y rates.
+
+Images come from public home page `about_me_left_image_url` / `about_me_right_image_url` (admin customize slots). Empty slots may use `PLACEHOLDER_ARTWORK` until a photo is saved. Parallax only through `useScrollParallax` / `useSectionBackgroundParallax`.

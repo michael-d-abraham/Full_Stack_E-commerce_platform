@@ -1,38 +1,15 @@
 <template>
-  <section
-    class="home-testimonials home-section"
-    aria-label="Client reviews"
-  >
-    <div
-      v-if="backgroundImageUrl"
-      class="home-testimonials__background home-section__background"
-      :style="{ backgroundImage: `url(${backgroundImageUrl})` }"
-      aria-hidden="true"
-    />
-    <div class="home-testimonials__marquee-wrap">
-      <Marquee
-        pause-on-hover
-        :fade-color="fadeColor"
-        duration="40s"
-        gap="32px"
-      >
-        <MarqueeItem v-for="item in testimonials" :key="item.id">
-          <TestimonialCard
-            :quote="item.quote"
-            :name="item.name"
-            :role="item.role"
-            :avatar-url="item.avatarUrl"
-          />
-        </MarqueeItem>
-      </Marquee>
-    </div>
-  </section>
+  <HomeMarqueeSection
+    aria-label="client reviews"
+    section-class="home-testimonials"
+    :items="items"
+    :background-image-url="backgroundImageUrl"
+  />
 </template>
 
 <script setup>
-import Marquee from '../marquee/Marquee.vue';
-import MarqueeItem from '../marquee/MarqueeItem.vue';
-import TestimonialCard from '../testimonial/TestimonialCard.vue';
+import { computed } from 'vue';
+import HomeMarqueeSection from './HomeMarqueeSection.vue';
 import { PLACEHOLDER_TESTIMONIALS } from '../../constants/testimonials.js';
 
 defineProps({
@@ -42,6 +19,10 @@ defineProps({
   }
 });
 
-const fadeColor = 'var(--color-bg)';
-const testimonials = PLACEHOLDER_TESTIMONIALS;
+const items = computed(() =>
+  PLACEHOLDER_TESTIMONIALS.map((item) => ({
+    ...item,
+    variant: 'quote'
+  }))
+);
 </script>

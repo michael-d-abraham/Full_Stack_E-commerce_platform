@@ -243,7 +243,7 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   box-shadow: none;
 }
 

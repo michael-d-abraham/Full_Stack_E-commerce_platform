@@ -168,7 +168,7 @@ onMounted(updateTruncation);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-text);
   text-decoration: underline;
   text-underline-offset: 0.3em;

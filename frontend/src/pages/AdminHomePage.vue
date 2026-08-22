@@ -71,6 +71,10 @@ function createEmptyForm() {
     about_text: '',
     about_image_url: '',
     about_image_file_id: '',
+    about_me_left_image_url: '',
+    about_me_left_image_file_id: '',
+    about_me_right_image_url: '',
+    about_me_right_image_file_id: '',
     about_background_image_url: '',
     about_background_image_file_id: ''
   };
@@ -120,6 +124,18 @@ function applySettings(data) {
       data.about_image_url != null ? String(data.about_image_url).trim() : '';
     next.about_image_file_id =
       data.about_image_file_id != null ? String(data.about_image_file_id).trim() : '';
+    next.about_me_left_image_url =
+      data.about_me_left_image_url != null ? String(data.about_me_left_image_url).trim() : '';
+    next.about_me_left_image_file_id =
+      data.about_me_left_image_file_id != null
+        ? String(data.about_me_left_image_file_id).trim()
+        : '';
+    next.about_me_right_image_url =
+      data.about_me_right_image_url != null ? String(data.about_me_right_image_url).trim() : '';
+    next.about_me_right_image_file_id =
+      data.about_me_right_image_file_id != null
+        ? String(data.about_me_right_image_file_id).trim()
+        : '';
     next.hero_background_image_url =
       data.hero_background_image_url != null ? String(data.hero_background_image_url).trim() : '';
     next.hero_background_image_file_id =
@@ -165,6 +181,10 @@ function applySettings(data) {
   form.about_text = next.about_text;
   form.about_image_url = next.about_image_url;
   form.about_image_file_id = next.about_image_file_id;
+  form.about_me_left_image_url = next.about_me_left_image_url;
+  form.about_me_left_image_file_id = next.about_me_left_image_file_id;
+  form.about_me_right_image_url = next.about_me_right_image_url;
+  form.about_me_right_image_file_id = next.about_me_right_image_file_id;
   form.hero_background_image_url = next.hero_background_image_url;
   form.hero_background_image_file_id = next.hero_background_image_file_id;
   form.featured_background_image_url = next.featured_background_image_url;
@@ -203,6 +223,10 @@ function payloadFromForm() {
     about_text: form.about_text,
     about_image_url: form.about_image_url,
     about_image_file_id: form.about_image_file_id,
+    about_me_left_image_url: form.about_me_left_image_url,
+    about_me_left_image_file_id: form.about_me_left_image_file_id,
+    about_me_right_image_url: form.about_me_right_image_url,
+    about_me_right_image_file_id: form.about_me_right_image_file_id,
     hero_background_image_url: form.hero_background_image_url,
     hero_background_image_file_id: form.hero_background_image_file_id,
     featured_background_image_url: form.featured_background_image_url,
@@ -290,6 +314,22 @@ function editorOptionsForTarget(target) {
       preserveSourceFormat: true
     };
   }
+  if (target?.type === 'about-me-left') {
+    return {
+      editorTitle: 'about me left photo',
+      outputFileName: 'about-me-left.jpg',
+      outputMime: 'image/jpeg',
+      preserveSourceFormat: false
+    };
+  }
+  if (target?.type === 'about-me-right') {
+    return {
+      editorTitle: 'about me right photo',
+      outputFileName: 'about-me-right.jpg',
+      outputMime: 'image/jpeg',
+      preserveSourceFormat: false
+    };
+  }
   return {};
 }
 
@@ -310,6 +350,14 @@ function setImageUrl(target, url, fileId = '') {
     form.about_image_url = url;
     form.about_image_file_id = fileId || '';
   }
+  if (target.type === 'about-me-left') {
+    form.about_me_left_image_url = url;
+    form.about_me_left_image_file_id = fileId || '';
+  }
+  if (target.type === 'about-me-right') {
+    form.about_me_right_image_url = url;
+    form.about_me_right_image_file_id = fileId || '';
+  }
   if (target.type === 'hero-background') {
     form.hero_background_image_url = url;
     form.hero_background_image_file_id = fileId || '';
@@ -329,6 +377,7 @@ function uploadFolderForTarget(target) {
   if (target?.type === 'hero-background') return 'site/hero-background';
   if (target?.type === 'featured-background') return 'site/featured-background';
   if (target?.type === 'about') return 'site/about';
+  if (target?.type === 'about-me-left' || target?.type === 'about-me-right') return 'site/about';
   if (target?.type === 'about-background') return 'site/about-background';
   return undefined;
 }
@@ -375,6 +424,14 @@ async function clearImage(target) {
   if (target.type === 'about') {
     form.about_image_url = '';
     form.about_image_file_id = '';
+  }
+  if (target.type === 'about-me-left') {
+    form.about_me_left_image_url = '';
+    form.about_me_left_image_file_id = '';
+  }
+  if (target.type === 'about-me-right') {
+    form.about_me_right_image_url = '';
+    form.about_me_right_image_file_id = '';
   }
   if (target.type === 'hero-background') {
     form.hero_background_image_url = '';

@@ -693,7 +693,7 @@ onUnmounted(() => {
   margin: 0;
   color: var(--color-text-muted);
   font-size: 0.875rem;
-  text-transform: uppercase;
+  text-transform: lowercase;
   letter-spacing: 0.06em;
 }
 
