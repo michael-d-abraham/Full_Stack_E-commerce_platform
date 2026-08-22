@@ -20,11 +20,6 @@
     </section>
 
     <section class="admin-float admin-float--padded">
-      <h2 class="admin-float-card__title">Book page</h2>
-      <AdminBookPage />
-    </section>
-
-    <section class="admin-float admin-float--padded">
       <h2 class="admin-float-card__title">Footer</h2>
       <AdminSocialLinks />
     </section>
@@ -35,6 +30,5 @@
 import AdminHomePage from '../AdminHomePage.vue';
 import AdminSiteBranding from '../AdminSiteBranding.vue';
 import AdminDisplayPictures from '../AdminDisplayPictures.vue';
-import AdminBookPage from '../AdminBookPage.vue';
 import AdminSocialLinks from '../AdminSocialLinks.vue';
 </script>

@@ -46,6 +46,7 @@ function basePublicFields(work) {
         _id: id,
         id,
         title: work.title != null ? String(work.title) : '',
+        label: work.label != null ? String(work.label) : '',
         slug: work.slug,
         is_active: Boolean(work.is_active),
         created_at: work.created_at || null,

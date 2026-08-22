@@ -1,5 +1,28 @@
+const { isValidGalleryWorkLabel } = require('../../shared/galleryLabels');
+
 function isNonEmptyString(value) {
     return value != null && String(value).trim() !== '';
+}
+
+function validateGalleryLabel(body, errors, { required = false } = {}) {
+    if (body.label === undefined) {
+        if (required) {
+            errors.push('label is required');
+        }
+        return;
+    }
+    if (typeof body.label !== 'string') {
+        errors.push('label must be a string');
+        return;
+    }
+    const trimmed = String(body.label).trim();
+    if (!trimmed) {
+        errors.push('label is required');
+        return;
+    }
+    if (!isValidGalleryWorkLabel(trimmed)) {
+        errors.push('label must be one of the allowed gallery labels');
+    }
 }
 
 function validatePortfolioImagesArray(images, errors, { isCreate = false } = {}) {
@@ -53,6 +76,7 @@ function validatePortfolioCreateBody(body) {
         return { errors: ['Request body must be a JSON object'] };
     }
     validateCommonPortfolioFields(body, errors);
+    validateGalleryLabel(body, errors, { required: true });
     if (body.images === undefined) {
         errors.push('At least one photo is required');
     } else {
@@ -67,6 +91,7 @@ function validatePortfolioUpdateBody(body) {
     }
     const errors = [];
     validateCommonPortfolioFields(body, errors);
+    validateGalleryLabel(body, errors);
     if (body.images !== undefined) {
         validatePortfolioImagesArray(body.images, errors);
         if (Array.isArray(body.images) && body.images.length === 0) {

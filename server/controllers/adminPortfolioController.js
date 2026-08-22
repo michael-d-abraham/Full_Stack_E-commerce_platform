@@ -86,7 +86,7 @@ const createAdminPortfolio = async (req, res) => {
                 return res.status(400).json({ error: 'Slug already exists' });
             }
         } else {
-            slug = await buildUniquePortfolioSlug(body.title || 'work');
+            slug = await buildUniquePortfolioSlug(body.label || body.title || 'work');
             if (!slug) {
                 return res.status(400).json({ error: 'slug could not be generated' });
             }
@@ -94,6 +94,7 @@ const createAdminPortfolio = async (req, res) => {
 
         const doc = {
             title: body.title != null ? String(body.title).trim() : '',
+            label: body.label != null ? String(body.label).trim() : '',
             slug,
             description: body.description != null ? String(body.description).trim() : '',
             sort_order:
@@ -139,6 +140,9 @@ const updateAdminPortfolio = async (req, res) => {
 
         if (body.title !== undefined) {
             work.title = String(body.title).trim();
+        }
+        if (body.label !== undefined) {
+            work.label = String(body.label).trim();
         }
         if (body.description !== undefined) {
             work.description = String(body.description).trim();

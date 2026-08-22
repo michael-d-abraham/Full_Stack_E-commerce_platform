@@ -41,8 +41,8 @@ function isNavActive(path) {
   flex-direction: column;
   width: var(--admin-sidebar-width, 15.5rem);
   padding: 1.5rem 1rem 2rem;
-  background: #f5f5f7;
-  border-right: 1px solid #e8e8e8;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   box-sizing: border-box;
 }
 
@@ -51,7 +51,7 @@ function isNavActive(path) {
   margin: 0 0 2rem;
   padding: 0 0.75rem;
   text-decoration: none;
-  color: #1a1a1a;
+  color: var(--color-heading);
   line-height: 1;
 }
 
@@ -75,20 +75,20 @@ function isNavActive(path) {
   letter-spacing: 0.02em;
   text-transform: none;
   text-decoration: none;
-  color: #374151;
+  color: var(--color-text);
   border-radius: 8px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-sidebar__link:hover {
-  background: #ebebed;
+  background: var(--color-overlay-subtle);
   opacity: 1;
   text-decoration: none;
 }
 
 .admin-sidebar__link--active {
-  background: #e8e8ec;
-  color: #111827;
+  background: var(--color-border);
+  color: var(--color-heading);
   font-weight: 600;
 }
 

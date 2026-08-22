@@ -8,8 +8,8 @@
 
 .gallery-art-presentation {
   --gallery-frame-width: 2.5px;
-  --gallery-frame-bg: #1a1a1a;
-  --gallery-mat-bg: #f7f4ee;
+  --gallery-frame-bg: var(--color-text);
+  --gallery-mat-bg: var(--color-surface);
   --gallery-mat-padding: 9px;
   --gallery-frame-shadow:
     2px 4px 8px rgba(0, 0, 0, 0.05),
@@ -237,7 +237,7 @@
  */
 
 .gallery-art-presentation.gallery-art-presentation--detail {
-  --gallery-mat-bg: #ffffff;
+  --gallery-mat-bg: var(--color-highlight);
   --gallery-mat-padding: 12px;
   --gallery-frame-width: 3px;
   --gallery-detail-frame-inset: calc((var(--gallery-mat-padding) + var(--gallery-frame-width)) * 2 + 4px);

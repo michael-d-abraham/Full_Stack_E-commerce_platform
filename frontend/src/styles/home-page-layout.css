@@ -44,21 +44,9 @@
 }
 
 @media (min-width: 641px) {
-  /* —— Featured: gallery grid between hero and about —— */
-  .home-featured {
-    padding: var(--space-lg) 0 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    box-sizing: border-box;
-  }
-
-  .home-featured__container {
-    width: 100%;
-    max-width: min(90vw, 75rem);
-    margin: 0 auto;
-    padding: 0 clamp(1rem, 2vw, 2rem);
-    box-sizing: border-box;
+  /* —— Testimonials: marquee band below about —— */
+  .home-testimonials {
+    padding: var(--space-2xl) 0;
   }
 
   /* —— About: closes the page —— */

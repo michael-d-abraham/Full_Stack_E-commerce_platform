@@ -33,8 +33,8 @@ defineEmits(['click']);
 .add-to-cart-button {
   width: 100%;
   height: 42px;
-  background: #000;
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-highlight);
   border: 0;
   border-radius: 0;
   font-size: 16px;
@@ -47,12 +47,12 @@ defineEmits(['click']);
 }
 
 .add-to-cart-button:hover:not(:disabled) {
-  background: #222;
+  background: var(--color-accent);
   opacity: 1;
 }
 
 .add-to-cart-button:disabled {
-  background: #999;
+  background: var(--color-pink);
   cursor: not-allowed;
 }
 </style>

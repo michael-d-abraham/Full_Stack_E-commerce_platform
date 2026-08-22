@@ -8,13 +8,13 @@
     <div class="admin-float admin-float--padded">
       <form @submit.prevent="onSubmit">
         <div class="field">
-          <label for="title">Title</label>
-          <input id="title" v-model="form.title" type="text" autocomplete="off" placeholder="Optional — e.g. Floral forearm" />
-        </div>
-
-        <div class="field">
-          <label for="desc">Description</label>
-          <textarea id="desc" v-model="form.description" rows="4" placeholder="Optional notes about the piece" />
+          <label for="gallery-label">Label *</label>
+          <select id="gallery-label" v-model="form.label" required>
+            <option disabled value="">Select a style</option>
+            <option v-for="option in GALLERY_WORK_LABELS" :key="option" :value="option">
+              {{ option }}
+            </option>
+          </select>
         </div>
 
         <div class="field">
@@ -24,8 +24,8 @@
             v-model:primary-index="primaryImageIndex"
             upload-folder="portfolio"
             :disabled="submitting"
+            help-text=""
           />
-          <p class="help">Upload one or more photos of the finished tattoo.</p>
         </div>
 
         <p v-if="submitError" class="error">{{ submitError }}</p>
@@ -45,12 +45,12 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createAdminPortfolio } from '../services/api.js';
 import AdminProductImages, { buildProductImagesPayload } from '../components/admin/AdminProductImages.vue';
+import { GALLERY_WORK_LABELS } from '../constants/galleryLabels.js';
 
 const router = useRouter();
 
 const form = reactive({
-  title: '',
-  description: ''
+  label: ''
 });
 
 const imageRows = ref([]);
@@ -60,13 +60,15 @@ const submitting = ref(false);
 
 function buildBody() {
   return {
-    title: String(form.title).trim(),
-    description: String(form.description).trim(),
+    label: String(form.label).trim(),
     images: buildProductImagesPayload(imageRows.value, primaryImageIndex.value)
   };
 }
 
 function validate() {
+  if (!String(form.label).trim()) {
+    return 'Select a label.';
+  }
   if (!buildProductImagesPayload(imageRows.value, primaryImageIndex.value).length) {
     return 'Upload at least one photo.';
   }

@@ -1,5 +1,5 @@
 ---
-description: Madd Lines universal design system — editorial B&W with Apple HIG review lens (brand overrides HIG defaults)
+description: Madd Lines universal design system — editorial blush palette with Apple HIG review lens (brand overrides HIG defaults)
 globs:
   - frontend/**
 alwaysApply: true
@@ -18,10 +18,22 @@ Brand constraints in **this file override** any Apple HIG recommendation. Use HI
 
 ## Brand (do not override)
 
-- Monochrome palette from `frontend/src/styles/base.css` (`--color-*`). No accent colors unless explicitly requested.
+- Palette from `frontend/src/styles/base.css` (`--color-*`). No extra accent colors unless explicitly requested.
+
+| Role | Token | Hex |
+|------|-------|-----|
+| Background | `--color-bg` | `#FFF1F8` |
+| Surface | `--color-surface` | `#F5F5F3` |
+| Highlight | `--color-highlight` | `#FFFFFF` |
+| Text | `--color-text` | `#111111` |
+| Muted text | `--color-text-muted` | `#6E6E73` |
+| Border | `--color-border` | `#E5E5E5` |
+
+- Product image stages use `--color-highlight` / `--color-product-image-bg`.
+- On dark fills (primary buttons, inverted hovers), text uses `--color-highlight` — not `--color-surface`.
 - Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).
 - System sans stack (`--font-sans`), not SF Pro imports.
-- Editorial B&W monochrome — not iOS chrome, not heavy glassmorphism.
+- Soft blush editorial aesthetic — restrained materials, not iOS chrome or heavy glassmorphism.
 
 ## Breakpoints
 

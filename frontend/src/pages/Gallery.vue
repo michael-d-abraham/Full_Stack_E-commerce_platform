@@ -213,9 +213,9 @@ onMounted(async () => {
   min-width: 11rem;
   height: 40px;
   padding: 0 1.5rem;
-  background: #fff;
-  color: #000;
-  border: 1px solid #000;
+  background: var(--color-highlight);
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
   border-radius: 0;
   font-size: 14px;
   font-weight: 400;
@@ -225,8 +225,8 @@ onMounted(async () => {
 }
 
 .load-more-button:hover:not(:disabled) {
-  background: #000;
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-highlight);
   opacity: 1;
 }
 

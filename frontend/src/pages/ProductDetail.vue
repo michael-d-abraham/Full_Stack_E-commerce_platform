@@ -234,7 +234,8 @@ function mapPortfolioToProductShape(work) {
     _id: work._id,
     id: work.id,
     slug: work.slug,
-    title: work.title,
+    label: work.label,
+    title: work.label || work.title,
     description: work.description,
     product_images: work.portfolio_images || work.product_images || [],
     price_cents: null,
@@ -710,7 +711,7 @@ watch(imageLightboxOpen, (open) => {
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background: #fff;
+    background: var(--color-highlight);
     border: 1px solid var(--color-border);
     overflow: hidden;
     box-sizing: border-box;
@@ -927,7 +928,7 @@ watch(imageLightboxOpen, (open) => {
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    background: #fff;
+    background: var(--color-highlight);
     border: 1px solid var(--color-border);
     border-radius: 14px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
@@ -1042,7 +1043,7 @@ watch(imageLightboxOpen, (open) => {
 }
 
 .product-skeleton--image {
-  background-color: var(--color-product-image-bg, #f8f8f8);
+  background-color: var(--color-product-image-bg, var(--color-highlight));
   animation: none;
 }
 
