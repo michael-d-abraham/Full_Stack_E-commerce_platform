@@ -95,7 +95,7 @@ const { mobileMenuOpen } = useMobileNav();
 }
 
 .mobile-menu-drawer--open {
-  max-height: 220px;
+  max-height: 180px;
   opacity: 1;
   pointer-events: auto;
   visibility: visible;

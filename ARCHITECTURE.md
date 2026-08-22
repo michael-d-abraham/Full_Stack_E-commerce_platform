@@ -159,11 +159,11 @@ Admin selects file in AdminPhotoUploadFlow.vue
   → stored on ProductImage / PortfolioImage / SiteSettings
 ```
 
-Allowed folders: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/featured-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`. Unknown folders throw `INVALID_FOLDER` and the file never reaches Mongo.
+Allowed folders: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`. Unknown folders throw `INVALID_FOLDER` and the file never reaches Mongo.
 
 Image URLs are ImageKit CDN URLs. `frontend/src/utils/imageKitUrl.js` applies resize transforms. R2 remains in env validation as leftover, not the upload path.
 
-Home customize images (including the about-me left/right pair) are fields on `SiteSettings.home_page`, loaded/saved via `GET`/`PUT /api/admin/site/home-page`. Public storefront reads `GET /api/site/home-page`.
+Home customize images (madd hero, independent .lines hero, about-me left/right pair) are fields on `SiteSettings.home_page`, loaded/saved via `GET`/`PUT /api/admin/site/home-page`. Public storefront reads `GET /api/site/home-page`. There is no about section on the storefront or in customize.
 
 ---
 
@@ -327,7 +327,7 @@ All `/admin/*` routes (except `/admin/login`) nest inside `AdminLayout.vue` as c
 
 | Path | Component |
 |---|---|
-| `/` | `Home.vue` (hero → about → about me → my art → artwork marquee → wanna do’s → reviews) |
+| `/` | `Home.vue` (madd hero → .lines hero → about me → my art → artwork marquee → wanna do’s → reviews) |
 | `/gallery` | `Gallery.vue` (portfolio works; overlay via `?product=`) |
 | `/wanna-dos` | `WannaDos.vue` (products) |
 | `/book` | `BookAppointment.vue` |

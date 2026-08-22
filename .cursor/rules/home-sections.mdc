@@ -1,5 +1,5 @@
 ---
-description: Home page section order, shared marquee, and about-me photo pair
+description: Home page section order, hero pair, shared marquee, and about-me photo pair
 globs:
   - frontend/src/pages/Home.vue
   - frontend/src/components/home/**
@@ -12,18 +12,39 @@ alwaysApply: false
 
 # Home sections
 
+## Hero pair
+
+Two full-viewport bands, same `HomeHero.vue`:
+
+1. **madd** — text left, photo right (`hero_image_url`)
+2. **.lines** — photo left, text right (`reversed`, `hero_lines_image_url`)
+
+Copy is hardcoded (`madd` / `.lines`), not the old art/music quote. Desktop height is `100dvh - --site-header-height`. Photos use `object-fit: contain`. Both uploads go to ImageKit folder `site/hero` as **separate** slots — do not bind both bands to one URL. Empty slots may use `PLACEHOLDER_ARTWORK`.
+
 ## Stack (do not reorder unless asked)
 
-Hero → About → About me → My Art → Artwork marquee → Wanna Do’s → Reviews
+Hero (madd) → Hero reversed (.lines) → About me → My Art → Artwork marquee → Wanna Do’s → Reviews
 
-Section ids live in `frontend/src/constants/storefrontSections.js`. Header one-page nav scrolls to those hashes (`useStorefrontSectionNav`). Do not use 640px for header layout — header breakpoint is 768px (`site-header.mdc`).
+There is **no about section** on the storefront or in customize. Do not restore `HomeAboutSection` or the admin about preview (portrait, quote, statement, about background). Leftover `about_*` Mongo fields may still save so old files are not wiped.
+
+## Header destinations
+
+Three items in `useStorefrontSectionNav` / `storefrontSections.js`:
+
+| Label | Scrolls to | Also covers |
+|---|---|---|
+| **me** | top of the page | hero pair + about me |
+| **my art** | `#my-art` heading | gallery + wanna-dos |
+| **say hi** | footer `#say-hi` | contact + book |
+
+Old hashes (`#about`, `#gallery`, `#contact`) still resolve to those three. `#say-hi` must land **below** the floated header (account for `--nav-float-top`). Do not use 640px for header layout — header breakpoint is 768px (`site-header.mdc`).
 
 ## Shared marquee
 
 Reviews and the artwork strip use the **same** motion and tile size:
 
 - `HomeMarqueeSection.vue` — track, 40s loop, 32px gap, fades, pause on hover
-- `MarqueeTile.vue` — 360×280 (320×240 mobile), same radius / shadow / spotlight
+- `MarqueeTile.vue` — 360×280 (320×240 mobile), same radius / hairline / spotlight
 
 Do not fork a second marquee CSS file or a different tile size for reviews vs artwork. Reviews use the quote variant; artwork is image-only in the same tile.
 

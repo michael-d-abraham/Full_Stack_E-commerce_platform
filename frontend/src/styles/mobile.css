@@ -39,5 +39,7 @@
 }
 
 html.has-fixed-site-header {
-  scroll-padding-top: var(--site-header-height, 76px);
+  scroll-padding-top: calc(
+    var(--site-header-height, 52px) + var(--nav-float-top, 10px) + 12px
+  );
 }

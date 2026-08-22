@@ -96,11 +96,25 @@ describe('shared/homePageDefaults', () => {
         expect(merged.about_me_right_image_url).toBe('https://example.com/right.jpg');
     });
 
+    it('mergeHomePageTextDefaults includes the .lines hero photo', () => {
+        const merged = mergeHomePageTextDefaults({
+            hero_lines_image_url: 'https://example.com/lines.jpg'
+        });
+        expect(merged.hero_lines_image_url).toBe('https://example.com/lines.jpg');
+    });
+
     it('mergeHomePageTextDefaults does not copy about_header into hero_quote', () => {
         const merged = mergeHomePageTextDefaults({
             about_header: 'About only'
         });
         expect(merged.hero_quote).toBe(DEFAULT_HOME_PAGE.hero_quote);
         expect(merged.about_header).toBe('About only');
+    });
+
+    it('replaces the legacy hero quote with madd.lines', () => {
+        const merged = mergeHomePageTextDefaults({
+            hero_quote: 'Art is how we decorate space. Music is how we decorate time.'
+        });
+        expect(merged.hero_quote).toBe('madd.lines');
     });
 });

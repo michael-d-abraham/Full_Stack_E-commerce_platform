@@ -266,7 +266,6 @@ describe('admin upload-image folder routing', () => {
         ['products', '/products'],
         ['site/hero', '/site/hero'],
         ['site/hero-background', '/site/hero-background'],
-        ['site/featured-background', '/site/featured-background'],
         ['site/about-background', '/site/about-background'],
         ['site/about', '/site/about'],
         ['site/about-me', '/site/about-me'],

@@ -6,22 +6,32 @@ const DEFAULT_HOME_PAGE = {
     hero_image_url: '',
     hero_image_urls: [],
     hero_background_image_url: '',
-    featured_background_image_url: '',
     featured_title: 'Featured products',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, () => ({
         product_id: ''
     })),
     about_title: 'About',
-    hero_quote: 'Art is how we decorate space. Music is how we decorate time.',
+    hero_quote: 'madd.lines',
     about_header: '',
     about_text: '',
     about_image_url: '',
     about_me_left_image_url: '',
-    about_me_right_image_url: ''
+    about_me_right_image_url: '',
+    hero_lines_image_url: ''
 };
 
 function emptyFeaturedProduct() {
     return { product_id: '' };
+}
+
+const LEGACY_HERO_QUOTE = 'Art is how we decorate space. Music is how we decorate time.';
+
+function resolveHeroQuote(value) {
+    const quote = normalizeOptionalText(value);
+    if (!quote || quote === LEGACY_HERO_QUOTE) {
+        return DEFAULT_HOME_PAGE.hero_quote;
+    }
+    return quote;
 }
 
 function normalizeOptionalText(value) {
@@ -77,16 +87,15 @@ function mergeHomePageTextDefaults(stored) {
             normalizeOptionalText(base.featured_title) || DEFAULT_HOME_PAGE.featured_title,
         about_title:
             normalizeOptionalText(base.about_title) || DEFAULT_HOME_PAGE.about_title,
-        hero_quote:
-            normalizeOptionalText(base.hero_quote) || DEFAULT_HOME_PAGE.hero_quote,
+        hero_quote: resolveHeroQuote(base.hero_quote),
         about_header:
             normalizeOptionalText(base.about_header) || DEFAULT_HOME_PAGE.about_header,
         about_text: normalizeOptionalText(base.about_text),
         about_image_url: normalizeOptionalText(base.about_image_url),
         about_me_left_image_url: normalizeOptionalText(base.about_me_left_image_url),
         about_me_right_image_url: normalizeOptionalText(base.about_me_right_image_url),
+        hero_lines_image_url: normalizeOptionalText(base.hero_lines_image_url),
         hero_background_image_url: normalizeOptionalText(base.hero_background_image_url),
-        featured_background_image_url: normalizeOptionalText(base.featured_background_image_url),
         about_background_image_url: normalizeOptionalText(base.about_background_image_url)
     };
 }

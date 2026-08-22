@@ -15,14 +15,21 @@
 .site-content--has-footer {
   margin-bottom: var(--footer-height, 52rem);
   min-height: calc(100dvh + var(--footer-height, 52rem));
+  overflow: hidden;
+  border-bottom-left-radius: 1.25rem;
+  border-bottom-right-radius: 1.25rem;
 }
 
 .site-footer {
+  --footer-rule: color-mix(in srgb, var(--color-text) 10%, var(--color-paper));
   position: sticky;
   bottom: 0;
   z-index: var(--z-footer);
   margin-top: calc(-1 * var(--footer-height, 52rem));
-  background: var(--color-surface);
+  overflow: hidden;
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
+  background: var(--color-paper);
 }
 
 .site-footer__inner {
@@ -41,11 +48,15 @@
   .site-content--has-footer {
     margin-bottom: 0;
     min-height: 0;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
   }
 
   .site-footer {
     position: static;
     margin-top: 0;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
   }
 
   .site-footer__inner {

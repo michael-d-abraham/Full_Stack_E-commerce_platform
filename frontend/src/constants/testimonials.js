@@ -3,7 +3,7 @@
  */
 function avatarUrl(name) {
   const encoded = encodeURIComponent(name);
-  return `https://ui-avatars.com/api/?name=${encoded}&size=88&background=e8e8e8&color=333333&format=svg`;
+  return `https://ui-avatars.com/api/?name=${encoded}&size=88&background=ecc8d8&color=3d2a32&format=svg`;
 }
 
 export const PLACEHOLDER_TESTIMONIALS = [

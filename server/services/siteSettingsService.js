@@ -647,8 +647,6 @@ function toAdminHomePagePayload(doc) {
         hero_image_file_ids,
         hero_background_image_url: normalizeOptionalText(base.hero_background_image_url),
         hero_background_image_file_id: normalizeOptionalText(base.hero_background_image_file_id),
-        featured_background_image_url: normalizeOptionalText(base.featured_background_image_url),
-        featured_background_image_file_id: normalizeOptionalText(base.featured_background_image_file_id),
         featured_title: normalizeOptionalText(base.featured_title),
         featured_products: padFeaturedProductIds(base.featured_products),
         about_title: normalizeOptionalText(base.about_title),
@@ -661,6 +659,8 @@ function toAdminHomePagePayload(doc) {
         about_me_left_image_file_id: normalizeOptionalText(base.about_me_left_image_file_id),
         about_me_right_image_url: normalizeOptionalText(base.about_me_right_image_url),
         about_me_right_image_file_id: normalizeOptionalText(base.about_me_right_image_file_id),
+        hero_lines_image_url: normalizeOptionalText(base.hero_lines_image_url),
+        hero_lines_image_file_id: normalizeOptionalText(base.hero_lines_image_file_id),
         about_background_image_url: normalizeOptionalText(base.about_background_image_url),
         about_background_image_file_id: normalizeOptionalText(base.about_background_image_file_id)
     };
@@ -721,6 +721,16 @@ function normalizeHomePageInput(body) {
     }
     const about_me_right_image_file_id = normalizeOptionalText(body.about_me_right_image_file_id);
 
+    const hero_lines_image_url = normalizeOptionalImageUrl(
+        body.hero_lines_image_url,
+        'hero_lines_image_url',
+        errors
+    );
+    if (hero_lines_image_url === null) {
+        return { errors };
+    }
+    const hero_lines_image_file_id = normalizeOptionalText(body.hero_lines_image_file_id);
+
     const hero_background_image_url = normalizeOptionalImageUrl(
         body.hero_background_image_url,
         'hero_background_image_url',
@@ -730,18 +740,6 @@ function normalizeHomePageInput(body) {
         return { errors };
     }
     const hero_background_image_file_id = normalizeOptionalText(body.hero_background_image_file_id);
-
-    const featured_background_image_url = normalizeOptionalImageUrl(
-        body.featured_background_image_url,
-        'featured_background_image_url',
-        errors
-    );
-    if (featured_background_image_url === null) {
-        return { errors };
-    }
-    const featured_background_image_file_id = normalizeOptionalText(
-        body.featured_background_image_file_id
-    );
 
     const about_background_image_url = normalizeOptionalImageUrl(
         body.about_background_image_url,
@@ -795,10 +793,10 @@ function normalizeHomePageInput(body) {
             about_me_left_image_file_id,
             about_me_right_image_url,
             about_me_right_image_file_id,
+            hero_lines_image_url,
+            hero_lines_image_file_id,
             hero_background_image_url,
             hero_background_image_file_id,
-            featured_background_image_url,
-            featured_background_image_file_id,
             about_background_image_url,
             about_background_image_file_id
         }

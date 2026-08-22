@@ -115,7 +115,7 @@ onUnmounted(() => {
 <style>
 .app-main {
   flex: 1;
-  padding: calc(var(--site-header-height, 76px) + var(--space-xl)) var(--space-lg) var(--space-3xl);
+  padding: calc(var(--site-header-height, 52px) + var(--space-xl)) var(--space-lg) var(--space-3xl);
 }
 
 .app-main--admin {
@@ -162,7 +162,7 @@ onUnmounted(() => {
 
 .app-main--home {
   padding: 0;
-  padding-top: var(--site-header-height, 76px);
+  padding-top: var(--site-header-height, 52px);
 }
 
 .app-main--home .app-main__inner {
@@ -200,7 +200,7 @@ onUnmounted(() => {
   }
 
   .app-main:not(.app-main--admin) {
-    padding: calc(var(--site-header-height, 72px) + var(--space-lg)) var(--mobile-safe-inset-x)
+    padding: calc(var(--site-header-height, 52px) + var(--space-lg)) var(--mobile-safe-inset-x)
       var(--space-lg);
   }
 
@@ -208,7 +208,7 @@ onUnmounted(() => {
     padding-left: 0;
     padding-right: 0;
     padding-bottom: 0;
-    padding-top: var(--site-header-height, 72px);
+    padding-top: var(--site-header-height, 52px);
   }
 
   .app-main--admin {

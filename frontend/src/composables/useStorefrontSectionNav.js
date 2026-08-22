@@ -1,11 +1,17 @@
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { FOOTER_SECTION_IDS, STOREFRONT_SECTION, storefrontHash } from '../constants/storefrontSections.js';
+import {
+  FOOTER_SECTION_IDS,
+  STOREFRONT_NAV,
+  STOREFRONT_SECTION,
+  resolveStorefrontNavId,
+  resolveStorefrontScrollTarget,
+  storefrontHash
+} from '../constants/storefrontSections.js';
 import { showBookNav, showContactNav } from './useStorefrontNav.js';
-import { useStorefrontLabels } from './useStorefrontLabels.js';
 import { useMobileNav } from './useMobileNav.js';
 
-const activeSectionId = ref(STOREFRONT_SECTION.landing);
+const activeSectionId = ref(STOREFRONT_NAV.me);
 let observer = null;
 let observerUsers = 0;
 
@@ -17,56 +23,95 @@ function scrollBehavior() {
   return prefersReducedMotion() ? 'auto' : 'smooth';
 }
 
+function showSayHiNav() {
+  return showContactNav.value || showBookNav.value;
+}
+
+function headerClearance() {
+  const header = document.querySelector('.site-header');
+  if (!header) {
+    return 64;
+  }
+
+  const styles = getComputedStyle(header);
+  const rect = header.getBoundingClientRect();
+  const navScroll = Number.parseFloat(styles.getPropertyValue('--nav-scroll')) || 0;
+  const floatTop = Number.parseFloat(styles.getPropertyValue('--nav-float-top')) || 10;
+  const remainingFloat = floatTop * (1 - Math.min(1, Math.max(0, navScroll)));
+
+  return Math.ceil(rect.bottom + remainingFloat + 12);
+}
+
+function scrollWindowTo(top, behavior) {
+  const maxTop = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  window.scrollTo({ top: Math.min(Math.max(0, top), maxTop), behavior });
+}
+
 export function scrollToStorefrontSection(sectionId) {
   if (!sectionId || typeof document === 'undefined') {
     return;
   }
 
   const behavior = scrollBehavior();
+  const target = resolveStorefrontScrollTarget(sectionId);
 
-  if (sectionId === STOREFRONT_SECTION.landing) {
+  if (target === STOREFRONT_NAV.me) {
     window.scrollTo({ top: 0, behavior });
     return;
   }
 
-  if (FOOTER_SECTION_IDS.has(sectionId)) {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior });
+  const clearance = headerClearance();
+
+  if (FOOTER_SECTION_IDS.has(target)) {
+    const footer = document.querySelector('.site-footer');
+    const sayHi =
+      document.getElementById(STOREFRONT_NAV.sayHi) ||
+      document.getElementById(STOREFRONT_SECTION.contact) ||
+      document.getElementById(STOREFRONT_SECTION.book);
+    const content = document.querySelector('.site-content--has-footer');
+    const footerIsSticky = footer && getComputedStyle(footer).position === 'sticky';
+
+    if (footerIsSticky && content) {
+      scrollWindowTo(content.offsetTop + content.offsetHeight - clearance, behavior);
+      return;
+    }
+
+    if (sayHi) {
+      scrollWindowTo(sayHi.getBoundingClientRect().top + window.scrollY - clearance, behavior);
+      return;
+    }
+
+    scrollWindowTo(document.documentElement.scrollHeight, behavior);
     return;
   }
 
-  const el = document.getElementById(sectionId);
+  const el = document.getElementById(target);
   if (!el) {
     return;
   }
-  el.scrollIntoView({ behavior, block: 'start' });
+  scrollWindowTo(el.getBoundingClientRect().top + window.scrollY - clearance, behavior);
 }
 
-function navItemList(galleryNavLabel, wannaDosNavLabel) {
+function navItemList() {
   const items = [
-      { id: STOREFRONT_SECTION.landing, label: 'home' },
-      { id: STOREFRONT_SECTION.about, label: 'about' },
-      { id: STOREFRONT_SECTION.aboutMe, label: 'about me' },
-      { id: STOREFRONT_SECTION.myArt, label: 'my art' },
-    { id: STOREFRONT_SECTION.gallery, label: galleryNavLabel },
-    { id: STOREFRONT_SECTION.wannaDos, label: wannaDosNavLabel }
+    { id: STOREFRONT_NAV.me, label: 'me' },
+    { id: STOREFRONT_NAV.myArt, label: 'my art' }
   ];
-  if (showContactNav.value) {
-      items.push({ id: STOREFRONT_SECTION.contact, label: 'contact' });
-  }
-  if (showBookNav.value) {
-      items.push({ id: STOREFRONT_SECTION.book, label: 'book' });
+  if (showSayHiNav()) {
+    items.push({ id: STOREFRONT_NAV.sayHi, label: 'say hi' });
   }
   return items;
 }
 
 const IN_PAGE_SECTION_IDS = [
   STOREFRONT_SECTION.landing,
-  STOREFRONT_SECTION.about,
   STOREFRONT_SECTION.aboutMe,
   STOREFRONT_SECTION.myArt,
   STOREFRONT_SECTION.gallery,
   STOREFRONT_SECTION.wannaDos
 ];
+
+const ART_PAGE_ROUTE_NAMES = new Set(['gallery', 'wanna-dos']);
 
 export function refreshStorefrontSectionObserver() {
   observeSections(IN_PAGE_SECTION_IDS);
@@ -82,18 +127,17 @@ function observeSections(ids) {
     (entries) => {
       const nearBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 96;
-      if (nearBottom) {
-        activeSectionId.value = showContactNav.value
-          ? STOREFRONT_SECTION.contact
-          : STOREFRONT_SECTION.book;
+      if (nearBottom && showSayHiNav()) {
+        activeSectionId.value = STOREFRONT_NAV.sayHi;
         return;
       }
 
       const visible = entries
         .filter((entry) => entry.isIntersecting)
         .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-      if (visible[0]?.target?.id) {
-        activeSectionId.value = visible[0].target.id;
+      const navId = resolveStorefrontNavId(visible[0]?.target?.id);
+      if (navId) {
+        activeSectionId.value = navId;
       }
     },
     {
@@ -114,14 +158,19 @@ export function useStorefrontSectionNav() {
   const route = useRoute();
   const router = useRouter();
   const { closeMobileMenu } = useMobileNav();
-  const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
 
-  const navItems = computed(() => navItemList(galleryNavLabel, wannaDosNavLabel));
+  const navItems = computed(() => navItemList());
 
   function setActiveFromHash() {
+    if (ART_PAGE_ROUTE_NAMES.has(route.name)) {
+      activeSectionId.value = STOREFRONT_NAV.myArt;
+      return;
+    }
+
     const id = String(route.hash || '').replace(/^#/, '');
-    if (id && navItems.value.some((item) => item.id === id)) {
-      activeSectionId.value = id;
+    const navId = resolveStorefrontNavId(id);
+    if (navId && navItems.value.some((item) => item.id === navId)) {
+      activeSectionId.value = navId;
     }
   }
 
@@ -129,23 +178,25 @@ export function useStorefrontSectionNav() {
     event?.preventDefault();
     closeMobileMenu();
 
+    const navId = resolveStorefrontNavId(sectionId) || sectionId;
+
     if (route.name !== 'home') {
-      await router.push({ name: 'home', hash: storefrontHash(sectionId) });
+      await router.push({ name: 'home', hash: storefrontHash(navId) });
       return;
     }
 
-    if (route.hash !== storefrontHash(sectionId)) {
-      await router.replace({ name: 'home', hash: storefrontHash(sectionId) });
+    if (route.hash !== storefrontHash(navId)) {
+      await router.replace({ name: 'home', hash: storefrontHash(navId) });
     }
 
-    activeSectionId.value = sectionId;
+    activeSectionId.value = navId;
     requestAnimationFrame(() => {
-      scrollToStorefrontSection(sectionId);
+      scrollToStorefrontSection(navId);
     });
   }
 
   function goToLanding(event) {
-    return goToSection(event, STOREFRONT_SECTION.landing);
+    return goToSection(event, STOREFRONT_NAV.me);
   }
 
   onMounted(() => {
@@ -157,6 +208,13 @@ export function useStorefrontSectionNav() {
       });
     }
   });
+
+  watch(
+    () => [route.name, route.hash],
+    () => {
+      setActiveFromHash();
+    }
+  );
 
   onUnmounted(() => {
     observerUsers -= 1;

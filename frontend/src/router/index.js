@@ -49,8 +49,8 @@ const routes = [
         })
     },
     { path: '/checkout/cancel', name: 'checkout-cancel', component: CheckoutCancel },
-    { path: '/contact', redirect: { path: '/', hash: '#contact' } },
-    { path: '/book', redirect: { path: '/', hash: '#book' } },
+    { path: '/contact', redirect: { path: '/', hash: '#say-hi' } },
+    { path: '/book', redirect: { path: '/', hash: '#say-hi' } },
     { path: '/art/:slug', redirect: { name: 'gallery' } },
     {
         path: '/product/:slug',

@@ -40,12 +40,12 @@ describe('shared/imageOutputFormat', () => {
         expect(
             resolveEditorOutputFromSource({
                 sourceMime: 'image/webp',
-                outputBaseName: 'featured-background'
+                outputBaseName: 'about-background'
             })
         ).toEqual({
             skipEditor: false,
             outputMime: 'image/webp',
-            outputFileName: 'featured-background.webp',
+            outputFileName: 'about-background.webp',
             outputQuality: 0.92
         });
     });

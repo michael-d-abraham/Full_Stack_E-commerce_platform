@@ -5,6 +5,8 @@ globs:
   - frontend/src/styles/site-header.css
   - frontend/src/composables/useSiteHeaderScroll.js
   - frontend/src/components/mobile/MobileMenuDrawer.vue
+  - frontend/src/composables/useStorefrontSectionNav.js
+  - frontend/src/constants/storefrontSections.js
   - frontend/src/App.vue
 alwaysApply: false
 ---
@@ -26,15 +28,17 @@ base.css (tokens)
 |------|------|
 | `SiteHeader.vue` | Storefront header component; owns `headerRef` / `headerBarRef` |
 | `useSiteHeaderScroll.js` | Passive scroll + rAF; writes `--nav-scroll` to DOM (no Vue re-renders) |
-| `site-header.css` | Pill shell, glass `::before`, bar layout, nav link states |
-| `MobileMenuDrawer.vue` | Mobile links dropdown (teleport backdrop + absolute drawer) |
+| `site-header.css` | Compact pill shell, constant see-through glass, three-link states |
+| `MobileMenuDrawer.vue` | Unused while the three-item nav stays inline |
 
 Admin routes use `AdminLayout.vue` — do not change storefront header for admin.
 
 ## `--nav-scroll` (0 → 1)
 
-- `0` = page top (transparent shell, no glass/shadow)
-- `1` = fully scrolled / menu or cart open (glass pill, float offset, shadow)
+- `0` = page top (see-through glass pill)
+- `1` = fully scrolled (same see-through glass, float offset only)
+
+The pill stays lightly frosted and see-through at every scroll position — do not fade it to a solid fill.
 
 ```js
 progress = clamp(scrollY / --nav-scroll-distance, 0, 1)
@@ -43,25 +47,26 @@ headerEl.style.setProperty('--nav-scroll', progress.toFixed(3))
 
 Distance tokens: **120px** mobile (≤768px), **160px** desktop (≥769px) in `base.css`.
 
-When `isScrollLocked()` (mobile menu or cart drawer): force `1` via JS + `.site-header--menu-open`.
+When `isScrollLocked()` (cart drawer): force `1` via JS. There is no hamburger / mobile menu for this three-item set.
 
 ## What scroll animates vs what stays fixed
 
 **Animate with `--nav-scroll` only:**
 - `top` float offset (`--nav-float-top`)
-- `::before` opacity, backdrop blur, frosted background
-- Border color opacity, box-shadow
-- (Vertical detach only — logo/nav move down with shell)
+- (Vertical detach only — the pill moves down with the shell)
+
+Glass, blur, and fill stay constant. Do not make the pill more opaque on scroll.
 
 **Must stay constant at all scroll positions** (do not interpolate):
-- Shell `width`: `calc(100% - 2 * var(--nav-inset-x))`
+- Shell `width`: `max-content` capped by `calc(100% - 2 * var(--nav-inset-x))`
 - Shell position: `left: 50%; transform: translateX(-50%)`
 - `border-radius`: always `var(--nav-pill-radius)` (999px)
-- Bar height: `--site-header-bar-height-compact` (desktop)
-- Bar padding: `--nav-pill-padding-x` (horizontal), compact mobile padding-y
-- Logo scale (no shrink on scroll)
+- Bar height: `--site-header-bar-height-compact` (2.75rem)
+- Three-link content (no brand mark in the header)
 
-**Pitfall:** Interpolating shell width from `100%` → pill width shifts logo/nav horizontally even when bar padding is constant. Keep pill width centered at all times; only surface treatment changes.
+**Pitfall:** Interpolating shell width from full-bleed → hug-content shifts the links horizontally. The pill hugs `me` / `my art` / `say hi` at every scroll position; only surface treatment changes.
+
+Do not put the brand mark back in the header. Do not bring back the hamburger for this set.
 
 ## Layout offset
 
@@ -71,7 +76,7 @@ When `isScrollLocked()` (mobile menu or cart drawer): force `1` via JS + `.site-
 
 ## Breakpoints
 
-- **768px / 769px** — storefront header desktop vs mobile hamburger grid (not 640px)
+- **768px / 769px** — header inset / type scale only (not a hamburger swap; not 640px)
 - **640px** — product UI, cart icon, parallax (separate convention; see `design-system.mdc`)
 
 ## Gallery product overlay
@@ -80,13 +85,14 @@ When `isScrollLocked()` (mobile menu or cart drawer): force `1` via JS + `.site-
 
 ## Visual direction
 
-- Soft blush editorial palette — restrained frosted materials, not iOS chrome or heavy glassmorphism
-- Restrained frosted pill on scroll; transparent integrated shell at top
-- Link states: 0.2s opacity/underline; respect `prefers-reduced-motion` (snap 0/1)
+- Compact centered capsule of the three links only — no brand wordmark
+- Soft blush editorial palette — light constant frost, not SF Pro or heavy glassmorphism
+- See-through glass pill at every scroll position; active link is an inner chip
+- Link states: 0.2s opacity/background; respect `prefers-reduced-motion` (snap 0/1)
 
 ## Do not
 
 - Reintroduce `useAutoHideSiteHeader` or hide-on-scroll-down
 - Put header CSS back inline in `App.vue`
-- Interpolate bar height, padding, logo scale, or shell width with `--nav-scroll`
+- Interpolate bar height, padding, or shell width with `--nav-scroll`
 - Use `box-shadow: var(--focus-ring)` on header controls (global button focus rule)

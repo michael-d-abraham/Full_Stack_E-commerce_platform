@@ -59,10 +59,10 @@ function createEmptyForm() {
     hero_image_urls: [],
     hero_image_file_id: '',
     hero_image_file_ids: [],
+    hero_lines_image_url: '',
+    hero_lines_image_file_id: '',
     hero_background_image_url: '',
     hero_background_image_file_id: '',
-    featured_background_image_url: '',
-    featured_background_image_file_id: '',
     featured_title: '',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, emptyFeaturedProduct),
     about_title: '',
@@ -113,6 +113,10 @@ function applySettings(data) {
     next.hero_image_url = next.hero_image_urls[0] || '';
     next.hero_image_file_ids = resolveHeroImageFileIds(data).slice(0, next.hero_image_urls.length);
     next.hero_image_file_id = next.hero_image_file_ids[0] || '';
+    next.hero_lines_image_url =
+      data.hero_lines_image_url != null ? String(data.hero_lines_image_url).trim() : '';
+    next.hero_lines_image_file_id =
+      data.hero_lines_image_file_id != null ? String(data.hero_lines_image_file_id).trim() : '';
     next.hero_title = data.hero_title != null ? String(data.hero_title) : '';
     next.hero_subtitle = data.hero_subtitle != null ? String(data.hero_subtitle) : '';
     next.featured_title = data.featured_title != null ? String(data.featured_title) : '';
@@ -142,14 +146,6 @@ function applySettings(data) {
       data.hero_background_image_file_id != null
         ? String(data.hero_background_image_file_id).trim()
         : '';
-    next.featured_background_image_url =
-      data.featured_background_image_url != null
-        ? String(data.featured_background_image_url).trim()
-        : '';
-    next.featured_background_image_file_id =
-      data.featured_background_image_file_id != null
-        ? String(data.featured_background_image_file_id).trim()
-        : '';
     next.about_background_image_url =
       data.about_background_image_url != null
         ? String(data.about_background_image_url).trim()
@@ -172,6 +168,8 @@ function applySettings(data) {
   form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
   form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, ...next.hero_image_file_ids);
   form.hero_image_file_id = next.hero_image_file_id;
+  form.hero_lines_image_url = next.hero_lines_image_url;
+  form.hero_lines_image_file_id = next.hero_lines_image_file_id;
   form.hero_title = next.hero_title;
   form.hero_subtitle = next.hero_subtitle;
   form.featured_title = next.featured_title;
@@ -187,8 +185,6 @@ function applySettings(data) {
   form.about_me_right_image_file_id = next.about_me_right_image_file_id;
   form.hero_background_image_url = next.hero_background_image_url;
   form.hero_background_image_file_id = next.hero_background_image_file_id;
-  form.featured_background_image_url = next.featured_background_image_url;
-  form.featured_background_image_file_id = next.featured_background_image_file_id;
   form.about_background_image_url = next.about_background_image_url;
   form.about_background_image_file_id = next.about_background_image_file_id;
   for (let i = 0; i < FEATURED_PRODUCT_SLOTS; i++) {
@@ -213,6 +209,8 @@ function payloadFromForm() {
     hero_image_urls,
     hero_image_file_id: hero_image_file_ids[0] || '',
     hero_image_file_ids,
+    hero_lines_image_url: form.hero_lines_image_url,
+    hero_lines_image_file_id: form.hero_lines_image_file_id,
     featured_title: form.featured_title,
     featured_products: form.featured_products.map((row) => ({
       product_id: row.product_id
@@ -229,8 +227,6 @@ function payloadFromForm() {
     about_me_right_image_file_id: form.about_me_right_image_file_id,
     hero_background_image_url: form.hero_background_image_url,
     hero_background_image_file_id: form.hero_background_image_file_id,
-    featured_background_image_url: form.featured_background_image_url,
-    featured_background_image_file_id: form.featured_background_image_file_id,
     about_background_image_url: form.about_background_image_url,
     about_background_image_file_id: form.about_background_image_file_id
   };
@@ -279,16 +275,16 @@ async function onSave() {
 function editorOptionsForTarget(target) {
   if (target?.type === 'hero') {
     return {
-      editorTitle: 'Hero image',
+      editorTitle: 'madd photo',
       outputFileName: 'hero.jpg',
       outputMime: 'image/jpeg',
       preserveSourceFormat: false
     };
   }
-  if (target?.type === 'about') {
+  if (target?.type === 'hero-lines') {
     return {
-      editorTitle: 'About image',
-      outputFileName: 'about.jpg',
+      editorTitle: '.lines photo',
+      outputFileName: 'hero-lines.jpg',
       outputMime: 'image/jpeg',
       preserveSourceFormat: false
     };
@@ -297,20 +293,6 @@ function editorOptionsForTarget(target) {
     return {
       editorTitle: 'Hero background texture',
       outputBaseName: 'hero-background',
-      preserveSourceFormat: true
-    };
-  }
-  if (target?.type === 'featured-background') {
-    return {
-      editorTitle: 'Featured section background texture',
-      outputBaseName: 'featured-background',
-      preserveSourceFormat: true
-    };
-  }
-  if (target?.type === 'about-background') {
-    return {
-      editorTitle: 'About section background texture',
-      outputBaseName: 'about-background',
       preserveSourceFormat: true
     };
   }
@@ -346,9 +328,10 @@ function setImageUrl(target, url, fileId = '') {
     syncHeroFromUrls();
     return;
   }
-  if (target.type === 'about') {
-    form.about_image_url = url;
-    form.about_image_file_id = fileId || '';
+  if (target.type === 'hero-lines') {
+    form.hero_lines_image_url = url;
+    form.hero_lines_image_file_id = fileId || '';
+    return;
   }
   if (target.type === 'about-me-left') {
     form.about_me_left_image_url = url;
@@ -362,23 +345,12 @@ function setImageUrl(target, url, fileId = '') {
     form.hero_background_image_url = url;
     form.hero_background_image_file_id = fileId || '';
   }
-  if (target.type === 'featured-background') {
-    form.featured_background_image_url = url;
-    form.featured_background_image_file_id = fileId || '';
-  }
-  if (target.type === 'about-background') {
-    form.about_background_image_url = url;
-    form.about_background_image_file_id = fileId || '';
-  }
 }
 
 function uploadFolderForTarget(target) {
-  if (target?.type === 'hero') return 'site/hero';
+  if (target?.type === 'hero' || target?.type === 'hero-lines') return 'site/hero';
   if (target?.type === 'hero-background') return 'site/hero-background';
-  if (target?.type === 'featured-background') return 'site/featured-background';
-  if (target?.type === 'about') return 'site/about';
   if (target?.type === 'about-me-left' || target?.type === 'about-me-right') return 'site/about';
-  if (target?.type === 'about-background') return 'site/about-background';
   return undefined;
 }
 
@@ -421,9 +393,9 @@ async function clearImage(target) {
     return;
   }
 
-  if (target.type === 'about') {
-    form.about_image_url = '';
-    form.about_image_file_id = '';
+  if (target.type === 'hero-lines') {
+    form.hero_lines_image_url = '';
+    form.hero_lines_image_file_id = '';
   }
   if (target.type === 'about-me-left') {
     form.about_me_left_image_url = '';
@@ -436,14 +408,6 @@ async function clearImage(target) {
   if (target.type === 'hero-background') {
     form.hero_background_image_url = '';
     form.hero_background_image_file_id = '';
-  }
-  if (target.type === 'featured-background') {
-    form.featured_background_image_url = '';
-    form.featured_background_image_file_id = '';
-  }
-  if (target.type === 'about-background') {
-    form.about_background_image_url = '';
-    form.about_background_image_file_id = '';
   }
   try {
     await persistSettings();

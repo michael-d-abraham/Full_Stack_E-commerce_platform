@@ -89,14 +89,12 @@ describe('site settings image file ID persistence', () => {
         expect(res.body.about_me_left_image_file_id).toBe('');
         expect(res.body.about_me_right_image_file_id).toBe('');
         expect(res.body.hero_background_image_file_id).toBe('');
-        expect(res.body.featured_background_image_file_id).toBe('');
         expect(res.body.about_background_image_file_id).toBe('');
+        expect(res.body.featured_background_image_file_id).toBeUndefined();
     });
 
-    it('saves featured and about background texture file IDs on home page', async () => {
+    it('saves about background texture file IDs on home page', async () => {
         const cookie = await adminCookie();
-        const FEATURED_BG_URL = 'https://example.com/featured-bg.webp';
-        const FEATURED_BG_FILE = 'file_featured_bg';
         const ABOUT_BG_URL = 'https://example.com/about-bg.webp';
         const ABOUT_BG_FILE = 'file_about_bg';
 
@@ -105,24 +103,21 @@ describe('site settings image file ID persistence', () => {
             .set('Cookie', cookie)
             .send(
                 homePageBody({
-                    featured_background_image_url: FEATURED_BG_URL,
-                    featured_background_image_file_id: FEATURED_BG_FILE,
                     about_background_image_url: ABOUT_BG_URL,
                     about_background_image_file_id: ABOUT_BG_FILE
                 })
             );
 
         expect(putRes.status).toBe(200);
-        expect(putRes.body.featured_background_image_url).toBe(FEATURED_BG_URL);
-        expect(putRes.body.featured_background_image_file_id).toBe(FEATURED_BG_FILE);
         expect(putRes.body.about_background_image_url).toBe(ABOUT_BG_URL);
         expect(putRes.body.about_background_image_file_id).toBe(ABOUT_BG_FILE);
+        expect(putRes.body.featured_background_image_url).toBeUndefined();
+        expect(putRes.body.featured_background_image_file_id).toBeUndefined();
 
         const publicRes = await request(app).get('/api/site/home-page');
         expect(publicRes.status).toBe(200);
-        expect(publicRes.body.featured_background_image_url).toBe(FEATURED_BG_URL);
         expect(publicRes.body.about_background_image_url).toBe(ABOUT_BG_URL);
-        expect(publicRes.body.featured_background_image_file_id).toBeUndefined();
+        expect(publicRes.body.featured_background_image_url).toBeUndefined();
         expect(publicRes.body.about_background_image_file_id).toBeUndefined();
     });
 
@@ -233,6 +228,35 @@ describe('site settings image file ID persistence', () => {
         expect(publicRes.body.about_me_right_image_url).toBe(RIGHT_URL);
         expect(publicRes.body.about_me_left_image_file_id).toBeUndefined();
         expect(publicRes.body.about_me_right_image_file_id).toBeUndefined();
+    });
+
+    it('saves the .lines hero photo separately from the madd photo', async () => {
+        const cookie = await adminCookie();
+        const LINES_URL = 'https://example.com/hero-lines.jpg';
+        const LINES_FILE = 'file_hero_lines';
+
+        const putRes = await request(app)
+            .put('/api/admin/site/home-page')
+            .set('Cookie', cookie)
+            .send(
+                homePageBody({
+                    hero_image_url: HERO_URL_ONE,
+                    hero_image_file_id: HERO_FILE_ONE,
+                    hero_lines_image_url: LINES_URL,
+                    hero_lines_image_file_id: LINES_FILE
+                })
+            );
+
+        expect(putRes.status).toBe(200);
+        expect(putRes.body.hero_image_url).toBe(HERO_URL_ONE);
+        expect(putRes.body.hero_lines_image_url).toBe(LINES_URL);
+        expect(putRes.body.hero_lines_image_file_id).toBe(LINES_FILE);
+
+        const publicRes = await request(app).get('/api/site/home-page');
+        expect(publicRes.status).toBe(200);
+        expect(publicRes.body.hero_image_url).toBe(HERO_URL_ONE);
+        expect(publicRes.body.hero_lines_image_url).toBe(LINES_URL);
+        expect(publicRes.body.hero_lines_image_file_id).toBeUndefined();
     });
 
     it('URL-only home page save still works without file IDs', async () => {

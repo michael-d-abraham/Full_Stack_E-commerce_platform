@@ -31,6 +31,7 @@ describe('imageKitFileIds helpers', () => {
             about_image_file_id: 'about_one',
             about_me_left_image_file_id: 'about_me_left',
             about_me_right_image_file_id: 'about_me_right',
+            hero_lines_image_file_id: 'hero_lines',
             hero_background_image_file_id: 'bg_hero',
             featured_background_image_file_id: 'bg_featured',
             about_background_image_file_id: 'bg_about'
@@ -40,18 +41,20 @@ describe('imageKitFileIds helpers', () => {
             'about_one',
             'about_me_left',
             'about_me_right',
+            'hero_lines',
             'bg_hero',
             'bg_featured',
             'bg_about'
         ]);
     });
 
-    it('collectParsedHomePageFileIds mirrors stored shape', () => {
+    it('collectParsedHomePageFileIds ignores leftover reviews background file IDs', () => {
         const ids = collectParsedHomePageFileIds({
             hero_image_file_ids: ['hero_one', 'hero_two'],
             about_image_file_id: 'about_one',
             about_me_left_image_file_id: 'about_me_left',
             about_me_right_image_file_id: 'about_me_right',
+            hero_lines_image_file_id: 'hero_lines',
             hero_background_image_file_id: 'bg_hero',
             featured_background_image_file_id: 'bg_featured',
             about_background_image_file_id: 'bg_about'
@@ -62,8 +65,8 @@ describe('imageKitFileIds helpers', () => {
             'about_one',
             'about_me_left',
             'about_me_right',
+            'hero_lines',
             'bg_hero',
-            'bg_featured',
             'bg_about'
         ]);
     });

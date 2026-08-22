@@ -1,27 +1,49 @@
 <template>
-  <section id="landing" class="home-hero" aria-label="Hero">
-    <div class="home-hero__stage">
-      <blockquote v-if="quotePhrases.length" class="home-hero__quote">
-        <p
-          v-for="(phrase, index) in quotePhrases"
-          :key="`hero-phrase-${index}`"
-          class="home-hero__phrase"
-        >
-          <span
-            v-for="(line, lineIndex) in phrase.lines"
-            :key="`hero-phrase-${index}-line-${lineIndex}`"
-            class="home-hero__phrase-line"
-          >{{ line }}</span>
-        </p>
-      </blockquote>
+  <section
+    :id="sectionId"
+    class="home-hero"
+    :class="{ 'home-hero--reversed': reversed }"
+    :aria-label="reversed ? 'hero continued' : 'hero'"
+  >
+    <div class="home-hero__grid">
+      <div class="home-hero__copy">
+        <blockquote v-if="quotePhrases.length" class="home-hero__quote">
+          <p
+            v-for="(phrase, index) in quotePhrases"
+            :key="`hero-phrase-${index}`"
+            class="home-hero__phrase"
+          >
+            <span
+              v-for="(line, lineIndex) in phrase.lines"
+              :key="`hero-phrase-${index}-line-${lineIndex}`"
+              class="home-hero__phrase-line"
+            >{{ line }}</span>
+          </p>
+        </blockquote>
 
-      <p v-if="signature" class="home-hero__signature">{{ signature }}</p>
+        <p v-if="signature" class="home-hero__signature">{{ signature }}</p>
+      </div>
+
+      <figure class="home-hero__media">
+        <SmartImage
+          v-if="imageUrl"
+          :src="imageUrl"
+          alt="hero portrait"
+          layout="fill"
+          object-fit="contain"
+          :width="1200"
+          :widths="IMAGE_WIDTHS"
+          :sizes="IMAGE_SIZES"
+          :priority="true"
+        />
+      </figure>
     </div>
 
     <button
+      v-if="!reversed"
       type="button"
       class="home-hero__scroll"
-      aria-label="Scroll to continue"
+      aria-label="scroll to continue"
       @click="scrollToNext"
     >
       <svg class="home-hero__scroll-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -39,10 +61,17 @@
 
 <script setup>
 import { computed } from 'vue';
+import SmartImage from '../media/SmartImage.vue';
+
+const IMAGE_WIDTHS = [480, 720, 960, 1200];
+const IMAGE_SIZES = '(max-width: 768px) 100vw, 50vw';
 
 const props = defineProps({
   quote: { type: String, default: '' },
-  title: { type: String, default: '' }
+  title: { type: String, default: '' },
+  imageUrl: { type: String, default: '' },
+  reversed: { type: Boolean, default: false },
+  sectionId: { type: String, default: 'landing' }
 });
 
 /**
@@ -67,7 +96,8 @@ function buildQuotePhrases(rawQuote) {
 
   return parts.map((sentence) => {
     const cleaned = sentence.replace(/\s+/g, ' ').trim();
-    const withPeriod = /[.!?]$/.test(cleaned) ? cleaned : `${cleaned}.`;
+    const withPeriod =
+      /[.!?]$/.test(cleaned) || !cleaned.includes(' ') ? cleaned : `${cleaned}.`;
     return {
       lines: breakPhraseIntoLines(withPeriod)
     };
@@ -95,14 +125,12 @@ const quotePhrases = computed(() => buildQuotePhrases(props.quote));
 const signature = computed(() => props.title.trim());
 
 function scrollToNext() {
-  const next = document.querySelector('.home-about, .home-testimonials');
+  const next = document.querySelector('.home-about-me, .home-testimonials');
   if (!next) {
     window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
     return;
   }
 
-  // Align section flush to the top of the viewport (ignore scroll-padding so the
-  // hero arrow is fully off-screen). Header auto-hides on downward scroll.
   const top = Math.round(next.getBoundingClientRect().top + window.scrollY);
   window.scrollTo({ top, behavior: 'smooth' });
 }
@@ -110,27 +138,40 @@ function scrollToNext() {
 
 <style scoped>
 .home-hero {
+  --home-hero-height: calc(100svh - var(--site-header-height, 52px));
+  --home-hero-height: calc(100dvh - var(--site-header-height, 52px));
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  min-height: 78svh;
-  padding: clamp(2.5rem, 6vh, 4rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vh, 4rem);
+  height: var(--home-hero-height);
+  min-height: var(--home-hero-height);
+  max-height: var(--home-hero-height);
+  padding: 0;
   box-sizing: border-box;
   background: var(--color-bg);
   color: var(--color-text);
   overflow: hidden;
 }
 
-.home-hero__stage {
+.home-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+.home-hero--reversed .home-hero__media {
+  order: -1;
+}
+
+.home-hero__copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  width: min(100%, 56rem);
-  flex: 1 1 auto;
+  align-items: center;
+  gap: clamp(1.25rem, 2.5vh, 2rem);
+  padding: clamp(2.5rem, 6vh, 4rem) clamp(1.5rem, 4vw, 3.5rem);
+  box-sizing: border-box;
   text-align: center;
   animation: home-hero-enter 0.9s ease-out both;
 }
@@ -139,12 +180,13 @@ function scrollToNext() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(2.75rem, 7vh, 5rem);
-  margin: 0;
+  justify-content: center;
+  gap: clamp(1.75rem, 4.5vh, 3.25rem);
+  margin: 0 auto;
   padding: 0;
   border: none;
+  width: max-content;
   max-width: 100%;
-  width: 100%;
 }
 
 .home-hero__phrase {
@@ -153,12 +195,13 @@ function scrollToNext() {
   align-items: center;
   gap: 0.12em;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 0.08em;
   font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: clamp(2.75rem, 7.5vw, 6.5rem);
+  font-size: clamp(1.85rem, 3.6vw, 3.75rem);
   font-weight: 400;
   line-height: 1.12;
   letter-spacing: 0.08em;
+  text-align: center;
   text-transform: lowercase;
   color: var(--color-text);
   quotes: none;
@@ -166,20 +209,39 @@ function scrollToNext() {
 
 .home-hero__phrase-line {
   display: block;
+  width: max-content;
   max-width: 100%;
+  margin-inline: auto;
+  text-align: center;
 }
 
 .home-hero__signature {
-  margin: clamp(1.25rem, 2.5vh, 2rem) 0 0;
+  margin: 0;
   padding: 0;
   font-family: var(--font-script);
-  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.6rem);
   font-weight: 400;
   font-style: normal;
   line-height: 1.3;
   letter-spacing: 0.01em;
   color: var(--color-text);
   opacity: 0.72;
+}
+
+.home-hero__media {
+  position: relative;
+  margin: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-highlight);
+}
+
+.home-hero__media :deep(.smart-image.smart-image--fill) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .home-hero__scroll {
@@ -198,7 +260,7 @@ function scrollToNext() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero__stage {
+  .home-hero__copy {
     animation: none;
   }
 
@@ -212,22 +274,35 @@ function scrollToNext() {
 
 @media (max-width: 768px) {
   .home-hero {
-    min-height: calc(100svh - var(--site-header-height, 72px));
-    padding: 1.5rem 1.125rem 5.5rem;
+    --home-hero-height: calc(100svh - var(--site-header-height, 52px));
+    height: auto;
+    min-height: var(--home-hero-height);
+    max-height: none;
+  }
+
+  .home-hero__grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: var(--home-hero-height);
+  }
+
+  .home-hero__copy {
+    padding: 1.5rem 1.125rem 1.75rem;
   }
 
   .home-hero__quote {
-    gap: clamp(2.25rem, 6.5vh, 3.5rem);
+    gap: clamp(1.5rem, 4vh, 2.25rem);
   }
 
   .home-hero__phrase {
-    font-size: clamp(2.15rem, 10.5vw, 3.25rem);
+    font-size: clamp(1.85rem, 8.5vw, 2.75rem);
     line-height: 1.14;
     letter-spacing: 0.06em;
   }
 
-  .home-hero__signature {
-    margin-top: 1.25rem;
+  .home-hero__media {
+    height: min(72svh, 36rem);
+    min-height: 22rem;
   }
 
   .home-hero__scroll {

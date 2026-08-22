@@ -18,12 +18,12 @@ Every customize photo lives on the singleton `site_settings` doc (`key: 'default
 
 | Surface | GET / PUT |
 |---|---|
-| Home (hero, about, about-me pair, backgrounds) | `/api/admin/site/home-page` |
+| Home (madd photo, .lines photo, about-me pair) | `/api/admin/site/home-page` |
 | Public home | `/api/site/home-page` |
 
 ## New home image checklist
 
-Copy an existing slot (`about_image_url` / `about_image_file_id`) through all of these:
+Copy an existing slot (`about_me_left_image_url` / `about_me_left_image_file_id`) through all of these:
 
 1. `shared/homePageDefaults.js` — default + `mergeHomePageTextDefaults` (public gets URLs, not file IDs)
 2. `server/models/SiteSettings.js` — `homePageSchema`
@@ -41,6 +41,16 @@ Copy an existing slot (`about_image_url` / `about_image_file_id`) through all of
 - Prefer an existing folder (`site/about`, `site/hero`, …) unless you need a new one.
 - If you add a folder, update `ALLOWED_FOLDERS` **and** the `it.each` list in `tests/security.test.js`.
 
-Allowed today: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/featured-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`.
+Allowed today: `products`, `portfolio`, `site/hero`, `site/hero-background`, `site/about-background`, `site/about`, `site/about-me`, `site/contact`, `site/logo`.
 
-Portrait-style editor options should match about: `outputFileName`, `outputMime: 'image/jpeg'`, `preserveSourceFormat: false`.
+Portrait-style editor options should match about-me: `outputFileName`, `outputMime: 'image/jpeg'`, `preserveSourceFormat: false`.
+
+## Current home slots
+
+| Slot | Fields | Folder |
+|---|---|---|
+| madd hero | `hero_image_url` / `hero_image_file_id` | `site/hero` |
+| .lines hero | `hero_lines_image_url` / `hero_lines_image_file_id` | `site/hero` |
+| about me left / right | `about_me_*_image_url` / `_file_id` | `site/about` |
+
+The two hero photos are **independent**. Customize preview must show both bands with separate pickers. Do not restore the removed about section UI (portrait, quote, statement, about background).

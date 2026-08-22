@@ -3,8 +3,9 @@
     <div class="site-footer__inner">
       <section
         v-if="showFooterActions"
+        id="say-hi"
         class="site-footer__actions"
-        aria-label="contact and booking"
+        aria-label="say hi"
       >
         <div v-if="showFooterContact" id="contact" class="site-footer__action">
           <h2 id="footer-contact-heading" class="site-footer__action-title">
@@ -23,24 +24,15 @@
         <div class="site-footer__nav-group">
           <nav class="site-footer__nav" aria-label="site navigation">
             <ul class="site-footer__links">
-              <li>
-                <router-link to="/" class="site-footer__link" exact-active-class="is-active">home</router-link>
-              </li>
-              <li>
-                <router-link to="/gallery" class="site-footer__link" active-class="is-active">
-                  {{ galleryNavLabel }}
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/wanna-dos" class="site-footer__link" active-class="is-active">
-                  {{ wannaDosNavLabel }}
-                </router-link>
-              </li>
-              <li v-if="showContactNav">
-                <router-link to="/contact" class="site-footer__link" active-class="is-active">contact</router-link>
-              </li>
-              <li v-if="showBookNav">
-                <router-link to="/book" class="site-footer__link" active-class="is-active">book</router-link>
+              <li v-for="item in navItems" :key="item.id">
+                <a
+                  :href="`/${storefrontHash(item.id)}`"
+                  class="site-footer__link"
+                  :class="{ 'is-active': activeSectionId === item.id }"
+                  @click="goToSection($event, item.id)"
+                >
+                  {{ item.label }}
+                </a>
               </li>
             </ul>
           </nav>
@@ -77,15 +69,14 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPublicSocialLinks } from '../../services/api.js';
 import { PLATFORM_LABELS } from '@shared/socialLinksDefaults.js';
-import { useStorefrontNav } from '../../composables/useStorefrontNav.js';
-import { useStorefrontLabels } from '../../composables/useStorefrontLabels.js';
+import { storefrontHash } from '../../constants/storefrontSections.js';
+import { useStorefrontSectionNav } from '../../composables/useStorefrontSectionNav.js';
 import { useContactPage } from '../../composables/useContactPage.js';
 import ContactForm from '../contact/ContactForm.vue';
 import BookCta from '../book/BookCta.vue';
 
 const route = useRoute();
-const { showContactNav, showBookNav } = useStorefrontNav();
-const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
+const { navItems, activeSectionId, goToSection } = useStorefrontSectionNav();
 const { page, ensureContactPage } = useContactPage();
 const copyrightYear = new Date().getFullYear();
 const labels = PLATFORM_LABELS;
@@ -116,7 +107,7 @@ onMounted(async () => {
   align-items: start;
   padding-bottom: var(--space-xl);
   margin-bottom: var(--space-xl);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--footer-rule, color-mix(in srgb, var(--color-text) 10%, var(--color-paper)));
 }
 
 .site-footer__action-title {
@@ -136,7 +127,8 @@ onMounted(async () => {
 
 .site-footer__action :deep(input),
 .site-footer__action :deep(textarea) {
-  background: var(--color-bg);
+  background: var(--color-paper);
+  border-color: color-mix(in srgb, var(--color-text) 14%, var(--color-paper));
 }
 
 .site-footer__action :deep(textarea) {
@@ -197,7 +189,7 @@ onMounted(async () => {
 
 .site-footer__signature {
   padding-top: var(--space-xl);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--footer-rule, color-mix(in srgb, var(--color-text) 10%, var(--color-paper)));
   text-align: center;
 }
 
@@ -205,8 +197,8 @@ onMounted(async () => {
   display: block;
   margin: 0;
   font-family: var(--font-sans);
-  font-size: clamp(2rem, 7.5vw, 4.75rem);
-  font-weight: 700;
+  font-size: clamp(1.75rem, 6.5vw, 3.75rem);
+  font-weight: 600;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: lowercase;

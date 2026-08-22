@@ -16,15 +16,16 @@
       <p v-if="error" class="error home-page__status">{{ error }}</p>
       <template v-else-if="content">
         <HomeHero
-          :quote="content.hero_quote"
+          quote="madd"
           :title="content.hero_title"
+          :image-url="heroImageUrl"
         />
-        <HomeAboutSection
-          :section-title="content.about_title"
-          :header="content.about_header"
-          :text="content.about_text"
-          :image-url="content.about_image_url"
-          :background-image-url="content.about_background_image_url"
+        <HomeHero
+          quote=".lines"
+          :title="content.hero_title"
+          :image-url="heroLinesImageUrl"
+          reversed
+          section-id="landing-echo"
         />
         <HomeAboutMeSection
           copy="a short artist bio will live here — studio story, process, and the work behind the work."
@@ -52,9 +53,7 @@
           cta-to="/wanna-dos"
           cta-label="see wanna do’s"
         />
-        <HomeTestimonialMarquee
-          :background-image-url="content.featured_background_image_url"
-        />
+        <HomeTestimonialMarquee />
       </template>
     </PageReveal>
   </div>
@@ -68,7 +67,6 @@ import { createSwrCache } from '../composables/createSwrCache.js';
 import HomeHero from '../components/home/HomeHero.vue';
 import HomeArtworkMarquee from '../components/home/HomeArtworkMarquee.vue';
 import HomeTestimonialMarquee from '../components/home/HomeTestimonialMarquee.vue';
-import HomeAboutSection from '../components/home/HomeAboutSection.vue';
 import HomeAboutMeSection from '../components/home/HomeAboutMeSection.vue';
 import HomePlaceholderSection from '../components/home/HomePlaceholderSection.vue';
 import { PLACEHOLDER_ARTWORK } from '../constants/artworkPlaceholders.js';
@@ -94,6 +92,20 @@ const error = ref('');
 const { ensurePortfolio } = usePublicPortfolio();
 
 const ready = computed(() => Boolean(content.value) || Boolean(error.value));
+
+const heroImageUrl = computed(() => {
+  const saved = content.value?.hero_image_url
+    ? String(content.value.hero_image_url).trim()
+    : '';
+  return saved || PLACEHOLDER_ARTWORK[0]?.src || '';
+});
+
+const heroLinesImageUrl = computed(() => {
+  const saved = content.value?.hero_lines_image_url
+    ? String(content.value.hero_lines_image_url).trim()
+    : '';
+  return saved || PLACEHOLDER_ARTWORK[1]?.src || PLACEHOLDER_ARTWORK[0]?.src || '';
+});
 
 const aboutMeImages = computed(() => {
   const left = content.value?.about_me_left_image_url

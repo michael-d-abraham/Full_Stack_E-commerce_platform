@@ -39,7 +39,6 @@
 
 /* Home bands stack as opaque sheets over the sticky footer */
 .home-hero,
-.home-about,
 .home-about-me,
 .home-my-art,
 .home-artwork,
@@ -51,19 +50,21 @@
 }
 
 #landing,
-#about,
+#landing-echo,
 #about-me,
 #my-art,
 #gallery,
 #wanna-dos,
+#say-hi,
 #contact,
 #book {
-  scroll-margin-top: var(--site-header-height, 76px);
+  scroll-margin-top: calc(
+    var(--site-header-height, 52px) + var(--nav-float-top, 10px) + 12px
+  );
 }
 
 .home-hero { z-index: 1; }
-.home-about { z-index: 2; }
-.home-about-me { z-index: 3; }
+.home-about-me { z-index: 2; }
 .home-my-art { z-index: 4; }
 .home-artwork { z-index: 5; }
 .home-wanna-dos { z-index: 6; }
@@ -160,16 +161,6 @@
 @media (min-width: 641px) {
   .home-marquee {
     padding: var(--space-2xl) 0;
-  }
-
-  /* —— About: closes the page —— */
-  .home-about__container {
-    width: min(90vw, 75rem);
-    max-width: min(90vw, 75rem);
-    margin: 0 auto;
-    padding-left: clamp(1rem, 2vw, 2rem);
-    padding-right: clamp(1rem, 2vw, 2rem);
-    box-sizing: border-box;
   }
 }
 

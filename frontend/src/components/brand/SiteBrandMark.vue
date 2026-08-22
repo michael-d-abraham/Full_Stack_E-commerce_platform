@@ -87,7 +87,8 @@ const linkProps = computed(() => {
 }
 
 .site-brand-mark--header .site-brand-mark__text {
-  font-size: 1.125rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
 }
 
 .site-brand-mark--footer .site-brand-mark__text {
@@ -123,12 +124,19 @@ const linkProps = computed(() => {
   font-size: 1rem;
 }
 
-.site-brand-mark--header.site-brand-mark--image,
+.site-brand-mark--header.site-brand-mark--image {
+  min-height: 1.5rem;
+}
+
 .site-brand-mark--admin.site-brand-mark--image {
   min-height: 2.25rem;
 }
 
-.site-brand-mark--header .site-brand-mark__logo,
+.site-brand-mark--header .site-brand-mark__logo {
+  height: 1.5rem;
+  max-width: min(7.5rem, 36vw);
+}
+
 .site-brand-mark--admin .site-brand-mark__logo {
   height: 2.25rem;
 }

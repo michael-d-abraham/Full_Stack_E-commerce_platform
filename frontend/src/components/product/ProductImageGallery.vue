@@ -724,7 +724,7 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--color-highlight-rgb), 0.96);
   display: flex;
   flex-direction: column;
   align-items: center;

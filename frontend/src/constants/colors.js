@@ -3,15 +3,17 @@
  * Keep in sync with :root --color-* definitions.
  */
 export const COLORS = {
-  bg: '#fff4f9',
-  highlight: '#fae9f1',
-  surface: '#fae9f1',
-  border: '#f3dde7',
+  bg: '#ecc8d8',
+  highlight: '#ecc8d8',
+  surface: '#ecc8d8',
+  card: '#ecc8d8',
+  paper: '#ffffff',
+  productImageBg: '#ecc8d8',
+  border: '#ecc8d8',
   text: '#3d2a32',
   textMuted: 'rgba(61, 42, 50, 0.68)',
   heading: '#3d2a32',
-  accent: '#e8b8cc',
-  accentHover: '#efb8cc',
-  onInk: '#fff4f9',
-  productImageBg: '#ffffff'
+  accent: '#3d2a32',
+  accentHover: '#3d2a32',
+  onInk: '#ffffff'
 };

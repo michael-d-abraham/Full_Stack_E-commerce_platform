@@ -9,7 +9,6 @@ const ALLOWED_FOLDERS = new Set([
     'portfolio',
     'site/hero',
     'site/hero-background',
-    'site/featured-background',
     'site/about-background',
     'site/about',
     'site/about-me',

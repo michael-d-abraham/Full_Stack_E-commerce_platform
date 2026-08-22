@@ -175,7 +175,7 @@ function onTouchEnd(event) {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(var(--color-highlight-rgb), 0.98);
   box-sizing: border-box;
   --mobile-viewer-top: calc(env(safe-area-inset-top, 0px) + var(--product-close-circle-size, clamp(2.25rem, 5vw, 2.75rem)) + 12px);
   --mobile-viewer-bottom: calc(env(safe-area-inset-bottom, 0px) + 36px);

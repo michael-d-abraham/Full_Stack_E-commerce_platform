@@ -130,7 +130,7 @@ function onClick(event) {
   border: none;
   outline: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(var(--color-highlight-rgb), 0.82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: rgba(0, 0, 0, 0.7);
@@ -164,7 +164,7 @@ function onClick(event) {
 }
 
 .product-floating-circle-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(var(--color-highlight-rgb), 0.94);
   color: rgba(0, 0, 0, 0.85);
 }
 
@@ -184,7 +184,7 @@ function onClick(event) {
 
 .product-floating-circle-button:disabled {
   opacity: 0.32;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(var(--color-highlight-rgb), 0.55);
   color: rgba(0, 0, 0, 0.3);
   cursor: default;
 }

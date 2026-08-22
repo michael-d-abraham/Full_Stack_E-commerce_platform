@@ -3,28 +3,30 @@
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Light pink canvas + rose-ink type (white only on photos / dark fills) */
-  --color-bg: #fff4f9;
-  --color-highlight: #fae9f1;
-  --color-surface: #fae9f1;
-  --color-border: #f3dde7;
+  /* Three colors only: background pink, white, black */
+  --color-bg: #ecc8d8;
+  --color-paper: #ffffff;
   --color-text: #3d2a32;
+  --color-surface: var(--color-bg);
+  --color-highlight: var(--color-bg);
+  --color-card: var(--color-bg);
+  --color-product-image-bg: var(--color-bg);
+  --color-border: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
   --color-text-muted: rgba(61, 42, 50, 0.68);
-  --color-heading: #3d2a32;
-  --color-accent: #e8b8cc;
-  --color-on-ink: #fff4f9;
-  --color-product-image-bg: #ffffff;
+  --color-heading: var(--color-text);
+  --color-accent: var(--color-text);
+  --color-on-ink: var(--color-paper);
   --color-border-strong: rgba(61, 42, 50, 0.28);
-  --color-accent-hover: color-mix(in srgb, var(--color-accent) 88%, #ffffff);
+  --color-accent-hover: color-mix(in srgb, var(--color-text) 88%, var(--color-bg));
   --color-accent-muted: rgba(61, 42, 50, 0.42);
   --color-error: #9b2d4a;
 
   /* RGB channels (for alpha compositing) */
   --color-text-rgb: 61, 42, 50;
-  --color-accent-rgb: 232, 184, 204;
-  --color-highlight-rgb: 255, 255, 255;
-  --color-surface-rgb: 250, 233, 241;
-  --color-bg-rgb: 255, 244, 249;
+  --color-accent-rgb: var(--color-text-rgb);
+  --color-bg-rgb: 236, 200, 216;
+  --color-surface-rgb: var(--color-bg-rgb);
+  --color-highlight-rgb: var(--color-bg-rgb);
 
   /* Overlays & scrims */
   --color-overlay-backdrop: rgba(var(--color-text-rgb), 0.25);
@@ -126,17 +128,17 @@
   --focus-ring: 0 0 0 1px var(--color-accent);
 
   --nav-scroll-distance: 120px;
-  --site-header-bar-height-expanded: 5.5rem;
-  --site-header-bar-height-compact: 4.25rem;
-  --site-header-padding-y-expanded: 1.65rem;
-  --site-header-padding-y-compact: 0.75rem;
-  --site-header-mobile-padding-y-expanded: 1rem;
-  --site-header-mobile-padding-y-compact: 0.65rem;
+  --site-header-bar-height-expanded: 2.75rem;
+  --site-header-bar-height-compact: 2.75rem;
+  --site-header-padding-y-expanded: 0;
+  --site-header-padding-y-compact: 0;
+  --site-header-mobile-padding-y-expanded: 0;
+  --site-header-mobile-padding-y-compact: 0;
 
   --nav-inset-x: clamp(12px, 3.5vw, 20px);
-  --nav-float-top: 10px;
+  --nav-float-top: 8px;
   --nav-pill-radius: 999px;
-  --nav-pill-padding-x: 1.125rem;
+  --nav-pill-padding-x: 0.7rem;
 
   /* Layered footer reveal: content must paint above the sticky footer */
   --z-footer: 1;
@@ -149,8 +151,8 @@
   :root {
     --nav-scroll-distance: 160px;
     --nav-inset-x: clamp(20px, 4vw, 56px);
-    --nav-float-top: 14px;
-    --nav-pill-padding-x: 1.5rem;
+    --nav-float-top: 10px;
+    --nav-pill-padding-x: 0.9rem;
   }
 }
 
@@ -216,14 +218,14 @@ button {
   padding: 0.65rem 1.25rem;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: var(--color-card);
   color: var(--color-text);
   box-shadow: none;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 button:hover:not(:disabled) {
-  background: var(--color-surface);
+  background: var(--color-card);
   border-color: var(--color-accent);
 }
 
@@ -269,9 +271,9 @@ button:disabled {
 }
 
 .btn-primary {
-  background: var(--color-accent);
-  color: var(--color-text);
-  border-color: var(--color-accent);
+  background: var(--color-text);
+  color: var(--color-paper);
+  border-color: var(--color-text);
   text-transform: lowercase;
   letter-spacing: 0.08em;
 }
@@ -279,18 +281,19 @@ button:disabled {
 .btn-primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
-  color: var(--color-text);
+  color: var(--color-paper);
   opacity: 1;
 }
 
 .btn-primary:active:not(:disabled) {
-  background: var(--color-accent);
+  background: var(--color-text);
+  color: var(--color-paper);
   opacity: 1;
 }
 
 .btn-ghost,
 .btn-outline {
-  background: var(--color-surface);
+  background: var(--color-card);
   color: var(--color-text);
   border-color: var(--color-text);
   box-shadow: none;
@@ -323,7 +326,7 @@ select {
   padding: 0.65rem 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: var(--color-card);
   color: var(--color-text);
   box-shadow: none;
 }

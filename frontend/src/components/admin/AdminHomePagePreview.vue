@@ -1,145 +1,56 @@
 <template>
   <div class="admin-home-preview">
-    <!-- Hero (mirrors HomeHero — quote + signature only) -->
-    <section class="admin-home-preview__hero" aria-label="Hero preview">
+    <!-- Hero pair (mirrors HomeHero + reversed HomeHero) -->
+    <section class="admin-home-preview__hero" aria-label="hero preview">
       <div class="admin-home-preview__hero-inner">
-        <h3 class="admin-home-preview__block-title">Hero section</h3>
-
-        <div class="admin-home-preview__hero-stage">
-          <label class="admin-home-preview__hero-quote-field">
-            <span class="admin-home-preview__field-label">Hero quote</span>
-            <textarea
-              v-model="form.hero_quote"
-              class="admin-home-preview__hero-quote-input"
-              rows="4"
-              placeholder="Art is how we decorate space. Music is how we decorate time."
-              aria-label="Hero quote"
-              :disabled="disabled"
-            />
-          </label>
-
-          <label class="admin-home-preview__hero-signature-field">
-            <span class="admin-home-preview__field-label">Signature</span>
-            <input
-              v-model="form.hero_title"
-              type="text"
-              class="admin-home-preview__hero-signature-input"
-              placeholder="Handwritten signature"
-              aria-label="Hero signature"
-              :disabled="disabled"
-            />
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <!-- Reviews texture (mirrors HomeTestimonialMarquee background) -->
-    <section
-      class="admin-home-preview__featured"
-      :class="{ 'admin-home-preview__section--has-background': Boolean(form.featured_background_image_url) }"
-      aria-label="Reviews section preview"
-    >
-      <div
-        v-if="form.featured_background_image_url"
-        class="admin-home-preview__section-background"
-        :style="{ backgroundImage: `url(${form.featured_background_image_url})` }"
-        aria-hidden="true"
-      />
-      <div class="admin-home-preview__container">
-        <h3 class="admin-home-preview__block-title">Reviews section</h3>
+        <h3 class="admin-home-preview__block-title">hero section</h3>
         <p class="admin-home-preview__field-hint">
-          Optional texture behind the home testimonial marquee. Review cards are placeholder copy for now.
+          two pages. first is madd with its own photo. second flips the layout and uses a separate .lines photo.
         </p>
 
-        <div class="admin-home-preview__section-background-field">
-          <span class="admin-home-preview__field-label">Reviews background texture</span>
-          <AdminHomePreviewImageSlot
-            class="admin-home-preview__section-background-slot"
-            :image-url="form.featured_background_image_url"
-            :disabled="disabled"
-            aria-label="Reviews section background texture"
-            @pick="$emit('pick-image', { type: 'featured-background' })"
-            @remove="$emit('remove-image', { type: 'featured-background' })"
-          />
-        </div>
-      </div>
-    </section>
+        <div class="admin-home-preview__hero-grid">
+          <div class="admin-home-preview__hero-copy">
+            <p class="admin-home-preview__hero-word">madd</p>
+            <label class="admin-home-preview__hero-signature-field">
+              <span class="admin-home-preview__field-label">signature</span>
+              <input
+                v-model="form.hero_title"
+                type="text"
+                class="admin-home-preview__hero-signature-input"
+                placeholder="handwritten signature"
+                aria-label="hero signature"
+                :disabled="disabled"
+              />
+            </label>
+          </div>
 
-    <!-- About (mirrors HomeAboutSection) -->
-    <section
-      class="admin-home-preview__about"
-      :class="{ 'admin-home-preview__section--has-background': Boolean(form.about_background_image_url) }"
-      aria-label="About preview"
-    >
-      <div
-        v-if="form.about_background_image_url"
-        class="admin-home-preview__section-background"
-        :style="{ backgroundImage: `url(${form.about_background_image_url})` }"
-        aria-hidden="true"
-      />
-      <div class="admin-home-preview__container admin-home-preview__about-inner">
-        <h3 class="admin-home-preview__block-title">About section</h3>
-
-        <div class="admin-home-preview__section-background-field">
-          <span class="admin-home-preview__field-label">About background texture</span>
-          <p class="admin-home-preview__field-hint">
-            Full-bleed texture behind the about section.
-          </p>
-          <AdminHomePreviewImageSlot
-            class="admin-home-preview__section-background-slot"
-            :image-url="form.about_background_image_url"
-            :disabled="disabled"
-            aria-label="About section background texture"
-            @pick="$emit('pick-image', { type: 'about-background' })"
-            @remove="$emit('remove-image', { type: 'about-background' })"
-          />
+          <div class="admin-home-preview__hero-photo">
+            <span class="admin-home-preview__field-label">madd photo</span>
+            <AdminHomePreviewImageSlot
+              :image-url="form.hero_image_url"
+              :disabled="disabled"
+              aria-label="madd photo"
+              @pick="$emit('pick-image', { type: 'hero' })"
+              @remove="$emit('remove-image', { type: 'hero' })"
+            />
+          </div>
         </div>
 
-        <header class="admin-home-preview__about-masthead">
-          <input
-            v-model="form.about_title"
-            type="text"
-            class="admin-home-preview__about-name"
-            placeholder="Artist name"
-            aria-label="Artist name"
-            :disabled="disabled"
-          />
-          <div class="admin-home-preview__about-divider" aria-hidden="true" />
-        </header>
-        <div class="admin-home-preview__about-grid">
-          <label class="admin-home-preview__about-quote-field">
-            <span class="admin-home-preview__field-label">About quote</span>
-            <textarea
-              v-model="form.about_header"
-              class="admin-home-preview__about-quote-input"
-              rows="4"
-              placeholder="A bold quote that defines the artist"
-              aria-label="About quote"
+        <div class="admin-home-preview__hero-grid admin-home-preview__hero-grid--reversed">
+          <div class="admin-home-preview__hero-photo">
+            <span class="admin-home-preview__field-label">.lines photo</span>
+            <AdminHomePreviewImageSlot
+              :image-url="form.hero_lines_image_url"
               :disabled="disabled"
+              aria-label=".lines photo"
+              @pick="$emit('pick-image', { type: 'hero-lines' })"
+              @remove="$emit('remove-image', { type: 'hero-lines' })"
             />
-          </label>
+          </div>
 
-          <AdminHomePreviewImageSlot
-            class="admin-home-preview__about-image-wrap"
-            :image-url="form.about_image_url"
-            :disabled="disabled"
-            natural-display
-            aria-label="Artist portrait"
-            @pick="$emit('pick-image', { type: 'about' })"
-            @remove="$emit('remove-image', { type: 'about' })"
-          />
-
-          <label class="admin-home-preview__about-text-field">
-            <span class="admin-home-preview__about-text-label">Artist statement</span>
-            <textarea
-              v-model="form.about_text"
-              class="admin-home-preview__about-text-input"
-              rows="5"
-              placeholder="A concise artist statement (3–5 sentences)"
-              aria-label="Artist statement"
-              :disabled="disabled"
-            />
-          </label>
+          <div class="admin-home-preview__hero-copy">
+            <p class="admin-home-preview__hero-word">.lines</p>
+          </div>
         </div>
       </div>
     </section>
@@ -213,71 +124,77 @@ defineEmits(['pick-image', 'remove-image']);
   color: var(--color-text-muted);
 }
 
-/* —— Hero (museum quote + signature) —— */
+/* —— Hero (madd left / photo right, then photo left / .lines right) —— */
 .admin-home-preview__hero {
   position: relative;
   overflow: hidden;
-  padding: clamp(3rem, 8vh, 5rem) var(--space-lg);
+  padding: clamp(2rem, 5vh, 3.5rem) var(--space-lg);
   background: var(--color-highlight);
 }
 
 .admin-home-preview__hero-inner {
   position: relative;
   z-index: 1;
-  max-width: 42rem;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-.admin-home-preview__hero-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(1.75rem, 4vh, 2.75rem);
+.admin-home-preview__hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: stretch;
   width: 100%;
-  text-align: center;
-  min-height: 18rem;
-  justify-content: center;
+  margin-top: var(--space-md);
 }
 
-.admin-home-preview__section-background-field {
+.admin-home-preview__hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1.25rem, 3vh, 2rem);
+  min-width: 0;
+  text-align: center;
+}
+
+.admin-home-preview__hero-word {
+  margin: 0;
+  padding: 0 0 0 0.08em;
+  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
+  font-size: clamp(1.85rem, 3.6vw, 3rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--color-text);
+}
+
+.admin-home-preview__hero-grid--reversed {
+  margin-top: var(--space-2xl);
+}
+
+.admin-home-preview__hero-photo {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  margin-bottom: var(--space-md);
+  min-width: 0;
 }
 
-.admin-home-preview__section-background {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  pointer-events: none;
+.admin-home-preview__hero-photo :deep(.admin-home-img-slot__hit) {
+  aspect-ratio: 3 / 4;
+  min-height: 20rem;
 }
 
-.admin-home-preview__featured,
-.admin-home-preview__about,
-.admin-home-preview__about-me {
-  position: relative;
-  overflow: hidden;
-}
-
-.admin-home-preview__featured .admin-home-preview__container,
-.admin-home-preview__about .admin-home-preview__about-inner {
-  position: relative;
-  z-index: 1;
-}
-
-.admin-home-preview__section-background-slot :deep(.admin-home-img-slot__hit) {
-  aspect-ratio: 21 / 9;
-  min-height: 120px;
-}
-
-.admin-home-preview__section-background-slot :deep(.admin-home-img-slot__photo) {
+.admin-home-preview__hero-photo :deep(.admin-home-img-slot__photo) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.admin-home-preview__about-me {
+  position: relative;
+  overflow: hidden;
 }
 
 .admin-home-preview__field-hint {
@@ -287,7 +204,6 @@ defineEmits(['pick-image', 'remove-image']);
   line-height: 1.4;
 }
 
-.admin-home-preview__hero-quote-field,
 .admin-home-preview__hero-signature-field {
   width: 100%;
   max-width: 100%;
@@ -295,29 +211,6 @@ defineEmits(['pick-image', 'remove-image']);
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
-}
-
-.admin-home-preview__hero-quote-input {
-  width: 100%;
-  min-height: 8rem;
-  padding: var(--space-sm) 0;
-  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  font-weight: 300;
-  line-height: 1.15;
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: lowercase;
-  color: var(--color-heading);
-  border: 1px dashed var(--color-border);
-  background: transparent;
-  resize: vertical;
-}
-
-.admin-home-preview__hero-quote-input:hover,
-.admin-home-preview__hero-quote-input:focus {
-  border-color: var(--color-accent);
-  outline: none;
 }
 
 .admin-home-preview__hero-signature-input {
@@ -367,187 +260,6 @@ defineEmits(['pick-image', 'remove-image']);
   outline: none;
 }
 
-/* —— Featured —— */
-.admin-home-preview__featured {
-  padding: var(--space-lg) var(--space-lg) var(--space-3xl);
-}
-
-.admin-home-preview__featured .admin-home-preview__container {
-  max-width: 1100px;
-}
-
-.admin-home-preview__featured-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-lg);
-  align-items: start;
-}
-
-.admin-home-preview__featured-cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: var(--space-xl) 0 0;
-  padding: 0;
-  width: 100%;
-  text-align: center;
-  line-height: normal;
-}
-
-.admin-home-preview__featured-cta-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 50vw;
-  max-width: 100%;
-  min-width: 0;
-  min-height: 64px;
-  padding: 0 3rem;
-  border: 1px solid var(--color-text);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: lowercase;
-  box-sizing: border-box;
-  opacity: 0.88;
-}
-
-/* —— About —— */
-.admin-home-preview__about {
-  padding: var(--space-lg) var(--space-lg) var(--space-3xl);
-  background: var(--color-surface);
-}
-
-.admin-home-preview__about-inner {
-  padding-top: var(--space-lg);
-}
-
-.admin-home-preview__about-masthead {
-  text-align: center;
-  margin-bottom: var(--space-xl);
-}
-
-.admin-home-preview__about-name {
-  display: block;
-  width: 100%;
-  margin: 0 0 var(--space-md);
-  padding: 0.25rem 0.5rem;
-  border: 1px dashed transparent;
-  background: transparent;
-  box-shadow: none;
-  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: clamp(0.9375rem, 2vw, 1.25rem);
-  font-weight: 300;
-  letter-spacing: 0.22em;
-  text-transform: lowercase;
-  text-align: center;
-  color: var(--color-text);
-}
-
-.admin-home-preview__about-name:hover,
-.admin-home-preview__about-name:focus {
-  border-color: var(--color-border);
-  outline: none;
-}
-
-.admin-home-preview__about-divider {
-  width: 3.5rem;
-  height: 1px;
-  margin: 0 auto;
-  background: currentColor;
-  opacity: 0.28;
-}
-
-.admin-home-preview__about-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  grid-template-areas:
-    'quote portrait'
-    'statement portrait';
-  gap: var(--space-lg) clamp(var(--space-xl), 4vw, var(--space-2xl));
-  align-items: start;
-}
-
-.admin-home-preview__about-quote-field {
-  grid-area: quote;
-}
-
-.admin-home-preview__about-text-field {
-  grid-area: statement;
-}
-
-.admin-home-preview__about-image-wrap {
-  grid-area: portrait;
-  grid-row: 1 / -1;
-  width: 100%;
-}
-
-.admin-home-preview__about-quote-field,
-.admin-home-preview__about-text-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.admin-home-preview__about-quote-input {
-  width: 100%;
-  min-height: 8rem;
-  padding: var(--space-sm) 0;
-  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 300;
-  line-height: 1.15;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--color-text);
-  border: 1px dashed var(--color-border);
-  background: transparent;
-  resize: vertical;
-}
-
-.admin-home-preview__about-quote-input:hover,
-.admin-home-preview__about-quote-input:focus {
-  border-color: var(--color-text);
-  outline: none;
-}
-
-.admin-home-preview__about-text-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: lowercase;
-  letter-spacing: 0.16em;
-  color: var(--color-text-muted);
-}
-
-.admin-home-preview__about-text-input {
-  width: 100%;
-  min-height: 8rem;
-  padding: var(--space-md);
-  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: 1rem;
-  font-weight: 300;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  color: var(--color-text);
-  border: 1px dashed var(--color-border);
-  background: transparent;
-  resize: vertical;
-}
-
-.admin-home-preview__about-text-input:hover,
-.admin-home-preview__about-text-input:focus {
-  border-color: var(--color-text);
-  outline: none;
-}
-
-.admin-home-preview__about-image-wrap :deep(.admin-home-img-slot__hit:not(:has(.admin-home-img-slot__photo))) {
-  aspect-ratio: 4 / 5;
-  min-height: 280px;
-}
-
 .admin-home-preview__about-me {
   padding: var(--space-lg) var(--space-lg) var(--space-3xl);
   background: var(--color-bg);
@@ -580,7 +292,7 @@ defineEmits(['pick-image', 'remove-image']);
 
 @media (min-width: 641px) {
   .admin-home-preview__hero-inner {
-    max-width: 42rem;
+    max-width: 1100px;
     width: 100%;
   }
 
@@ -588,39 +300,30 @@ defineEmits(['pick-image', 'remove-image']);
     margin-top: 0;
   }
 
-  .admin-home-preview__about-inner {
-    max-width: none;
-    width: min(90vw, 75rem);
-  }
-}
-
-@media (max-width: 900px) {
-  .admin-home-preview__featured-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 640px) {
   .admin-home-preview__hero,
-  .admin-home-preview__featured,
-  .admin-home-preview__about,
   .admin-home-preview__about-me {
     padding-left: var(--space-md);
     padding-right: var(--space-md);
   }
 
-  .admin-home-preview__featured-grid,
   .admin-home-preview__about-me-pair {
     grid-template-columns: 1fr;
     gap: var(--space-md);
   }
 
-  .admin-home-preview__featured-cta {
-    margin-top: var(--space-lg);
+  .admin-home-preview__hero-grid {
+    grid-template-columns: 1fr;
   }
 
-  .admin-home-preview__hero-stage {
-    min-height: 14rem;
+  .admin-home-preview__hero-grid--reversed .admin-home-preview__hero-photo {
+    order: -1;
+  }
+
+  .admin-home-preview__hero-photo :deep(.admin-home-img-slot__hit) {
+    min-height: 16rem;
   }
 
   .admin-home-preview__hero {
@@ -628,25 +331,5 @@ defineEmits(['pick-image', 'remove-image']);
     padding-bottom: var(--space-xl);
   }
 
-  .admin-home-preview__featured {
-    padding-top: var(--space-xl);
-  }
-
-  .admin-home-preview__about-grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'portrait'
-      'quote'
-      'statement';
-    gap: var(--space-xl);
-  }
-
-  .admin-home-preview__about-image-wrap {
-    grid-row: auto;
-  }
-
-  .admin-home-preview__about-inner {
-    padding-top: var(--space-lg);
-  }
 }
 </style>
