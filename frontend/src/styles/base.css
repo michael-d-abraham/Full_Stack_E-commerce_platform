@@ -3,23 +3,24 @@
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Light pink canvas + white type */
+  /* Light pink canvas + rose-ink type (white only on photos / dark fills) */
   --color-bg: #fff4f9;
   --color-highlight: #fae9f1;
   --color-surface: #fae9f1;
   --color-border: #f3dde7;
-  --color-text: #ffffff;
-  --color-text-muted: rgba(255, 255, 255, 0.78);
-  --color-heading: #ffffff;
+  --color-text: #3d2a32;
+  --color-text-muted: rgba(61, 42, 50, 0.68);
+  --color-heading: #3d2a32;
   --color-accent: #e8b8cc;
+  --color-on-ink: #fff4f9;
   --color-product-image-bg: #ffffff;
-  --color-border-strong: rgba(255, 255, 255, 0.45);
+  --color-border-strong: rgba(61, 42, 50, 0.28);
   --color-accent-hover: color-mix(in srgb, var(--color-accent) 88%, #ffffff);
-  --color-accent-muted: rgba(255, 255, 255, 0.65);
-  --color-error: #ffffff;
+  --color-accent-muted: rgba(61, 42, 50, 0.42);
+  --color-error: #9b2d4a;
 
   /* RGB channels (for alpha compositing) */
-  --color-text-rgb: 255, 255, 255;
+  --color-text-rgb: 61, 42, 50;
   --color-accent-rgb: 232, 184, 204;
   --color-highlight-rgb: 255, 255, 255;
   --color-surface-rgb: 250, 233, 241;

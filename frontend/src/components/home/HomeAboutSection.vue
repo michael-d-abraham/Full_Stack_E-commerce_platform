@@ -110,7 +110,7 @@ const visibleStatement = computed(() => {
   overflow: hidden;
   width: 100%;
   padding: 0;
-  background: #faf8f3;
+  background: var(--color-bg);
 }
 
 .home-about__container {

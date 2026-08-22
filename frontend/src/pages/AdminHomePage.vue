@@ -12,7 +12,6 @@
       <form v-else class="admin-home__form" @submit.prevent="onSave">
       <AdminHomePagePreview
         :form="form"
-        :catalog-products="catalogProducts"
         :disabled="uploading || saving"
         @pick-image="openFilePicker"
         @remove-image="clearImage"
@@ -43,7 +42,6 @@
 import { reactive, ref, onMounted } from 'vue';
 import {
   getAdminHomePage,
-  getAdminProducts,
   updateAdminHomePage,
   uploadAdminImage
 } from '../services/api.js';
@@ -79,7 +77,6 @@ function createEmptyForm() {
 }
 
 const form = reactive(createEmptyForm());
-const catalogProducts = ref([]);
 const loading = ref(true);
 const loadError = ref('');
 const actionError = ref('');
@@ -178,7 +175,6 @@ function applySettings(data) {
     Object.assign(form.featured_products[i], next.featured_products[i]);
   }
 
-  console.log('[AdminHomePage] form.hero_image_urls after applySettings', [...form.hero_image_urls]);
 }
 
 function payloadFromForm() {
@@ -220,13 +216,7 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    const [homeData, products] = await Promise.all([
-      getAdminHomePage(),
-      getAdminProducts()
-    ]);
-    catalogProducts.value = Array.isArray(products)
-      ? products.filter((p) => p && p.is_active !== false)
-      : [];
+    const homeData = await getAdminHomePage();
     applySettings(homeData);
   } catch (e) {
     loadError.value = e.message || 'Failed to load';
@@ -240,11 +230,8 @@ async function persistSettings() {
   actionError.value = '';
   saved.value = false;
   try {
-    console.log('[AdminHomePage] form.hero_image_urls before save', [...form.hero_image_urls]);
     const payload = payloadFromForm();
-    console.log('[AdminHomePage] PUT payload hero_image_urls', payload.hero_image_urls);
     const data = await updateAdminHomePage(payload);
-    console.log('[AdminHomePage] PUT response hero_image_urls', data?.hero_image_urls);
     if (data?.hero_image_urls === undefined) {
       throw new Error('PUT response missing hero_image_urls');
     }
@@ -354,7 +341,6 @@ async function uploadFileForTarget(file) {
   actionError.value = '';
   try {
     const { image_url, file_id } = await uploadAdminImage(file, uploadFolderForTarget(target));
-    console.log('[AdminHomePage] upload response image_url', image_url);
     setImageUrl(target, image_url, file_id);
     await persistSettings();
   } catch (e) {

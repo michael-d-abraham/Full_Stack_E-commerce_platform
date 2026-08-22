@@ -34,7 +34,7 @@ defineEmits(['click']);
   width: 100%;
   height: 42px;
   background: var(--color-text);
-  color: var(--color-text);
+  color: var(--color-on-ink);
   border: 0;
   border-radius: 0;
   font-size: 16px;

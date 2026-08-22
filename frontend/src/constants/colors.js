@@ -7,10 +7,11 @@ export const COLORS = {
   highlight: '#fae9f1',
   surface: '#fae9f1',
   border: '#f3dde7',
-  text: '#ffffff',
-  textMuted: 'rgba(255, 255, 255, 0.78)',
-  heading: '#ffffff',
+  text: '#3d2a32',
+  textMuted: 'rgba(61, 42, 50, 0.68)',
+  heading: '#3d2a32',
   accent: '#e8b8cc',
   accentHover: '#efb8cc',
+  onInk: '#fff4f9',
   productImageBg: '#ffffff'
 };

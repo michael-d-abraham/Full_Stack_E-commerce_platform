@@ -4,7 +4,7 @@
   --marquee-duration: 40s;
   --marquee-gap: 32px;
   --marquee-fade-width: 80px;
-  --marquee-fade-color: var(--testimonial-section-bg, #f2f2f2);
+  --marquee-fade-color: var(--testimonial-section-bg, var(--color-bg));
   position: relative;
   display: flex;
   overflow: hidden;
@@ -217,7 +217,7 @@
 
 /* Home testimonial section */
 .home-testimonials {
-  --testimonial-section-bg: #f2f2f2;
+  --testimonial-section-bg: var(--color-bg);
   position: relative;
   width: 100%;
   overflow: hidden;

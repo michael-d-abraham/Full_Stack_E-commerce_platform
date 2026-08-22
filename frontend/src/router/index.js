@@ -87,7 +87,7 @@ const routes = [
     },
     { path: '/admin/social-links', redirect: '/admin/customize' },
     { path: '/admin/display-pictures', redirect: '/admin/customize' },
-    { path: '/admin/instagram-ai', redirect: '/admin/ai' }
+    { path: '/admin/instagram-ai', redirect: '/admin/dashboard' }
 ];
 
 function isProductGridRoute(name) {

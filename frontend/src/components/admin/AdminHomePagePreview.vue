@@ -33,11 +33,11 @@
       </div>
     </section>
 
-    <!-- Featured (mirrors HomeFeaturedProducts) -->
+    <!-- Reviews texture (mirrors HomeTestimonialMarquee background) -->
     <section
       class="admin-home-preview__featured"
       :class="{ 'admin-home-preview__section--has-background': Boolean(form.featured_background_image_url) }"
-      aria-label="Featured products preview"
+      aria-label="Reviews section preview"
     >
       <div
         v-if="form.featured_background_image_url"
@@ -46,46 +46,22 @@
         aria-hidden="true"
       />
       <div class="admin-home-preview__container">
-        <h3 class="admin-home-preview__block-title">Featured section</h3>
+        <h3 class="admin-home-preview__block-title">Reviews section</h3>
+        <p class="admin-home-preview__field-hint">
+          Optional texture behind the home testimonial marquee. Review cards are placeholder copy for now.
+        </p>
 
         <div class="admin-home-preview__section-background-field">
-          <span class="admin-home-preview__field-label">Featured background texture</span>
-          <p class="admin-home-preview__field-hint">
-            Full-bleed texture behind the featured section.
-          </p>
+          <span class="admin-home-preview__field-label">Reviews background texture</span>
           <AdminHomePreviewImageSlot
             class="admin-home-preview__section-background-slot"
             :image-url="form.featured_background_image_url"
             :disabled="disabled"
-            aria-label="Featured section background texture"
+            aria-label="Reviews section background texture"
             @pick="$emit('pick-image', { type: 'featured-background' })"
             @remove="$emit('remove-image', { type: 'featured-background' })"
           />
         </div>
-
-        <input
-          v-model="form.featured_title"
-          type="text"
-          class="admin-home-preview__section-title page-hero-title"
-          placeholder="Featured products"
-          aria-label="Featured section title"
-        />
-        <div class="admin-home-preview__featured-grid">
-          <AdminHomeFeaturedSlot
-            v-for="(item, index) in form.featured_products"
-            :key="'preview-featured-' + index"
-            :product-id="item.product_id"
-            :slot-number="index + 1"
-            :mobile-only="index < 3"
-            :catalog-products="catalogProducts"
-            :taken-product-ids="takenFeaturedProductIds"
-            :disabled="disabled"
-            @update:product-id="item.product_id = $event"
-          />
-        </div>
-        <p class="admin-home-preview__featured-cta">
-          <span class="admin-home-preview__featured-cta-link">View Collection</span>
-        </p>
       </div>
     </section>
 
@@ -171,23 +147,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
 import AdminHomePreviewImageSlot from './AdminHomePreviewImageSlot.vue';
-import AdminHomeFeaturedSlot from './AdminHomeFeaturedSlot.vue';
 
-const props = defineProps({
+defineProps({
   form: { type: Object, required: true },
-  catalogProducts: { type: Array, default: () => [] },
   disabled: { type: Boolean, default: false }
 });
 
 defineEmits(['pick-image', 'remove-image']);
-
-const takenFeaturedProductIds = computed(() =>
-  props.form.featured_products
-    .map((row) => (row.product_id ? String(row.product_id) : ''))
-    .filter(Boolean)
-);
 </script>
 
 <style scoped>

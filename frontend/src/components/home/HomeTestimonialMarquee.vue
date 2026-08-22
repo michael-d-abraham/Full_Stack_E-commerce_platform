@@ -42,6 +42,6 @@ defineProps({
   }
 });
 
-const fadeColor = '#f2f2f2';
+const fadeColor = 'var(--color-bg)';
 const testimonials = PLACEHOLDER_TESTIMONIALS;
 </script>

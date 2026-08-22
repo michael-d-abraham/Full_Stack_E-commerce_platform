@@ -1,6 +1,6 @@
 # Architecture
 
-Artist portfolio storefront built as a monorepo: an Express 5 API (`server/`) and a Vue 3 SPA (`frontend/`), both in the same `package.json`. In production the Express server serves the compiled SPA from `frontend/dist` and also handles every `/api/*` call. In development, Vite runs on port 5173 and proxies `/api/*` to Express on port 3000.
+Artist portfolio storefront built as a monorepo: an Express 5 API (`server/`) and a Vue 3 SPA (`frontend/`), both in the same `package.json`. In production the Express server serves the compiled SPA from `frontend/dist` and also handles every `/api/*` call. In development, Vite runs on port 5173 and proxies `/api/*` to Express on `process.env.PORT` (default 3000; this project often uses 3002).
 
 ---
 
@@ -8,13 +8,14 @@ Artist portfolio storefront built as a monorepo: an Express 5 API (`server/`) an
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vue 3 (Composition API), Vue Router 4, Vite 8 |
+| Frontend | Vue 3 (Composition API), Vue Router 5, Vite 8 |
 | Backend | Node.js, Express 5 |
-| Database | MongoDB via Mongoose 8; `connect-mongo` session store |
-| Storage | Cloudflare R2 (S3-compatible) via `@aws-sdk/client-s3` |
+| Database | MongoDB via Mongoose 8; `connect-mongo` session store (cart + legacy admin) |
+| Auth | Clerk for production admin; session login remains for tests/legacy |
+| Storage | ImageKit (active). `r2StorageService.js` is unused leftover. |
 | Payments | Stripe Checkout (server-side session creation + webhook) |
 | Email | Resend (`resend` package) |
-| AI | LangGraph + Ollama (`@langchain/langgraph`, `@langchain/ollama`) |
+| AI | LangGraph + Ollama backend exists; admin UI route is disabled |
 | Testing | Jest + `mongodb-memory-server` + `supertest` |
 
 ---
@@ -32,23 +33,23 @@ Artist portfolio storefront built as a monorepo: an Express 5 API (`server/`) an
 │   ├── ai/                # LangGraph generation graph + Ollama integration
 │   ├── controllers/       # Request handlers (thin — delegate to services)
 │   ├── middleware/        # adminAuth.js, uploadProductImage.js
-│   ├── models/            # Mongoose schemas (10 models)
-│   ├── routes/            # Express router modules (13 files)
-│   ├── services/          # Business logic (12 modules)
-│   └── utils/             # Stripe client, product helpers, validation, etc.
+│   ├── models/            # Mongoose schemas (12 models, including PortfolioWork)
+│   ├── routes/            # Express router modules (16 files)
+│   ├── services/          # Business logic (ImageKit is the live upload path)
+│   └── utils/             # Stripe client, product/portfolio helpers, validation
 ├── frontend/
 │   └── src/
-│       ├── main.js        # createApp + use(router) + CSS imports
+│       ├── main.js        # createApp + optional Clerk + CSS imports
 │       ├── App.vue        # Root component
-│       ├── router/        # Vue Router (index.js) — routes + admin guard
+│       ├── router/        # Vue Router (index.js) — routes + Clerk admin guard
 │       ├── services/      # api.js — all fetch calls
-│       ├── composables/   # useCart, useAdminNav, useMobileNav, useMediaQuery
-│       ├── utils/         # money, cart, storefrontProduct, orderFulfillmentStatus, etc.
-│       ├── pages/         # 19 route-level components
-│       ├── components/    # 32 reusable components
-│       ├── constants/     # contactPageDefaults, socialPlatformIcons
-│       └── styles/        # Global CSS (base.css + page-specific)
-├── tests/                 # Jest backend integration tests (5 suites, 55 tests)
+│       ├── composables/   # useCart, useStorefrontNav, useSiteHeaderScroll, etc.
+│       ├── utils/         # money, cart, storefrontProduct, clerkConfig, etc.
+│       ├── pages/         # Storefront + admin pages (Home, Gallery, WannaDos, admin/*)
+│       ├── components/    # Shared UI (layout, product, home, admin, marquee)
+│       ├── constants/     # galleryLabels, testimonials, book/contact defaults
+│       └── styles/        # Global CSS (base.css is the design-token source)
+├── tests/                 # Jest backend + shared-unit tests
 ├── vite.config.mjs
 └── package.json
 ```
@@ -69,7 +70,7 @@ Browser → Vite dev server (port 5173)
 
 ```
 Browser → Express (port 3000)
-          /api/* → routes → controllers → services → MongoDB / Stripe / R2 / Resend
+          /api/* → routes → controllers → services → MongoDB / Stripe / ImageKit / Resend
           everything else → express.static(frontend/dist) → index.html (SPA fallback)
 ```
 
@@ -98,9 +99,9 @@ GET /api/admin/session     (no auth middleware — returns 401 if no session)
 POST /api/admin/session/logout → req.session.destroy()
 ```
 
-**Frontend guard:** the Vue Router `beforeEach` hook calls `getAdminSession()` for every route whose path starts with `/admin` (except `/admin/login`). A 401 response redirects to `/admin/login?redirect=<original path>`. The session cookie is `httpOnly`, `sameSite: lax`, secure in production, 7-day TTL.
+**Production admin auth:** Clerk (`@clerk/vue` + `@clerk/express`). The Vue Router `beforeEach` hook requires a signed-in Clerk session, then `getAdminSession()` (`GET /api/admin/session`). Admin API calls send `Authorization: Bearer <clerk token>`. Session bcrypt login still exists for tests and as a fallback.
 
-**Admin user bootstrap:** on DB connection, `ensureAdminUserFromEnv()` syncs `ADMIN_USERNAME`/`ADMIN_PASSWORD` and `ADMIN_MASTER_USERNAME`/`ADMIN_MASTER_PASSWORD` from environment into the `AdminUser` collection. This is the only way to create admin accounts — there is no registration UI.
+**Admin user bootstrap:** Clerk invitations via `/api/admin/users`. `ensureAdminUserFromEnv()` still upserts legacy `ADMIN_USERNAME`/`ADMIN_PASSWORD` for session fallback.
 
 ---
 
@@ -152,15 +153,13 @@ Admin selects file in AdminPhotoUploadFlow.vue
   → optional crop in AdminPhotoEditor.vue (cropperjs)
   → POST /api/admin/upload-image  (multipart/form-data, field: "image")
   → uploadProductImage middleware (multer memory storage, max 10 MB, image MIME only)
-  → adminUploadController → r2StorageService
-       PutObjectCommand to R2 bucket
-       key: products/{uuid}.{ext}
-       public URL: {R2_PUBLIC_URL}/products/{filename}
-  → returns { image_url }
-  → stored in ProductImage.image_url when product is saved
+  → adminUploadController → imageKitStorageService
+       folder: products | portfolio | site/*
+  → returns { image_url, file_id }
+  → stored on ProductImage / PortfolioImage / SiteSettings
 ```
 
-Image URLs are stored as full public R2 URLs. The server never proxies image requests — the browser loads images directly from R2.
+Image URLs are ImageKit CDN URLs. `frontend/src/utils/imageKitUrl.js` applies resize transforms. R2 remains in env validation as leftover, not the upload path.
 
 ---
 
@@ -324,27 +323,30 @@ All `/admin/*` routes (except `/admin/login`) nest inside `AdminLayout.vue` as c
 
 | Path | Component |
 |---|---|
-| `/` | `Home.vue` |
-| `/gallery` | `Gallery.vue` |
-| `/product/:slug` | `ProductDetail.vue` |
+| `/` | `Home.vue` (hero → about → testimonial marquee) |
+| `/gallery` | `Gallery.vue` (portfolio works; overlay via `?product=`) |
+| `/wanna-dos` | `WannaDos.vue` (products) |
+| `/book` | `BookAppointment.vue` |
 | `/contact` | `Contact.vue` |
 | `/checkout` | `Checkout.vue` |
 | `/order-success` | `OrderSuccess.vue` |
 | `/checkout/cancel` | `CheckoutCancel.vue` |
 | `/checkout/success` | redirect → `/order-success` |
+| `/product/:slug` | redirect → `/gallery?product=slug` |
 | `/art/:slug` | redirect → `/gallery` |
-| `/admin/login` | `AdminLogin.vue` |
+| `/admin/login` | `AdminLogin.vue` (Clerk) |
 | `/admin/dashboard` | `AdminDashboard.vue` (nested in `AdminLayout.vue`) |
 | `/admin/orders` | `AdminOrders.vue` |
+| `/admin/gallery` | `AdminGallery.vue` |
 | `/admin/listings` | `AdminListings.vue` |
+| `/admin/schedule` | `AdminSchedule.vue` |
 | `/admin/new` | `AdminCreate.vue` |
 | `/admin/edit/:id` | `AdminForm.vue` |
 | `/admin/customize` | `AdminCustomize.vue` |
-| `/admin/ai` | `AdminInstagramAi.vue` |
 | `/admin/settings` | `AdminSettings.vue` |
 | `/admin/social-links` | redirect → `/admin/customize` |
 | `/admin/display-pictures` | redirect → `/admin/customize` |
-| `/admin/instagram-ai` | redirect → `/admin/ai` |
+| `/admin/instagram-ai` | redirect → `/admin/dashboard` (AI UI disabled) |
 
 ---
 
@@ -363,8 +365,9 @@ All `/admin/*` routes (except `/admin/login`) nest inside `AdminLayout.vue` as c
 | `STRIPE_WEBHOOK_SECRET` | `controllers/stripeWebhookController.js` |
 | `CLIENT_URL` / `FRONTEND_URL` | `services/checkoutService.js` — success/cancel redirect URLs |
 | `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL` | `services/checkoutService.js` — override success/cancel URLs |
-| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | `services/r2StorageService.js` |
-| `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL` | `services/r2StorageService.js` |
+| `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` | Clerk admin auth |
+| `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT` | `services/imageKitStorageService.js` |
+| `R2_*` | Unused leftover; still listed in production env validation |
 | `RESEND_API_KEY` | `services/resendMailService.js` |
 | `RESEND_FROM_EMAIL` | `services/resendMailService.js` (default: `PermSite <onboarding@resend.dev>`) |
 | `NOTIFICATION_EMAIL` | `services/resendMailService.js` — fallback recipient |

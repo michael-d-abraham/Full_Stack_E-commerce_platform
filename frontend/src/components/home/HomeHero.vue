@@ -95,8 +95,7 @@ const quotePhrases = computed(() => buildQuotePhrases(props.quote));
 const signature = computed(() => props.title.trim());
 
 function scrollToNext() {
-  const next = document.getElementById('home-featured')
-    || document.querySelector('.home-featured, .home-about');
+  const next = document.querySelector('.home-about, .home-testimonials');
   if (!next) {
     window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
     return;
@@ -157,7 +156,7 @@ function scrollToNext() {
   padding: 0;
   font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
   font-size: clamp(2.75rem, 7.5vw, 6.5rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.12;
   letter-spacing: 0.08em;
   text-transform: uppercase;

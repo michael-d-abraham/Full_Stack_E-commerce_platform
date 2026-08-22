@@ -26,13 +26,15 @@ Brand constraints in **this file override** any Apple HIG recommendation. Use HI
 | Highlight | `--color-highlight` | `#FAE9F1` |
 | Surface | `--color-surface` | `#FAE9F1` |
 | Border | `--color-border` | `#F3DDE7` |
-| Text | `--color-text` | `#FFFFFF` |
-| Muted text | `--color-text-muted` | `rgba(255,255,255,0.78)` |
-| **Heading / title** | `--color-heading` | `#FFFFFF` |
+| Text | `--color-text` | `#3D2A32` |
+| Muted text | `--color-text-muted` | `rgba(61,42,50,0.68)` |
+| **Heading / title** | `--color-heading` | `#3D2A32` |
 | Accent (buttons, frames) | `--color-accent` | `#E8B8CC` |
+| Type on dark fills | `--color-on-ink` | `#FFF4F9` |
 
 - Product image stages use `--color-highlight` / `--color-product-image-bg`.
-- On accent fills (primary buttons, inverted hovers), text uses `--color-text` (white).
+- Body and headings use rose-ink (`--color-text` / `--color-heading`) on the blush canvas — never white. White/on-ink is only for type on photography (`--color-hero-text`) or inverted dark fills (`--color-on-ink`).
+- On accent fills (primary buttons), text stays `--color-text` (ink on blush) so contrast holds.
 - Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).
 - System sans stack (`--font-sans`), not SF Pro imports.
 - Soft blush editorial aesthetic — restrained materials, not iOS chrome or heavy glassmorphism.
