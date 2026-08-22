@@ -212,7 +212,7 @@ body.gallery-product-open .site-header {
   .mobile-menu-toggle span {
     width: 22px;
     height: 2px;
-    background: #000;
+    background: var(--color-text);
     display: block;
     transition:
       transform 0.2s ease,

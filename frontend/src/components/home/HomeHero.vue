@@ -120,8 +120,8 @@ function scrollToNext() {
   min-height: 78svh;
   padding: clamp(2.5rem, 6vh, 4rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vh, 4rem);
   box-sizing: border-box;
-  background: #ffffff;
-  color: #000000;
+  background: var(--color-highlight);
+  color: var(--color-text);
   overflow: hidden;
 }
 
@@ -162,7 +162,7 @@ function scrollToNext() {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-variant: small-caps;
-  color: #000000;
+  color: var(--color-text);
   quotes: none;
 }
 
@@ -180,7 +180,7 @@ function scrollToNext() {
   font-style: normal;
   line-height: 1.3;
   letter-spacing: 0.01em;
-  color: #000000;
+  color: var(--color-text);
   opacity: 0.72;
 }
 
@@ -244,10 +244,10 @@ function scrollToNext() {
     height: 2.5rem;
     margin: 0;
     padding: 0;
-    border: 1px solid #c8c8c8;
+    border: 1px solid var(--color-border);
     border-radius: 50%;
     background: transparent;
-    color: #666666;
+    color: var(--color-text-muted);
     box-shadow: none;
     cursor: pointer;
     transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
@@ -255,15 +255,15 @@ function scrollToNext() {
 
   .home-hero__scroll:hover,
   .home-hero__scroll:active {
-    border-color: #000000;
-    color: #000000;
+    border-color: var(--color-text);
+    color: var(--color-text);
     background: transparent;
     transform: translateX(-50%) translateY(2px);
   }
 
   .home-hero__scroll:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 1px #000000;
+    box-shadow: 0 0 0 1px var(--color-text);
   }
 
   .home-hero__scroll-icon {

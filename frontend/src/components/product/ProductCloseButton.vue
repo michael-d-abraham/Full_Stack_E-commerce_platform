@@ -135,7 +135,7 @@ function onActivate(event) {
   border: none;
   outline: none;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-highlight);
   color: rgba(38, 38, 38, 0.82);
   box-shadow: var(--product-close-shadow);
   text-decoration: none;

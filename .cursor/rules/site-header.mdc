@@ -80,7 +80,7 @@ When `isScrollLocked()` (mobile menu or cart drawer): force `1` via JS + `.site-
 
 ## Visual direction
 
-- Editorial B&W monochrome — not iOS chrome, not heavy glassmorphism
+- Soft blush editorial palette — restrained frosted materials, not iOS chrome or heavy glassmorphism
 - Restrained frosted pill on scroll; transparent integrated shell at top
 - Link states: 0.2s opacity/underline; respect `prefers-reduced-motion` (snap 0/1)
 

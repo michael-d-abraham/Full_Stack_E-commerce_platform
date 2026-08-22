@@ -120,7 +120,7 @@ const visibleProducts = computed(() =>
 
 .home-featured__cta-link:hover {
   background: var(--color-text);
-  color: var(--color-bg);
+  color: var(--color-highlight);
   opacity: 1;
   text-decoration: none;
 }
