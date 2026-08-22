@@ -1,19 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 /* Madd Lines — editorial blush palette (single source of truth) */
 :root {
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-serif: var(--font-sans);
+  --font-script: 'Great Vibes', cursive;
 
   /* Three colors only: background pink, white, black */
   --color-bg: #ecc8d8;
   --color-paper: #ffffff;
   --color-text: #3d2a32;
   --color-surface: var(--color-bg);
+  --color-surface-pink: var(--color-bg);
   --color-highlight: var(--color-bg);
   --color-card: var(--color-bg);
   --color-product-image-bg: var(--color-bg);
   --color-border: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
   --color-text-muted: rgba(61, 42, 50, 0.68);
-  --color-heading: var(--color-text);
+  --color-heading: var(--color-surface-pink);
   --color-accent: var(--color-text);
   --color-on-ink: var(--color-paper);
   --color-border-strong: rgba(61, 42, 50, 0.28);

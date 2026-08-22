@@ -20,7 +20,12 @@ describe('shared/homePageDefaults', () => {
         const merged = mergeHomePageTextDefaults({});
         expect(merged.featured_title).toBe(DEFAULT_HOME_PAGE.featured_title);
         expect(merged.about_title).toBe(DEFAULT_HOME_PAGE.about_title);
-        expect(merged.hero_title).toBe('');
+        expect(merged.hero_title).toBe('madison yeates');
+    });
+
+    it('mergeHomePageTextDefaults upgrades legacy madison signature', () => {
+        expect(mergeHomePageTextDefaults({ hero_title: 'madison' }).hero_title).toBe('madison yeates');
+        expect(mergeHomePageTextDefaults({ hero_title: 'madison.' }).hero_title).toBe('madison yeates');
     });
 
     it('mergeHomePageTextDefaults preserves custom titles', () => {

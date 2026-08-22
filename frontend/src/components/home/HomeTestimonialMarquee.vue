@@ -2,6 +2,7 @@
   <HomeMarqueeSection
     aria-label="client reviews"
     section-class="home-testimonials"
+    :show-fade="false"
     :items="items"
   />
 </template>

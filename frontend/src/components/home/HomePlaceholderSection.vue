@@ -10,7 +10,7 @@
         <h2 :id="headingId" class="home-placeholder__title">{{ title }}</h2>
         <div class="home-placeholder__divider" aria-hidden="true" />
       </header>
-      <p class="home-placeholder__copy">{{ copy }}</p>
+      <p v-if="copy" class="home-placeholder__copy">{{ copy }}</p>
       <div v-if="showMedia" class="home-placeholder__media" aria-hidden="true" />
       <router-link v-if="ctaTo" :to="ctaTo" class="home-placeholder__cta">
         {{ ctaLabel }}
@@ -22,7 +22,7 @@
 <script setup>
 defineProps({
   title: { type: String, required: true },
-  copy: { type: String, required: true },
+  copy: { type: String, default: '' },
   sectionClass: { type: String, default: '' },
   headingId: { type: String, required: true },
   sectionId: { type: String, default: '' },

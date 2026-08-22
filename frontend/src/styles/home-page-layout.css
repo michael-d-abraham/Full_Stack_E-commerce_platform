@@ -40,13 +40,19 @@
 /* Home bands stack as opaque sheets over the sticky footer */
 .home-hero,
 .home-about-me,
+.home-pink-spacer,
 .home-my-art,
 .home-artwork,
+.home-my-art-marquee,
 .home-wanna-dos,
 .home-testimonials {
   position: relative;
   isolation: isolate;
   background: var(--color-bg);
+}
+
+.home-my-art .home-my-art-marquee.home-marquee {
+  background: transparent;
 }
 
 #landing,
@@ -64,7 +70,9 @@
 }
 
 .home-hero { z-index: 1; }
+.home-hero--reversed { z-index: 2; }
 .home-about-me { z-index: 2; }
+.home-pink-spacer { z-index: 3; }
 .home-my-art { z-index: 4; }
 .home-artwork { z-index: 5; }
 .home-wanna-dos { z-index: 6; }
@@ -96,8 +104,8 @@
   width: 3.5rem;
   height: 1px;
   margin: 0 auto;
-  background: currentColor;
-  opacity: 0.28;
+  background: var(--color-surface-pink);
+  opacity: 1;
 }
 
 .home-placeholder__copy {
@@ -158,9 +166,43 @@
   /* reserved for shared home-page spacing hooks if needed */
 }
 
+.home-pink-spacer {
+  height: 100svh;
+  height: 100dvh;
+  background: var(--color-bg);
+}
+
+.home-my-art .home-placeholder__container {
+  padding-bottom: var(--space-sm);
+}
+
+.home-my-art {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-block: clamp(var(--space-2xl), 8vh, var(--space-3xl));
+}
+
+.home-my-art .home-placeholder__masthead {
+  margin-bottom: 0;
+}
+
+.home-my-art .home-my-art-marquee.home-marquee {
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-2xl);
+}
+
 @media (min-width: 641px) {
   .home-marquee {
     padding: var(--space-2xl) 0;
+  }
+
+  .home-my-art .home-my-art-marquee.home-marquee {
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-2xl);
   }
 }
 
@@ -171,5 +213,9 @@
 }
 
 @media (max-width: 640px) {
+  .home-my-art {
+    padding-block: clamp(var(--space-xl), 6vh, var(--space-2xl));
+  }
+
   /* hero edge vars removed — spacing lives in HomeHero.vue */
 }

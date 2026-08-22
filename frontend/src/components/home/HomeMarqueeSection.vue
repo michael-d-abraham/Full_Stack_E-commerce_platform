@@ -1,9 +1,10 @@
 <template>
-  <section
-    :id="sectionId || undefined"
-    class="home-marquee home-section"
-    :class="sectionClass"
-    :aria-label="ariaLabel"
+  <component
+    :is="embedded ? 'div' : 'section'"
+    :id="embedded ? undefined : (sectionId || undefined)"
+    class="home-marquee"
+    :class="[sectionClass, embedded ? null : 'home-section']"
+    :aria-label="ariaLabel || undefined"
   >
     <div
       v-if="backgroundImageUrl"
@@ -14,7 +15,7 @@
     <div class="home-marquee__wrap">
       <Marquee
         pause-on-hover
-        show-fade
+        :show-fade="showFade"
         fade-color="var(--color-bg)"
         duration="40s"
         gap="32px"
@@ -33,7 +34,7 @@
         </MarqueeItem>
       </Marquee>
     </div>
-  </section>
+  </component>
 </template>
 
 <script setup>
@@ -61,6 +62,14 @@ defineProps({
   backgroundImageUrl: {
     type: String,
     default: ''
+  },
+  embedded: {
+    type: Boolean,
+    default: false
+  },
+  showFade: {
+    type: Boolean,
+    default: true
   }
 });
 

@@ -7,7 +7,7 @@
   >
     <div class="home-hero__grid">
       <div class="home-hero__copy">
-        <blockquote v-if="quotePhrases.length" class="home-hero__quote">
+        <blockquote v-if="showQuote && quotePhrases.length" class="home-hero__quote">
           <p
             v-for="(phrase, index) in quotePhrases"
             :key="`hero-phrase-${index}`"
@@ -21,7 +21,7 @@
           </p>
         </blockquote>
 
-        <p v-if="signature" class="home-hero__signature">{{ signature }}</p>
+        <p v-if="showSignature && signature" class="home-hero__signature">{{ signature }}</p>
       </div>
 
       <figure class="home-hero__media">
@@ -71,7 +71,9 @@ const props = defineProps({
   title: { type: String, default: '' },
   imageUrl: { type: String, default: '' },
   reversed: { type: Boolean, default: false },
-  sectionId: { type: String, default: 'landing' }
+  sectionId: { type: String, default: 'landing' },
+  showQuote: { type: Boolean, default: true },
+  showSignature: { type: Boolean, default: true }
 });
 
 /**
@@ -97,7 +99,9 @@ function buildQuotePhrases(rawQuote) {
   return parts.map((sentence) => {
     const cleaned = sentence.replace(/\s+/g, ' ').trim();
     const withPeriod =
-      /[.!?]$/.test(cleaned) || !cleaned.includes(' ') ? cleaned : `${cleaned}.`;
+      /[.!?]$/.test(cleaned) || cleaned.includes('.') || cleaned.includes(' ')
+        ? cleaned
+        : `${cleaned}.`;
     return {
       lines: breakPhraseIntoLines(withPeriod)
     };
@@ -125,7 +129,7 @@ const quotePhrases = computed(() => buildQuotePhrases(props.quote));
 const signature = computed(() => props.title.trim());
 
 function scrollToNext() {
-  const next = document.querySelector('.home-about-me, .home-testimonials');
+  const next = document.querySelector('.home-my-art');
   if (!next) {
     window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
     return;
@@ -138,8 +142,9 @@ function scrollToNext() {
 
 <style scoped>
 .home-hero {
-  --home-hero-height: calc(100svh - var(--site-header-height, 52px));
-  --home-hero-height: calc(100dvh - var(--site-header-height, 52px));
+  --home-hero-height: calc((100svh - var(--site-header-height, 52px)) * 0.6);
+  --home-hero-height: calc((100dvh - var(--site-header-height, 52px)) * 0.6);
+  --home-hero-overlap: clamp(3rem, 12vh, 6rem);
   position: relative;
   width: 100%;
   height: var(--home-hero-height);
@@ -149,7 +154,12 @@ function scrollToNext() {
   box-sizing: border-box;
   background: var(--color-bg);
   color: var(--color-text);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.home-hero--reversed {
+  margin-top: calc(-1 * var(--home-hero-overlap));
+  z-index: 2;
 }
 
 .home-hero__grid {
@@ -219,13 +229,13 @@ function scrollToNext() {
   margin: 0;
   padding: 0;
   font-family: var(--font-script);
-  font-size: clamp(1.15rem, 1.8vw, 1.6rem);
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
   font-weight: 400;
   font-style: normal;
-  line-height: 1.3;
+  line-height: 1.1;
   letter-spacing: 0.01em;
   color: var(--color-text);
-  opacity: 0.72;
+  opacity: 0.88;
 }
 
 .home-hero__media {
@@ -272,9 +282,24 @@ function scrollToNext() {
   }
 }
 
+@media (min-width: 769px) {
+  .home-hero:not(.home-hero--reversed) .home-hero__media {
+    z-index: 1;
+    margin-bottom: calc(-0.5 * var(--home-hero-overlap));
+    height: calc(100% + 0.5 * var(--home-hero-overlap));
+  }
+
+  .home-hero--reversed .home-hero__media {
+    z-index: 2;
+    margin-top: calc(-0.5 * var(--home-hero-overlap));
+    height: calc(100% + 0.5 * var(--home-hero-overlap));
+  }
+}
+
 @media (max-width: 768px) {
   .home-hero {
-    --home-hero-height: calc(100svh - var(--site-header-height, 52px));
+    --home-hero-height: calc((100svh - var(--site-header-height, 52px)) * 0.6);
+    --home-hero-overlap: clamp(1.75rem, 6vh, 3.5rem);
     height: auto;
     min-height: var(--home-hero-height);
     max-height: none;
@@ -301,8 +326,8 @@ function scrollToNext() {
   }
 
   .home-hero__media {
-    height: min(72svh, 36rem);
-    min-height: 22rem;
+    height: min(43.2svh, 21.6rem);
+    min-height: 13.2rem;
   }
 
   .home-hero__scroll {

@@ -1,7 +1,7 @@
 const FEATURED_PRODUCT_SLOTS = 6;
 
 const DEFAULT_HOME_PAGE = {
-    hero_title: '',
+    hero_title: 'madison yeates',
     hero_subtitle: '',
     hero_image_url: '',
     hero_image_urls: [],
@@ -73,13 +73,21 @@ function resolveHeroImageFileIds(stored) {
     return result;
 }
 
+function resolveHeroTitle(value) {
+    const title = normalizeOptionalText(value);
+    if (!title || /^madison\.?$/i.test(title)) {
+        return DEFAULT_HOME_PAGE.hero_title;
+    }
+    return title;
+}
+
 function mergeHomePageTextDefaults(stored) {
     const base = stored && typeof stored === 'object' ? stored : {};
     const hero_image_urls = resolveHeroImageUrls(base);
     const hero_image_url = hero_image_urls[0] || '';
 
     return {
-        hero_title: normalizeOptionalText(base.hero_title),
+        hero_title: resolveHeroTitle(base.hero_title),
         hero_subtitle: normalizeOptionalText(base.hero_subtitle),
         hero_image_url,
         hero_image_urls,

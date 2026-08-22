@@ -4,6 +4,7 @@
     class="marquee-tile"
     :class="{
       'marquee-tile--image': isImage,
+      'marquee-tile--paired': isPaired,
       'marquee-tile--spotlight-active': spotlightActive
     }"
     :style="spotlightVars"
@@ -15,7 +16,32 @@
   >
     <div class="marquee-tile__spotlight" aria-hidden="true" />
 
-    <div v-if="isImage" class="marquee-tile__media">
+    <template v-if="isPaired">
+      <div class="marquee-tile__media-top">
+        <SmartImage
+          :src="src"
+          :alt="alt"
+          layout="fill"
+          object-fit="cover"
+          :width="960"
+          :widths="IMAGE_WIDTHS"
+          :sizes="IMAGE_SIZES"
+          :priority="priority"
+          :fade-in="false"
+        />
+      </div>
+      <div class="marquee-tile__review">
+        <blockquote class="marquee-tile__quote">
+          {{ quote }}
+        </blockquote>
+        <footer class="marquee-tile__footer">
+          <cite class="marquee-tile__name">{{ name }}</cite>
+          <p class="marquee-tile__role">{{ role }}</p>
+        </footer>
+      </div>
+    </template>
+
+    <div v-else-if="isImage" class="marquee-tile__media">
       <SmartImage
         :src="src"
         :alt="alt"
@@ -62,7 +88,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'quote',
-    validator: (value) => value === 'quote' || value === 'image'
+    validator: (value) => value === 'quote' || value === 'image' || value === 'paired'
   },
   quote: {
     type: String,
@@ -95,6 +121,7 @@ const props = defineProps({
 });
 
 const isImage = computed(() => props.variant === 'image');
+const isPaired = computed(() => props.variant === 'paired');
 
 const {
   figureRef,

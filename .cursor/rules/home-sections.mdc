@@ -1,5 +1,5 @@
 ---
-description: Home page section order, hero pair, shared marquee, and about-me photo pair
+description: Home page section order, hero pair, my art paired marquee, footer
 globs:
   - frontend/src/pages/Home.vue
   - frontend/src/components/home/**
@@ -7,6 +7,7 @@ globs:
   - frontend/src/styles/home-page-layout.css
   - frontend/src/styles/marquee*.css
   - frontend/src/constants/storefrontSections.js
+  - frontend/src/utils/pairMarqueeItems.js
 alwaysApply: false
 ---
 
@@ -14,18 +15,58 @@ alwaysApply: false
 
 ## Hero pair
 
-Two full-viewport bands, same `HomeHero.vue`:
+Two stacked bands, same `HomeHero.vue` (~60% viewport each; diagonal overlap on desktop):
 
-1. **madd** — text left, photo right (`hero_image_url`)
-2. **.lines** — photo left, text right (`reversed`, `hero_lines_image_url`)
+1. **madd.lines** — quote top-left (`quote="madd.lines"`, `show-signature="false"`), photo right (`hero_image_url`)
+2. **signature** — photo left, cursive name bottom-right (`reversed`, `hero_lines_image_url`, `show-quote="false"`)
 
-Copy is hardcoded (`madd` / `.lines`), not the old art/music quote. Desktop height is `100dvh - --site-header-height`. Photos use `object-fit: contain`. Both uploads go to ImageKit folder `site/hero` as **separate** slots — do not bind both bands to one URL. Empty slots may use `PLACEHOLDER_ARTWORK`.
+`hero_title` defaults to **madison yeates** (`shared/homePageDefaults.js` → `resolveHeroTitle`). Signature uses `--font-script` (Great Vibes). Legacy `madison` / `madison.` migrates to the full name.
+
+Photos use `object-fit: contain`. Both uploads are **separate** ImageKit slots (`site/hero`). Empty slots may use `PLACEHOLDER_ARTWORK`.
+
+Hero scroll-down targets `.home-my-art` (not a separate reviews band).
 
 ## Stack (do not reorder unless asked)
 
-Hero (madd) → Hero reversed (.lines) → About me → My Art → Artwork marquee → Wanna Do’s → Reviews
+Hero (madd.lines) → Hero reversed (signature) → **My art** (`HomeMyArtSection`) → footer
 
-There is **no about section** on the storefront or in customize. Do not restore `HomeAboutSection` or the admin about preview (portrait, quote, statement, about background). Leftover `about_*` Mongo fields may still save so old files are not wiped.
+There is **no about section**, **no separate artwork marquee**, and **no separate testimonial marquee** on the home page. Do not restore `HomeAboutSection`, `HomeAboutMeSection`, or the admin about preview. Leftover `about_*` Mongo fields may still save so old files are not wiped.
+
+## My art section
+
+`HomeMyArtSection.vue` — single `<section id="my-art">` with:
+
+- Centered **my art** masthead (`HomePlaceholderSection` masthead styles only)
+- `HomeMyArtMarquee` embedded below (not its own `<section>`)
+
+Layout (`home-page-layout.css`):
+
+- `min-height: 100dvh`, `display: flex`, `justify-content: center` — content sits **vertically centered** in a full-viewport pink band
+- No standalone `home-pink-spacer` before my art; the section **is** the viewport band
+
+## Paired art + review marquee
+
+Home uses **one** combined carousel — not alternating image/quote tiles.
+
+| Piece | Role |
+|---|---|
+| `HomeMyArtMarquee.vue` | Data + `HomeMarqueeSection` (`embedded`, `show-fade="false"`, `section-class="home-my-art-marquee"`) |
+| `pairMarqueeItems.js` | Builds `{ variant: 'paired', src, alt, quote, name, role }` cards |
+| `MarqueeTile.vue` | `paired` variant: image top (~52%), review bottom (white paper, divider) |
+| `resolveArtworkMarqueeItems` | Gallery works → image list; falls back to `PLACEHOLDER_ARTWORK` |
+| `PLACEHOLDER_TESTIMONIALS` | Review copy until CMS-linked pairs exist |
+
+**Data model (future):** pairs will arrive as linked records from the API. Until then, `pairMarqueeItems` zips artwork + reviews by index (cycles the shorter list). When real linked data lands, resolve pairs in one place and keep `variant: 'paired'` on the tile.
+
+Paired tile height: `--marquee-tile-height: 440px` desktop / `380px` mobile (scoped to `.home-my-art-marquee`). Standalone `HomeArtworkMarquee` / `HomeTestimonialMarquee` still exist for reuse but are **not** mounted on `Home.vue`.
+
+## Shared marquee mechanics
+
+- `HomeMarqueeSection.vue` — 40s loop, 32px gap, pause on hover; `embedded` keeps `aria-label` on the wrapper `div`
+- `MarqueeTile.vue` variants: `quote` | `image` | `paired`
+- One CSS file: `marquee-section.css` — do not fork tile sizes per variant
+
+Home my-art marquee: **no edge fades** (`show-fade="false"`).
 
 ## Header destinations
 
@@ -33,23 +74,12 @@ Three items in `useStorefrontSectionNav` / `storefrontSections.js`:
 
 | Label | Scrolls to | Also covers |
 |---|---|---|
-| **me** | top of the page | hero pair + about me |
-| **my art** | `#my-art` heading | gallery + wanna-dos |
+| **me** | top of the page | hero pair |
+| **my art** | `#my-art` | my art marquee |
 | **say hi** | footer `#say-hi` | contact + book |
 
-Old hashes (`#about`, `#gallery`, `#contact`) still resolve to those three. `#say-hi` must land **below** the floated header (account for `--nav-float-top`). Do not use 640px for header layout — header breakpoint is 768px (`site-header.mdc`).
+Old hashes (`#about`, `#gallery`, `#contact`) still resolve. `#say-hi` must land below the floated header (`--nav-float-top`). Header breakpoint is **768px** — not 640px (`site-header.mdc`).
 
-## Shared marquee
+## Footer (home context)
 
-Reviews and the artwork strip use the **same** motion and tile size:
-
-- `HomeMarqueeSection.vue` — track, 40s loop, 32px gap, fades, pause on hover
-- `MarqueeTile.vue` — 360×280 (320×240 mobile), same radius / hairline / spotlight
-
-Do not fork a second marquee CSS file or a different tile size for reviews vs artwork. Reviews use the quote variant; artwork is image-only in the same tile.
-
-## About me pair
-
-`HomeAboutMeSection.vue`: two tall columns (~88vh / 78vh mobile) with `useScrollParallax` at different Y rates.
-
-Images come from public home page `about_me_left_image_url` / `about_me_right_image_url` (admin customize slots). Empty slots may use `PLACEHOLDER_ARTWORK` until a photo is saved. Parallax only through `useScrollParallax` / `useSectionBackgroundParallax`.
+`SiteFooter.vue` on white paper: brand + social only in utility row; contact form + decorative `BookCta` calendar in two columns. Pink accents on footer use `--color-surface-pink` (`var(--color-bg)`), not ink. Hero **madd.lines** stays ink-on-pink for contrast.

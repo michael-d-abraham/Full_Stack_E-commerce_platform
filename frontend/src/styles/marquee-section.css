@@ -38,15 +38,70 @@
   max-width: var(--marquee-tile-width);
   padding: 2rem 2rem 1.75rem;
   border-radius: 28px;
-  background: var(--color-card);
+  background: var(--color-paper);
   color: var(--color-text);
   overflow: hidden;
   isolation: isolate;
   box-shadow: 0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent);
 }
 
-.marquee-tile--image {
+.marquee-tile--image,
+.marquee-tile--paired {
   padding: 0;
+}
+
+.home-my-art-marquee {
+  --marquee-tile-height: 440px;
+}
+
+.marquee-tile--paired {
+  gap: 0;
+}
+
+.marquee-tile__media-top {
+  position: relative;
+  flex: 0 0 52%;
+  min-height: 0;
+  background: var(--color-product-image-bg);
+}
+
+.marquee-tile__media-top .smart-image.smart-image--fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.marquee-tile__media-top .smart-image.smart-image--fill .smart-image__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marquee-tile__review {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 1.25rem 1.5rem 1.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.marquee-tile--paired .marquee-tile__quote {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.marquee-tile--paired .marquee-tile__name {
+  font-size: 0.875rem;
+}
+
+.marquee-tile--paired .marquee-tile__role {
+  font-size: 0.8125rem;
 }
 
 .marquee-tile__spotlight {
@@ -167,13 +222,22 @@
     padding: var(--space-xl) 0;
   }
 
+  .home-my-art-marquee {
+    --marquee-tile-height: 380px;
+  }
+
   .marquee-tile {
     padding: 1.5rem 1.5rem 1.25rem;
     border-radius: 24px;
   }
 
-  .marquee-tile--image {
+  .marquee-tile--image,
+  .marquee-tile--paired {
     padding: 0;
+  }
+
+  .marquee-tile__review {
+    padding: 1rem 1.25rem 1.1rem;
   }
 
   .home-marquee .marquee {
