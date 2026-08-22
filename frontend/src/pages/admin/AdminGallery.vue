@@ -38,7 +38,7 @@
             </span>
             <AdminListingActionsMenu
               :product-id="item._id"
-              :title="displayTitle(item)"
+              :title="displayLabel(item)"
               :is-active="item.is_active"
               edit-base="/admin/gallery/edit"
               :open="openMenuId === item._id"
@@ -48,7 +48,7 @@
               @delete="onDelete(item)"
             />
           </div>
-          <h3 class="admin-mobile-card__title">{{ displayTitle(item) }}</h3>
+          <h3 class="admin-mobile-card__title">{{ displayLabel(item) }}</h3>
           <div class="admin-mobile-card__body">
             <div class="admin-mobile-card__media" aria-hidden="true">
               <div class="admin-data-table__thumb admin-data-table__thumb--lg">
@@ -73,7 +73,7 @@
           <thead>
             <tr>
               <th>Image</th>
-              <th>Title</th>
+              <th>Label</th>
               <th>Status</th>
               <th class="admin-data-table__actions-cell"></th>
             </tr>
@@ -93,7 +93,7 @@
                   <span v-else class="admin-data-table__thumb-placeholder">—</span>
                 </div>
               </td>
-              <td class="admin-data-table__title-cell">{{ displayTitle(item) }}</td>
+              <td class="admin-data-table__title-cell">{{ displayLabel(item) }}</td>
               <td>
                 <span
                   class="admin-status-pill"
@@ -105,7 +105,7 @@
               <td class="admin-data-table__actions-cell">
                 <AdminListingActionsMenu
                   :product-id="item._id"
-                  :title="displayTitle(item)"
+                  :title="displayLabel(item)"
                   :is-active="item.is_active"
                   edit-base="/admin/gallery/edit"
                   :open="openMenuId === item._id"
@@ -150,9 +150,8 @@ const openMenuId = ref(null);
 
 const sortedItems = computed(() => sortProducts(items.value, sortBy.value));
 
-function displayTitle(item) {
-  const title = item?.title != null ? String(item.title).trim() : '';
-  return title || 'Untitled';
+function displayLabel(item) {
+  return portfolioTitle(item);
 }
 
 function thumbUrl(item) {
@@ -211,7 +210,7 @@ async function onToggle(item) {
 }
 
 async function onDelete(item) {
-  if (!window.confirm(`Delete "${displayTitle(item)}"? It will be hidden from the gallery.`)) return;
+  if (!window.confirm(`Delete "${displayLabel(item)}"? It will be hidden from the gallery.`)) return;
   try {
     await deleteAdminPortfolio(item._id);
     await load();

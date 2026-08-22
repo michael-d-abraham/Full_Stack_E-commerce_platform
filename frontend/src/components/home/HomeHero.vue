@@ -120,7 +120,7 @@ function scrollToNext() {
   min-height: 78svh;
   padding: clamp(2.5rem, 6vh, 4rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vh, 4rem);
   box-sizing: border-box;
-  background: var(--color-highlight);
+  background: var(--color-bg);
   color: var(--color-text);
   overflow: hidden;
 }

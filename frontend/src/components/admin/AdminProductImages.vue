@@ -1,12 +1,12 @@
 <template>
   <div class="admin-product-images" :class="{ 'is-disabled': disabled }">
-    <p class="help">Upload photos. Mark one as main.</p>
+    <p class="help">{{ helpText }}</p>
     <p v-if="uploadError" class="error">{{ uploadError }}</p>
 
     <div v-for="(img, j) in rows" :key="img.id || img.url || j" class="image-row">
       <img v-if="img.url" class="thumb" :src="img.url" alt="" />
       <span v-else class="thumb thumb--empty">No preview</span>
-      <label v-if="rowsWithUrl.length" class="primary-pick">
+      <label v-if="rowsWithUrl.length > 1" class="primary-pick">
         <input
           type="radio"
           name="primary-img"
@@ -21,14 +21,14 @@
       </button>
     </div>
 
-    <div class="upload-row">
+    <div v-if="canAddMore" class="upload-row">
       <button
         type="button"
         class="upload-trigger"
         :disabled="disabled || uploading"
         @click="openUpload"
       >
-        Add photo
+        {{ addLabel }}
       </button>
       <UploadProgress v-if="uploading" />
     </div>
@@ -101,6 +101,19 @@ const props = defineProps({
   uploadFolder: {
     type: String,
     default: 'products'
+  },
+  /** When set, limits how many photos can be attached (e.g. 1 for Wanna Do's). */
+  maxImages: {
+    type: Number,
+    default: null
+  },
+  helpText: {
+    type: String,
+    default: 'Upload photos. Mark one as main.'
+  },
+  addLabel: {
+    type: String,
+    default: 'Add photo'
   }
 });
 
@@ -119,6 +132,13 @@ const primaryIndex = computed({
 const rowsWithUrl = computed(() =>
   rows.value.map((r) => String(r.url || '').trim()).filter(Boolean)
 );
+
+const canAddMore = computed(() => {
+  if (props.maxImages == null) {
+    return true;
+  }
+  return rowsWithUrl.value.length < props.maxImages;
+});
 
 const uploading = ref(false);
 const uploadError = ref('');
@@ -148,13 +168,13 @@ function ensurePrimaryIfNeeded() {
 }
 
 function openUpload() {
-  if (props.disabled) return;
+  if (props.disabled || !canAddMore.value) return;
   uploadError.value = '';
   photoFlowRef.value?.openPicker();
 }
 
 async function onPhotoFile(file) {
-  if (!file || props.disabled) return;
+  if (!file || props.disabled || !canAddMore.value) return;
 
   uploading.value = true;
   uploadError.value = '';
@@ -201,7 +221,7 @@ watch(
 
 .error {
   margin: 0 0 var(--space-sm);
-  color: var(--color-error, #b42318);
+  color: var(--color-error, var(--color-error));
   font-size: 0.875rem;
 }
 
@@ -212,15 +232,15 @@ watch(
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
   padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--color-border, #e5e5e5);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .thumb {
   width: 4.5rem;
   height: 4.5rem;
   object-fit: cover;
-  border: 1px solid var(--color-border, #ddd);
-  background: var(--color-surface-muted, #f5f5f5);
+  border: 1px solid var(--color-border, var(--color-border));
+  background: var(--color-surface-muted, var(--color-surface));
 }
 
 .thumb--empty {

@@ -84,30 +84,30 @@ onUnmounted(() => {
 .admin-shell {
   --admin-sidebar-width: 15.5rem;
   width: 100%;
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-highlight);
   box-sizing: border-box;
 }
 
 .admin-shell__content {
-  flex: 1 1 auto;
+  flex: 1;
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-highlight);
 }
 
 .admin-shell__mobile-header {
   position: sticky;
   top: 0;
   z-index: 1100;
-  background: #fff;
+  background: var(--color-highlight);
   border-bottom: none;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 0 rgba(var(--color-accent-rgb), 0.06);
 }
 
 .admin-shell__mobile-bar {
@@ -141,7 +141,7 @@ onUnmounted(() => {
 .admin-shell__menu-toggle span {
   width: 22px;
   height: 2px;
-  background: #000;
+  background: var(--color-accent);
   display: block;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -163,12 +163,12 @@ onUnmounted(() => {
   justify-self: center;
   padding: 0 0.5rem;
   text-decoration: none;
-  color: #1a1a1a;
+  color: var(--color-heading);
   line-height: 1;
 }
 
 .admin-shell__main {
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
   width: 100%;
   max-width: none;
@@ -185,12 +185,11 @@ onUnmounted(() => {
   .admin-shell {
     flex-direction: row;
     overflow: hidden;
-    min-height: 0;
   }
 
   .admin-shell__content {
     margin-left: var(--admin-sidebar-width);
-    flex: 1 1 auto;
+    flex: 1;
     min-height: 0;
     overflow: hidden;
   }
@@ -201,25 +200,19 @@ onUnmounted(() => {
 
   .admin-shell__main {
     padding: 2rem 2.5rem 3rem;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 0;
   }
 }
 
 @media (max-width: 767px) {
   .admin-shell__content {
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 1;
   }
 
   .admin-shell__main {
     padding: 1.25rem max(16px, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-bottom))
       max(16px, env(safe-area-inset-right));
     overflow-x: clip;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 0;
   }
 }
 </style>

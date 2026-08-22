@@ -28,6 +28,7 @@ const AdminDashboard = () => import('../pages/admin/AdminDashboard.vue');
 const AdminOrders = () => import('../pages/admin/AdminOrders.vue');
 const AdminListings = () => import('../pages/admin/AdminListings.vue');
 const AdminGallery = () => import('../pages/admin/AdminGallery.vue');
+const AdminSchedule = () => import('../pages/admin/AdminSchedule.vue');
 const AdminCustomize = () => import('../pages/admin/AdminCustomize.vue');
 const AdminSettings = () => import('../pages/admin/AdminSettings.vue');
 const AdminForm = () => import('../pages/AdminForm.vue');
@@ -76,6 +77,7 @@ const routes = [
             { path: 'gallery', name: 'admin-gallery', component: AdminGallery },
             { path: 'gallery/new', name: 'admin-gallery-new', component: AdminPortfolioCreate },
             { path: 'gallery/edit/:id', name: 'admin-gallery-edit', component: AdminPortfolioForm, props: true },
+            { path: 'schedule', name: 'admin-schedule', component: AdminSchedule },
             { path: 'customize', name: 'admin-customize', component: AdminCustomize },
             // { path: 'ai', name: 'admin-ai', component: AdminInstagramAi },
             { path: 'settings', name: 'admin-settings', component: AdminSettings },

@@ -220,7 +220,7 @@ const takenFeaturedProductIds = computed(() =>
   position: relative;
   overflow: hidden;
   padding: clamp(3rem, 8vh, 5rem) var(--space-lg);
-  background: #ffffff;
+  background: var(--color-highlight);
 }
 
 .admin-home-preview__hero-inner {
@@ -310,7 +310,7 @@ const takenFeaturedProductIds = computed(() =>
   text-align: center;
   text-transform: uppercase;
   font-variant: small-caps;
-  color: #000000;
+  color: var(--color-heading);
   border: 1px dashed var(--color-border);
   background: transparent;
   resize: vertical;
@@ -318,7 +318,7 @@ const takenFeaturedProductIds = computed(() =>
 
 .admin-home-preview__hero-quote-input:hover,
 .admin-home-preview__hero-quote-input:focus {
-  border-color: #000000;
+  border-color: var(--color-accent);
   outline: none;
 }
 
@@ -330,7 +330,7 @@ const takenFeaturedProductIds = computed(() =>
   font-weight: 400;
   letter-spacing: 0.01em;
   text-align: center;
-  color: #000000;
+  color: var(--color-heading);
   opacity: 0.72;
   border: none;
   border-bottom: 1px dashed var(--color-border);
@@ -339,7 +339,7 @@ const takenFeaturedProductIds = computed(() =>
 
 .admin-home-preview__hero-signature-input:hover,
 .admin-home-preview__hero-signature-input:focus {
-  border-bottom-color: #000000;
+  border-bottom-color: var(--color-accent);
   outline: none;
   opacity: 1;
 }
@@ -420,7 +420,7 @@ const takenFeaturedProductIds = computed(() =>
 /* —— About —— */
 .admin-home-preview__about {
   padding: var(--space-lg) var(--space-lg) var(--space-3xl);
-  background: #faf8f3;
+  background: var(--color-surface);
 }
 
 .admin-home-preview__about-inner {

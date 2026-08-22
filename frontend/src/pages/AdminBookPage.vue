@@ -71,7 +71,7 @@
         <p v-if="actionError" class="error">{{ actionError }}</p>
         <p v-if="saved" class="admin-book__success" role="status">Saved.</p>
         <button type="submit" class="btn-primary" :disabled="saving">
-          {{ saving ? 'Saving…' : 'Save book page' }}
+          {{ saving ? 'Saving…' : props.saveLabel }}
         </button>
       </footer>
     </form>
@@ -89,6 +89,13 @@ import {
 } from '../services/api.js';
 import { applyBookPageDefaults, DEFAULT_BOOK_PAGE } from '../constants/bookPageDefaults.js';
 import { invalidateStorefrontNav } from '../composables/useStorefrontNav.js';
+
+const props = defineProps({
+  saveLabel: {
+    type: String,
+    default: 'Save book page'
+  }
+});
 
 function createEmptyForm() {
   return {

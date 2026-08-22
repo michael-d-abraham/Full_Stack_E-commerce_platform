@@ -3,6 +3,7 @@ export const ADMIN_NAV_ITEMS = [
     { to: '/admin/orders', label: 'Orders' },
     { to: '/admin/gallery', label: 'Gallery' },
     { to: '/admin/listings', label: "Wanna Do's" },
+    { to: '/admin/schedule', label: 'Schedule' },
     { to: '/admin/customize', label: 'Customize' },
     // { to: '/admin/ai', label: 'AI' },
     { to: '/admin/settings', label: 'Settings' }

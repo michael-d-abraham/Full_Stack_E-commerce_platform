@@ -18,12 +18,13 @@
       <div class="admin-float admin-float--padded">
       <form @submit.prevent="onSubmit">
         <div class="field">
-          <label for="title">Title</label>
-          <input id="title" v-model="form.title" type="text" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label for="description">Description</label>
-          <textarea id="description" v-model="form.description" rows="5" />
+          <label for="gallery-label">Label *</label>
+          <select id="gallery-label" v-model="form.label" required>
+            <option disabled value="">Select a style</option>
+            <option v-for="option in GALLERY_WORK_LABELS" :key="option" :value="option">
+              {{ option }}
+            </option>
+          </select>
         </div>
         <div class="field">
           <span class="label-text">Photos *</span>
@@ -32,8 +33,8 @@
             v-model:primary-index="primaryImageIndex"
             upload-folder="portfolio"
             :disabled="submitting"
+            help-text=""
           />
-          <p class="help">Upload one or more photos of the finished tattoo.</p>
         </div>
         <div class="field">
           <label>
@@ -61,6 +62,7 @@ import PageReveal from '../components/loading/PageReveal.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getAdminPortfolioById, updateAdminPortfolio } from '../services/api.js';
 import AdminProductImages, { buildProductImagesPayload } from '../components/admin/AdminProductImages.vue';
+import { GALLERY_WORK_LABELS } from '../constants/galleryLabels.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -72,8 +74,7 @@ const props = defineProps({
 const itemId = computed(() => props.id || route.params.id);
 
 const form = reactive({
-  title: '',
-  description: '',
+  label: '',
   is_active: true
 });
 
@@ -85,8 +86,7 @@ const submitError = ref('');
 const submitting = ref(false);
 
 function populateFromItem(item) {
-  form.title = item.title ?? '';
-  form.description = item.description ?? '';
+  form.label = item.label || item.title || '';
   form.is_active = !!item.is_active;
   const imgs = Array.isArray(item.portfolio_images) ? item.portfolio_images : [];
   imageRows.value = imgs.map((img) => ({
@@ -124,6 +124,10 @@ watch(
 async function onSubmit() {
   submitError.value = '';
   const images = buildProductImagesPayload(imageRows.value, primaryImageIndex.value);
+  if (!String(form.label).trim()) {
+    submitError.value = 'Select a label.';
+    return;
+  }
   if (!images.length) {
     submitError.value = 'Upload at least one photo.';
     return;
@@ -131,8 +135,7 @@ async function onSubmit() {
   submitting.value = true;
   try {
     await updateAdminPortfolio(itemId.value, {
-      title: String(form.title).trim(),
-      description: String(form.description).trim(),
+      label: String(form.label).trim(),
       is_active: !!form.is_active,
       images
     });

@@ -16,6 +16,10 @@ function primaryPortfolioImageUrl(work) {
 }
 
 function portfolioTitle(work) {
+    const label = work?.label != null ? String(work.label).trim() : '';
+    if (label) {
+        return label;
+    }
     const title = work?.title != null ? String(work.title).trim() : '';
     if (title) {
         return title;

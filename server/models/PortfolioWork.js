@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
  */
 const portfolioWorkSchema = new mongoose.Schema({
     title: { type: String, default: '' },
+    label: { type: String, default: '' },
     slug: { type: String, required: true, unique: true },
     description: { type: String, default: '' },
     sort_order: { type: Number, required: true, default: 0 },

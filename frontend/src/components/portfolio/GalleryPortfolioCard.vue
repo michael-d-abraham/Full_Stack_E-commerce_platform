@@ -34,7 +34,10 @@ const props = defineProps({
 
 const emit = defineEmits(['open']);
 
-const showTitle = computed(() => Boolean(String(props.work?.title || '').trim()));
+const showTitle = computed(() => {
+  const label = String(props.work?.label || props.work?.title || '').trim();
+  return Boolean(label);
+});
 
 function thumbAlt(work) {
   const primary =
