@@ -23,12 +23,23 @@ Brand constraints in **this file override** any Apple HIG recommendation. Use HI
 | Role | Token | Hex |
 |------|-------|-----|
 | Background | `--color-bg` | `#FFF1F8` |
-| Surface | `--color-surface` | `#F5F5F3` |
-| Highlight | `--color-highlight` | `#FFFFFF` |
-| Text | `--color-text` | `#111111` |
-| Muted text | `--color-text-muted` | `#6E6E73` |
+| Surface | `--color-surface` | `#FFF1F8` |
+| Highlight | `--color-highlight` | `#FFF1F8` |
+| Text | `--color-text` | `#6E6E73` |
+| **Heading / title** | `--color-heading` | `#6E6E73` (defaults to `--color-text`) |
+| Muted text | `--color-text-muted` | `#95959A` |
 | Border | `--color-border` | `#E5E5E5` |
+| Accent (buttons, frames) | `--color-accent` | `#111111` |
+| Accent hover | `--color-accent-hover` | `#2A2A2A` |
 
+**All colors must use tokens** from `frontend/src/styles/base.css` (CSS) or `frontend/src/constants/colors.js` (canvas/JS APIs). Never hardcode hex/rgba in components or stylesheets.
+
+Semantic groups:
+- **Headings:** all `h1`–`h6`, `.page-title`, `.page-hero-title`, and `*__title` classes use `--color-heading` (change this one token to retitle the site)
+- **Overlays:** `--color-overlay-backdrop`, `--color-overlay-subtle`, `--color-overlay-scrim`
+- **Glass:** `--color-glass`, `--color-glass-medium`, `--color-glass-strong`, `--color-glass-solid`
+- **Shadows:** `--shadow-soft`, `--shadow-card`, `--shadow-frame`, `--shadow-circle`
+- **Hero on photography:** `--color-hero-text`, `--color-hero-overlay-start`
 - Product image stages use `--color-highlight` / `--color-product-image-bg`.
 - On dark fills (primary buttons, inverted hovers), text uses `--color-highlight` — not `--color-surface`.
 - Editorial sharp corners: `--radius-sm: 0` on page chrome. **Exception:** circular icon controls (`border-radius: 50%` on `ProductFloatingCircleButton`).

@@ -121,7 +121,7 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--color-overlay-backdrop);
 }
 
 .cart-drawer {
@@ -189,7 +189,7 @@ onUnmounted(() => {
 
 .cart-drawer__close:hover {
   color: var(--color-text);
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-overlay-subtle);
 }
 
 .cart-drawer__body {

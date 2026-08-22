@@ -114,9 +114,7 @@ function onClick(event) {
 .product-floating-circle-button {
   --product-circle-size: 36px;
   --product-circle-icon-size: 14px;
-  --product-circle-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+  --product-circle-shadow: var(--shadow-circle);
 
   display: inline-flex;
   align-items: center;
@@ -130,10 +128,10 @@ function onClick(event) {
   border: none;
   outline: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--color-glass-strong);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--color-icon-on-glass);
   box-shadow: var(--product-circle-shadow);
   text-decoration: none;
   cursor: pointer;
@@ -164,8 +162,8 @@ function onClick(event) {
 }
 
 .product-floating-circle-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.94);
-  color: rgba(0, 0, 0, 0.85);
+  background: var(--color-glass-solid);
+  color: var(--color-icon-on-glass-hover);
 }
 
 .product-floating-circle-button:focus,
@@ -184,8 +182,8 @@ function onClick(event) {
 
 .product-floating-circle-button:disabled {
   opacity: 0.32;
-  background: rgba(255, 255, 255, 0.55);
-  color: rgba(0, 0, 0, 0.3);
+  background: var(--color-glass-dim);
+  color: var(--color-icon-on-glass-disabled);
   cursor: default;
 }
 

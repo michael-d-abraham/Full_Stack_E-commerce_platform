@@ -162,7 +162,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--color-glass-strong);
   cursor: default;
 }
 

@@ -343,7 +343,7 @@ async function onHeart(type, text) {
 .admin-ai-voice__chevron {
   font-size: 1.25rem;
   line-height: 1;
-  color: #6b7280;
+  color: var(--color-text-muted);
   transition: transform 0.2s ease;
   transform: rotate(-90deg);
   display: inline-block;
@@ -357,6 +357,6 @@ async function onHeart(type, text) {
   margin: 0.75rem 0 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1b6b3f;
+  color: var(--color-status-positive-text);
 }
 </style>

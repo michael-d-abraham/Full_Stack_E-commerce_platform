@@ -120,8 +120,8 @@ function onActivate(event) {
 .product-close-button:not(.product-floating-circle-button) {
   --product-close-circle-size: clamp(2.25rem, 5vw, 2.75rem);
   --product-close-icon-size: calc(var(--product-close-circle-size) * 0.36);
-  --product-close-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  --product-close-shadow-hover: 0 3px 12px rgba(0, 0, 0, 0.14);
+  --product-close-shadow: var(--shadow-close);
+  --product-close-shadow-hover: var(--shadow-close-hover);
 
   display: inline-flex;
   align-items: center;
@@ -136,7 +136,7 @@ function onActivate(event) {
   outline: none;
   border-radius: 50%;
   background: var(--color-highlight);
-  color: rgba(38, 38, 38, 0.82);
+  color: var(--color-icon-on-light);
   box-shadow: var(--product-close-shadow);
   text-decoration: none;
   cursor: pointer;
@@ -154,7 +154,7 @@ function onActivate(event) {
 }
 
 .product-close-button:not(.product-floating-circle-button):hover {
-  color: rgba(20, 20, 20, 0.92);
+  color: var(--color-icon-on-light-hover);
   box-shadow: var(--product-close-shadow-hover);
 }
 

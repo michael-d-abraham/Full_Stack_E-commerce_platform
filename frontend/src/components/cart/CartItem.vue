@@ -142,7 +142,7 @@ const lineTotal = computed(() => formatMoneyFromCents(props.lineTotalCents, 'usd
 
 .cart-item__remove:hover {
   color: var(--color-text);
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-overlay-subtle);
 }
 
 .cart-item__bottom {

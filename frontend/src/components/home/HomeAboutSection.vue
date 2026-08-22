@@ -110,7 +110,7 @@ const visibleStatement = computed(() => {
   overflow: hidden;
   width: 100%;
   padding: 0;
-  background: #faf8f3;
+  background: var(--color-surface);
 }
 
 .home-about__container {
@@ -135,7 +135,7 @@ const visibleStatement = computed(() => {
   text-transform: uppercase;
   font-variant: small-caps;
   line-height: 1.35;
-  color: var(--color-text);
+  color: var(--color-heading);
 }
 
 .home-about__divider {
@@ -256,14 +256,12 @@ const visibleStatement = computed(() => {
   height: auto;
   object-fit: contain;
   object-position: top center;
-  box-shadow:
-    2px 4px 10px rgba(0, 0, 0, 0.05),
-    6px 18px 36px rgba(0, 0, 0, 0.09);
+  box-shadow: var(--shadow-frame);
 }
 
 .home-about__media--empty {
   min-height: 28rem;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-overlay-subtle);
 }
 
 @media (min-width: 641px) {

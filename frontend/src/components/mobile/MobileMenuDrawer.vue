@@ -84,7 +84,7 @@ const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
   margin: 0;
   padding: 0;
   border: none;
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--color-overlay-light);
   box-shadow: none;
   cursor: default;
   letter-spacing: 0;
@@ -92,7 +92,7 @@ const { galleryNavLabel, wannaDosNavLabel } = useStorefrontLabels();
 }
 
 .mobile-menu-backdrop:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--color-overlay-light);
   border-color: transparent;
 }
 

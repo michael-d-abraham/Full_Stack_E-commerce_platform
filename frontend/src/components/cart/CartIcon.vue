@@ -56,7 +56,7 @@ const ariaLabel = computed(() => {
 
 .cart-icon-btn:hover {
   color: var(--color-text-muted);
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-overlay-subtle);
 }
 
 .cart-icon-btn:focus-visible {
@@ -76,7 +76,7 @@ const ariaLabel = computed(() => {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--color-text, #111);
+  background: var(--color-accent, var(--color-accent));
   color: var(--color-highlight);
   font-family: var(--font-sans);
   font-size: 0.625rem;

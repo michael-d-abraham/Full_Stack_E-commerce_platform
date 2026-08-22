@@ -709,7 +709,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   padding: 0;
-  border: 1px solid var(--color-text);
+  border: 1px solid var(--color-accent);
   border-radius: 50%;
   background: transparent;
   box-shadow: none;
@@ -717,14 +717,14 @@ onUnmounted(() => {
 }
 
 .product-image-gallery__dot--active {
-  background: var(--color-text);
+  background: var(--color-accent);
 }
 
 .product-image-gallery__lightbox {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--color-glass-panel);
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -104,7 +104,7 @@ const visibleProducts = computed(() =>
   min-width: 0;
   min-height: 64px;
   padding: 0 3rem;
-  border: 1px solid var(--color-text);
+  border: 1px solid var(--color-accent);
   background: transparent;
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -119,7 +119,7 @@ const visibleProducts = computed(() =>
 }
 
 .home-featured__cta-link:hover {
-  background: var(--color-text);
+  background: var(--color-accent);
   color: var(--color-highlight);
   opacity: 1;
   text-decoration: none;

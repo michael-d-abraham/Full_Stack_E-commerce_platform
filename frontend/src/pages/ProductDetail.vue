@@ -709,7 +709,7 @@ watch(imageLightboxOpen, (open) => {
   }
 
   .product-page--overlay .detail__card {
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card);
     border-radius: 14px;
   }
 
@@ -784,7 +784,7 @@ watch(imageLightboxOpen, (open) => {
   .detail__info :deep(.product-detail-meta__line) {
     font-size: 0.875rem;
     letter-spacing: 0.05em;
-    color: var(--color-text);
+    color: var(--color-heading);
     opacity: 0.72;
   }
 
@@ -922,7 +922,7 @@ watch(imageLightboxOpen, (open) => {
     background: var(--color-highlight);
     border: 1px solid var(--color-border);
     border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card);
     box-sizing: border-box;
     padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 16px);
   }
@@ -1027,7 +1027,7 @@ watch(imageLightboxOpen, (open) => {
 }
 
 .product-skeleton {
-  background: linear-gradient(90deg, #f2f2f2 0%, #e8e8e8 50%, #f2f2f2 100%);
+  background: linear-gradient(90deg, var(--color-surface) 0%, var(--color-border) 50%, var(--color-surface) 100%);
   background-size: 200% 100%;
   animation: product-skeleton-shimmer 1.4s ease-in-out infinite;
   border-radius: 4px;
@@ -1099,7 +1099,7 @@ watch(imageLightboxOpen, (open) => {
 @media (prefers-reduced-motion: reduce) {
   .product-skeleton {
     animation: none;
-    background: #ececec;
+    background: var(--color-border);
   }
 }
 

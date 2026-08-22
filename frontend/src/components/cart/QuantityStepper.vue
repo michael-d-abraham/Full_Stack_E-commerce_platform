@@ -86,7 +86,7 @@ function onInput(event) {
 }
 
 .qty-btn:hover:not(:disabled) {
-  background: var(--color-text);
+  background: var(--color-accent);
   color: var(--color-surface);
   opacity: 1;
 }

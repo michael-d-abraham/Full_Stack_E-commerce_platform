@@ -221,7 +221,7 @@ watch(
 
 .error {
   margin: 0 0 var(--space-sm);
-  color: var(--color-error, #b42318);
+  color: var(--color-error, var(--color-error));
   font-size: 0.875rem;
 }
 
@@ -232,15 +232,15 @@ watch(
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
   padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--color-border, #e5e5e5);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .thumb {
   width: 4.5rem;
   height: 4.5rem;
   object-fit: cover;
-  border: 1px solid var(--color-border, #ddd);
-  background: var(--color-surface-muted, #f5f5f5);
+  border: 1px solid var(--color-border, var(--color-border));
+  background: var(--color-surface-muted, var(--color-surface));
 }
 
 .thumb--empty {

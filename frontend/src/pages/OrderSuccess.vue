@@ -241,7 +241,7 @@ watch(() => route.fullPath, loadOrder);
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-heading);
 }
 
 .items {

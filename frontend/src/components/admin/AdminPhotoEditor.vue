@@ -82,6 +82,7 @@ import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
 import { mimeSupportsAlpha } from '@shared/imageOutputFormat.js';
+import { COLORS } from '../../constants/colors.js';
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -268,7 +269,7 @@ async function onApply() {
       maxHeight: 2000,
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high',
-      fillColor: preserveAlpha ? 'transparent' : '#ffffff'
+      fillColor: preserveAlpha ? 'transparent' : COLORS.highlight
     });
     if (!canvas) {
       throw new Error('Could not process image');
@@ -306,7 +307,7 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 1300;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--color-overlay-scrim);
   display: flex;
 }
 
@@ -316,14 +317,14 @@ onBeforeUnmount(() => {
   max-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fafafa;
-  color: #111;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .photo-editor__header {
   flex-shrink: 0;
   padding: 14px 20px 10px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--color-border);
   text-align: center;
 }
 
@@ -331,18 +332,19 @@ onBeforeUnmount(() => {
   margin: 0 0 4px;
   font-size: 0.9375rem;
   font-weight: 600;
+  color: var(--color-heading);
 }
 
 .photo-editor__hint {
   margin: 0;
   font-size: 0.8125rem;
-  color: #666;
+  color: var(--color-text-muted);
 }
 
 .photo-editor__stage {
   flex: 1;
   min-height: 0;
-  background: #eee;
+  background: var(--color-border);
   overflow: hidden;
 }
 
@@ -352,25 +354,25 @@ onBeforeUnmount(() => {
 }
 
 .photo-editor__stage :deep(.cropper-view-box) {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--color-highlight);
   outline-offset: -1px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 1px var(--color-overlay-backdrop);
 }
 
 .photo-editor__stage :deep(.cropper-point) {
   width: 10px;
   height: 10px;
-  background: #fff;
+  background: var(--color-highlight);
   border-radius: 50%;
   opacity: 1;
 }
 
 .photo-editor__stage :deep(.cropper-line) {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--color-glass-dim);
 }
 
 .photo-editor__stage :deep(.cropper-dashed) {
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(var(--color-highlight-rgb), 0.4);
 }
 
 .photo-editor__image {
@@ -386,31 +388,31 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 6px;
   padding: 10px 16px;
-  border-top: 1px solid #e8e8e8;
-  background: #fafafa;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .photo-editor__btn {
   min-width: 2.25rem;
   height: 2.25rem;
   padding: 0 0.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 0;
-  background: #fff;
+  background: var(--color-highlight);
   box-shadow: none;
   font-size: 0.8125rem;
-  color: #333;
+  color: var(--color-accent-hover);
   cursor: pointer;
 }
 
 .photo-editor__btn:hover {
-  border-color: #999;
+  border-color: var(--color-accent-muted);
 }
 
 .photo-editor__btn--on {
-  border-color: #111;
-  background: #111;
-  color: #fff;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .photo-editor__btn--text {
@@ -419,18 +421,18 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   text-decoration: underline;
-  color: #666;
+  color: var(--color-text-muted);
 }
 
 .photo-editor__btn--text:hover {
-  color: #111;
+  color: var(--color-accent);
 }
 
 .photo-editor__sep {
   width: 1px;
   height: 1.25rem;
   margin: 0 2px;
-  background: #ddd;
+  background: var(--color-border);
 }
 
 .photo-editor__footer {
@@ -439,8 +441,8 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   gap: 12px;
   padding: 12px 20px 16px;
-  border-top: 1px solid #e8e8e8;
-  background: #fff;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-highlight);
 }
 
 .photo-editor__cancel {
@@ -449,19 +451,19 @@ onBeforeUnmount(() => {
   background: transparent;
   box-shadow: none;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-text-muted);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .photo-editor__cancel:hover {
-  color: #111;
+  color: var(--color-accent);
 }
 
 .photo-editor__apply-error {
   flex: 1;
   font-size: 0.8125rem;
-  color: #c0392b;
+  color: var(--color-error);
   text-align: center;
 }
 </style>

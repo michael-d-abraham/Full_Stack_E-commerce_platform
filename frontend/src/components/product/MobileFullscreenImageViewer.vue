@@ -175,7 +175,7 @@ function onTouchEnd(event) {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--color-glass-overlay);
   box-sizing: border-box;
   --mobile-viewer-top: calc(env(safe-area-inset-top, 0px) + var(--product-close-circle-size, clamp(2.25rem, 5vw, 2.75rem)) + 12px);
   --mobile-viewer-bottom: calc(env(safe-area-inset-bottom, 0px) + 36px);
@@ -242,7 +242,7 @@ function onTouchEnd(event) {
   width: 7px;
   height: 7px;
   padding: 0;
-  border: 1px solid var(--color-text);
+  border: 1px solid var(--color-accent);
   border-radius: 50%;
   background: transparent;
   box-shadow: none;
@@ -250,6 +250,6 @@ function onTouchEnd(event) {
 }
 
 .mobile-fullscreen-viewer__dot--active {
-  background: var(--color-text);
+  background: var(--color-accent);
 }
 </style>

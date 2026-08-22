@@ -88,7 +88,7 @@ onUnmounted(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-highlight);
   box-sizing: border-box;
 }
 
@@ -98,16 +98,16 @@ onUnmounted(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-highlight);
 }
 
 .admin-shell__mobile-header {
   position: sticky;
   top: 0;
   z-index: 1100;
-  background: #fff;
+  background: var(--color-highlight);
   border-bottom: none;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 0 rgba(var(--color-accent-rgb), 0.06);
 }
 
 .admin-shell__mobile-bar {
@@ -141,7 +141,7 @@ onUnmounted(() => {
 .admin-shell__menu-toggle span {
   width: 22px;
   height: 2px;
-  background: #000;
+  background: var(--color-accent);
   display: block;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -163,7 +163,7 @@ onUnmounted(() => {
   justify-self: center;
   padding: 0 0.5rem;
   text-decoration: none;
-  color: #1a1a1a;
+  color: var(--color-heading);
   line-height: 1;
 }
 

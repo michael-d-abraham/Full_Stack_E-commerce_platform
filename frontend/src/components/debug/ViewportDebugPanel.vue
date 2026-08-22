@@ -80,9 +80,9 @@ function formatLogEntry(entry) {
   overflow: auto;
   pointer-events: none;
   font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: #e8ffe8;
-  background: rgba(0, 0, 0, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-highlight);
+  background: rgba(var(--color-accent-rgb), 0.82);
+  border: 1px solid rgba(var(--color-highlight-rgb), 0.2);
   border-radius: 6px;
   padding: 6px 8px;
   box-sizing: border-box;
