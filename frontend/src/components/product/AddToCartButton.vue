@@ -33,8 +33,8 @@ defineEmits(['click']);
 .add-to-cart-button {
   width: 100%;
   height: 42px;
-  background: #000;
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-highlight);
   border: 0;
   border-radius: 0;
   font-size: 16px;

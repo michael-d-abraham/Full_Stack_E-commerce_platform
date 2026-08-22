@@ -77,7 +77,7 @@ const ariaLabel = computed(() => {
   justify-content: center;
   border-radius: 999px;
   background: var(--color-text, #111);
-  color: #fff;
+  color: var(--color-highlight);
   font-family: var(--font-sans);
   font-size: 0.625rem;
   font-weight: 700;

@@ -738,7 +738,7 @@ onUnmounted(() => {
   inset: 0;
   z-index: 20;
   padding: 0;
-  background: var(--color-product-image-bg, #f8f8f8);
+  background: var(--color-product-image-bg, var(--color-highlight));
   pointer-events: auto;
 }
 
@@ -806,7 +806,7 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: var(--color-product-image-bg, #f8f8f8);
+    background: var(--color-product-image-bg, var(--color-highlight));
     touch-action: pan-y pinch-zoom;
   }
 
@@ -844,7 +844,7 @@ onUnmounted(() => {
     min-height: min(72vh, 720px);
     max-height: min(72vh, 720px);
     flex-shrink: 0;
-    background: var(--color-product-image-bg, #f8f8f8);
+    background: var(--color-product-image-bg, var(--color-highlight));
     overflow: hidden;
     box-sizing: border-box;
     touch-action: pan-y pinch-zoom;
