@@ -3,39 +3,34 @@
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Four colors only — white + pinks (no black or grey) */
-  --color-white: #ffffff;
-  --color-light-pink: #fff1f8;
-  --color-pink: #f0b8d0;
-  --color-really-pink: #c94b73;
-
-  --color-bg: var(--color-light-pink);
-  --color-surface: var(--color-pink);
-  --color-highlight: var(--color-white);
-  --color-product-image-bg: var(--color-white);
-  --color-text: var(--color-really-pink);
-  --color-text-muted: var(--color-pink);
-  --color-heading: var(--color-really-pink);
-  --color-border: var(--color-pink);
-  --color-border-strong: var(--color-really-pink);
-  --color-accent: var(--color-really-pink);
-  --color-accent-hover: var(--color-really-pink);
-  --color-accent-muted: var(--color-pink);
-  --color-error: var(--color-really-pink);
+  /* Light pink canvas + white type */
+  --color-bg: #fff4f9;
+  --color-highlight: #fae9f1;
+  --color-surface: #fae9f1;
+  --color-border: #f3dde7;
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.78);
+  --color-heading: #ffffff;
+  --color-accent: #e8b8cc;
+  --color-product-image-bg: #ffffff;
+  --color-border-strong: rgba(255, 255, 255, 0.45);
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 88%, #ffffff);
+  --color-accent-muted: rgba(255, 255, 255, 0.65);
+  --color-error: #ffffff;
 
   /* RGB channels (for alpha compositing) */
-  --color-text-rgb: 201, 75, 115;
-  --color-accent-rgb: 201, 75, 115;
+  --color-text-rgb: 255, 255, 255;
+  --color-accent-rgb: 232, 184, 204;
   --color-highlight-rgb: 255, 255, 255;
-  --color-surface-rgb: 240, 184, 208;
-  --color-bg-rgb: 255, 241, 248;
+  --color-surface-rgb: 250, 233, 241;
+  --color-bg-rgb: 255, 244, 249;
 
   /* Overlays & scrims */
-  --color-overlay-backdrop: rgba(var(--color-accent-rgb), 0.25);
-  --color-overlay-light: rgba(var(--color-accent-rgb), 0.12);
-  --color-overlay-subtle: rgba(var(--color-accent-rgb), 0.04);
-  --color-overlay-scrim: rgba(var(--color-accent-rgb), 0.45);
-  --color-overlay-plaque: rgba(var(--color-accent-rgb), 0.16);
+  --color-overlay-backdrop: rgba(var(--color-text-rgb), 0.25);
+  --color-overlay-light: rgba(var(--color-text-rgb), 0.12);
+  --color-overlay-subtle: rgba(var(--color-text-rgb), 0.04);
+  --color-overlay-scrim: rgba(var(--color-text-rgb), 0.45);
+  --color-overlay-plaque: rgba(var(--color-text-rgb), 0.16);
 
   /* Frosted glass */
   --color-glass: rgba(var(--color-highlight-rgb), 0.58);
@@ -47,11 +42,11 @@
   --color-glass-dim: rgba(var(--color-highlight-rgb), 0.5);
 
   /* Icons on glass */
-  --color-icon-on-glass: rgba(var(--color-accent-rgb), 0.7);
-  --color-icon-on-glass-hover: rgba(var(--color-accent-rgb), 0.85);
-  --color-icon-on-glass-disabled: rgba(var(--color-accent-rgb), 0.3);
-  --color-icon-on-light: rgba(var(--color-accent-rgb), 0.82);
-  --color-icon-on-light-hover: rgba(var(--color-accent-rgb), 0.92);
+  --color-icon-on-glass: rgba(var(--color-text-rgb), 0.7);
+  --color-icon-on-glass-hover: rgba(var(--color-text-rgb), 0.85);
+  --color-icon-on-glass-disabled: rgba(var(--color-text-rgb), 0.3);
+  --color-icon-on-light: rgba(var(--color-text-rgb), 0.82);
+  --color-icon-on-light-hover: rgba(var(--color-text-rgb), 0.92);
 
   /* Skeleton & loading */
   --color-skeleton-base: var(--color-surface);
@@ -76,38 +71,38 @@
   --color-status-dot: var(--color-accent);
 
   /* Shadows */
-  --shadow-soft: 0 10px 28px rgba(var(--color-accent-rgb), 0.07);
-  --shadow-card: 0 20px 60px rgba(var(--color-accent-rgb), 0.1);
-  --shadow-float: 0 4px 8px rgba(var(--color-accent-rgb), 0.22);
+  --shadow-soft: 0 10px 28px rgba(var(--color-text-rgb), 0.07);
+  --shadow-card: 0 20px 60px rgba(var(--color-text-rgb), 0.1);
+  --shadow-float: 0 4px 8px rgba(var(--color-text-rgb), 0.22);
   --shadow-frame:
-    2px 4px 8px rgba(var(--color-accent-rgb), 0.05),
-    4px 10px 22px rgba(var(--color-accent-rgb), 0.08);
+    2px 4px 8px rgba(var(--color-text-rgb), 0.05),
+    4px 10px 22px rgba(var(--color-text-rgb), 0.08);
   --shadow-frame-hover:
-    3px 8px 14px rgba(var(--color-accent-rgb), 0.07),
-    6px 16px 28px rgba(var(--color-accent-rgb), 0.1);
+    3px 8px 14px rgba(var(--color-text-rgb), 0.07),
+    6px 16px 28px rgba(var(--color-text-rgb), 0.1);
   --shadow-inset-frame:
     inset 0 1px 0 rgba(var(--color-highlight-rgb), 0.1),
-    inset 0 -1px 1px rgba(var(--color-accent-rgb), 0.35);
+    inset 0 -1px 1px rgba(var(--color-text-rgb), 0.12);
   --shadow-circle:
-    0 1px 4px rgba(var(--color-accent-rgb), 0.12),
-    0 0 0 1px rgba(var(--color-accent-rgb), 0.05);
+    0 1px 4px rgba(var(--color-text-rgb), 0.12),
+    0 0 0 1px rgba(var(--color-text-rgb), 0.05);
   --shadow-circle-hover:
-    0 3px 12px rgba(var(--color-accent-rgb), 0.14);
-  --shadow-close: 0 2px 10px rgba(var(--color-accent-rgb), 0.1);
-  --shadow-close-hover: 0 3px 12px rgba(var(--color-accent-rgb), 0.14);
+    0 3px 12px rgba(var(--color-text-rgb), 0.14);
+  --shadow-close: 0 2px 10px rgba(var(--color-text-rgb), 0.1);
+  --shadow-close-hover: 0 3px 12px rgba(var(--color-text-rgb), 0.14);
   --shadow-admin-card:
-    0 4px 6px rgba(var(--color-accent-rgb), 0.04),
-    0 10px 24px rgba(var(--color-accent-rgb), 0.08);
-  --shadow-admin-drawer: 0 12px 24px rgba(var(--color-accent-rgb), 0.1);
+    0 4px 6px rgba(var(--color-text-rgb), 0.04),
+    0 10px 24px rgba(var(--color-text-rgb), 0.08);
+  --shadow-admin-drawer: 0 12px 24px rgba(var(--color-text-rgb), 0.1);
   --shadow-nav-scroll:
-    0 4px 14px rgba(var(--color-accent-rgb), calc(0.07 * var(--nav-scroll, 0)));
+    0 4px 14px rgba(var(--color-text-rgb), calc(0.07 * var(--nav-scroll, 0)));
   --shadow-nav-inset: inset 0 1px 0 rgba(var(--color-highlight-rgb), calc(0.65 * var(--nav-scroll, 0)));
 
   /* Hero overlay (text on photography) */
-  --color-hero-overlay-start: rgba(var(--color-accent-rgb), 0.38);
-  --color-hero-overlay-mid: rgba(var(--color-accent-rgb), 0.16);
-  --color-hero-overlay-strong: rgba(var(--color-accent-rgb), 0.42);
-  --color-hero-overlay-mid-mobile: rgba(var(--color-accent-rgb), 0.18);
+  --color-hero-overlay-start: rgba(var(--color-text-rgb), 0.38);
+  --color-hero-overlay-mid: rgba(var(--color-text-rgb), 0.16);
+  --color-hero-overlay-strong: rgba(var(--color-text-rgb), 0.42);
+  --color-hero-overlay-mid-mobile: rgba(var(--color-text-rgb), 0.18);
   --color-hero-text: rgba(var(--color-highlight-rgb), 0.88);
   --color-hero-text-muted: rgba(var(--color-highlight-rgb), 0.82);
 
@@ -260,7 +255,7 @@ button:disabled {
 
 .btn-primary {
   background: var(--color-accent);
-  color: var(--color-highlight);
+  color: var(--color-text);
   border-color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -269,7 +264,7 @@ button:disabled {
 .btn-primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
-  color: var(--color-highlight);
+  color: var(--color-text);
   opacity: 1;
 }
 
@@ -291,7 +286,7 @@ button:disabled {
 .btn-ghost:hover:not(:disabled),
 .btn-outline:hover:not(:disabled) {
   background: var(--color-accent);
-  color: var(--color-highlight);
+  color: var(--color-text);
   opacity: 1;
 }
 

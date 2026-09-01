@@ -3,17 +3,14 @@
  * Keep in sync with :root --color-* definitions.
  */
 export const COLORS = {
-  white: '#ffffff',
-  lightPink: '#fff1f8',
-  pink: '#f0b8d0',
-  reallyPink: '#c94b73',
-  bg: '#fff1f8',
-  surface: '#f0b8d0',
-  highlight: '#ffffff',
-  heading: '#c94b73',
-  text: '#c94b73',
-  textMuted: '#f0b8d0',
-  border: '#f0b8d0',
-  accent: '#c94b73',
-  accentHover: '#c94b73'
+  bg: '#fff4f9',
+  highlight: '#fae9f1',
+  surface: '#fae9f1',
+  border: '#f3dde7',
+  text: '#ffffff',
+  textMuted: 'rgba(255, 255, 255, 0.78)',
+  heading: '#ffffff',
+  accent: '#e8b8cc',
+  accentHover: '#efb8cc',
+  productImageBg: '#ffffff'
 };
