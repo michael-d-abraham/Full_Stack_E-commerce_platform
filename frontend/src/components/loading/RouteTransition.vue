@@ -10,6 +10,10 @@
 import { RouterView } from 'vue-router';
 
 function transitionNameFor(route) {
+  // Admin tab changes should swap in place — no full-shell fade/remount.
+  if (route.path.startsWith('/admin')) {
+    return '';
+  }
   // Product grid overlay keeps the grid mounted — no route fade.
   if (route.name === 'gallery' || route.name === 'wanna-dos') {
     return '';
@@ -18,6 +22,9 @@ function transitionNameFor(route) {
 }
 
 function viewKey(route) {
+  if (route.path.startsWith('/admin')) {
+    return 'admin-shell';
+  }
   if (route.name === 'gallery' || route.name === 'wanna-dos') {
     return route.name;
   }

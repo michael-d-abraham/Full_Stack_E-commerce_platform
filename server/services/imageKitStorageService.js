@@ -2,6 +2,7 @@ const { randomUUID } = require('crypto');
 const ImageKit = require('@imagekit/nodejs');
 const { toFile } = require('@imagekit/nodejs');
 const { resolveExtension, validateImageBuffer } = require('../utils/imageMime');
+const { resolveExtension: resolveVideoExtension, validateVideoBuffer } = require('../utils/videoMime');
 const { normalizeImageKitFileId } = require('../utils/imageKitFileIds');
 
 const ALLOWED_FOLDERS = new Set([
@@ -64,10 +65,10 @@ function normalizeUploadFolder(folder) {
  * Upload a validated image buffer to the ImageKit Media Library.
  * @returns {Promise<{ url: string, fileId: string, name: string, filePath: string, thumbnailUrl: string|null, width: number|null, height: number|null, size: number|null }>}
  */
-async function uploadImageToImageKit({ buffer, mimeType, originalName, folder }) {
-    const mime = validateImageBuffer(buffer, mimeType);
+async function uploadMediaToImageKit({ buffer, mimeType, originalName, folder, validateBuffer, resolveExt }) {
+    const mime = validateBuffer(buffer, mimeType);
     const folderKey = normalizeUploadFolder(folder);
-    const ext = resolveExtension(mime, originalName);
+    const ext = resolveExt(mime, originalName);
     const fileName = `${randomUUID()}${ext}`;
 
     const client = getImageKitClient();
@@ -87,6 +88,28 @@ async function uploadImageToImageKit({ buffer, mimeType, originalName, folder })
         height: response.height ?? null,
         size: response.size ?? null
     };
+}
+
+async function uploadImageToImageKit({ buffer, mimeType, originalName, folder }) {
+    return uploadMediaToImageKit({
+        buffer,
+        mimeType,
+        originalName,
+        folder,
+        validateBuffer: validateImageBuffer,
+        resolveExt: resolveExtension
+    });
+}
+
+async function uploadVideoToImageKit({ buffer, mimeType, originalName, folder }) {
+    return uploadMediaToImageKit({
+        buffer,
+        mimeType,
+        originalName,
+        folder,
+        validateBuffer: validateVideoBuffer,
+        resolveExt: resolveVideoExtension
+    });
 }
 
 /**
@@ -141,6 +164,7 @@ async function deleteImageKitFilesBestEffort(fileIds) {
 
 module.exports = {
     uploadImageToImageKit,
+    uploadVideoToImageKit,
     deleteImageFromImageKit,
     deleteImageKitFilesBestEffort,
     assertImageKitConfig,

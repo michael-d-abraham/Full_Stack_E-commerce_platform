@@ -1,57 +1,65 @@
 <template>
   <div class="admin-home-preview">
-    <!-- Hero pair (mirrors HomeHero + reversed HomeHero) -->
     <section class="admin-home-preview__hero" aria-label="hero preview">
       <div class="admin-home-preview__hero-inner">
-        <h3 class="admin-home-preview__block-title">hero section</h3>
+        <h3 class="admin-home-preview__block-title">landing slideshow</h3>
         <p class="admin-home-preview__field-hint">
-          two pages. first is madd with its own photo. second flips the layout and uses a separate .lines photo.
+          photos and videos cycle full-screen behind the landing text on the home page. order is top to bottom.
         </p>
 
-        <div class="admin-home-preview__hero-grid">
-          <div class="admin-home-preview__hero-copy">
-            <p class="admin-home-preview__hero-word">madd</p>
-            <label class="admin-home-preview__hero-signature-field">
-              <span class="admin-home-preview__field-label">signature</span>
-              <input
-                v-model="form.hero_title"
-                type="text"
-                class="admin-home-preview__hero-signature-input"
-                placeholder="handwritten signature"
-                aria-label="hero signature"
-                :disabled="disabled"
-              />
-            </label>
-          </div>
+        <label class="admin-home-preview__hero-signature-field">
+          <span class="admin-home-preview__field-label">signature</span>
+          <input
+            v-model="form.hero_title"
+            type="text"
+            class="admin-home-preview__hero-signature-input"
+            placeholder="handwritten signature"
+            aria-label="hero signature"
+            :disabled="disabled"
+          />
+        </label>
 
-          <div class="admin-home-preview__hero-photo">
-            <span class="admin-home-preview__field-label">madd photo</span>
+        <ul v-if="heroSlides.length" class="admin-home-preview__slides">
+          <li
+            v-for="(slide, index) in heroSlides"
+            :key="`${slide.url}-${index}`"
+            class="admin-home-preview__slide"
+          >
+            <span class="admin-home-preview__field-label">
+              slide {{ index + 1 }}{{ slide.mediaType === 'video' ? ' (video)' : '' }}
+            </span>
             <AdminHomePreviewImageSlot
-              :image-url="form.hero_image_url"
+              :image-url="slide.url"
+              :media-type="slide.mediaType"
               :disabled="disabled"
-              aria-label="madd photo"
-              @pick="$emit('pick-image', { type: 'hero' })"
-              @remove="$emit('remove-image', { type: 'hero' })"
+              :aria-label="`slideshow ${slide.mediaType} ${index + 1}`"
+              @pick="$emit('pick-image', { type: 'hero', index, mediaType: slide.mediaType })"
+              @remove="$emit('remove-image', { type: 'hero', index })"
             />
-          </div>
-        </div>
+          </li>
+        </ul>
 
-        <div class="admin-home-preview__hero-grid admin-home-preview__hero-grid--reversed">
-          <div class="admin-home-preview__hero-photo">
-            <span class="admin-home-preview__field-label">.lines photo</span>
-            <AdminHomePreviewImageSlot
-              :image-url="form.hero_lines_image_url"
-              :disabled="disabled"
-              aria-label=".lines photo"
-              @pick="$emit('pick-image', { type: 'hero-lines' })"
-              @remove="$emit('remove-image', { type: 'hero-lines' })"
-            />
-          </div>
-
-          <div class="admin-home-preview__hero-copy">
-            <p class="admin-home-preview__hero-word">.lines</p>
-          </div>
+        <div class="admin-home-preview__add-actions">
+          <button
+            type="button"
+            class="admin-home-preview__add-slide"
+            :disabled="disabled || heroSlides.length >= maxSlides"
+            @click="$emit('pick-image', { type: 'hero-add', mediaType: 'image' })"
+          >
+            add photo
+          </button>
+          <button
+            type="button"
+            class="admin-home-preview__add-slide"
+            :disabled="disabled || heroSlides.length >= maxSlides"
+            @click="$emit('pick-image', { type: 'hero-add', mediaType: 'video' })"
+          >
+            add video
+          </button>
         </div>
+        <p v-if="heroSlides.length >= maxSlides" class="admin-home-preview__field-hint">
+          maximum {{ maxSlides }} slides.
+        </p>
       </div>
     </section>
 
@@ -89,14 +97,26 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { HERO_SLIDESHOW_MAX } from '../../constants/heroSlideshow.js';
 import AdminHomePreviewImageSlot from './AdminHomePreviewImageSlot.vue';
 
-defineProps({
+const props = defineProps({
   form: { type: Object, required: true },
   disabled: { type: Boolean, default: false }
 });
 
 defineEmits(['pick-image', 'remove-image']);
+
+const maxSlides = HERO_SLIDESHOW_MAX;
+const heroSlides = computed(() => {
+  const urls = Array.isArray(props.form?.hero_image_urls) ? props.form.hero_image_urls : [];
+  const types = Array.isArray(props.form?.hero_media_types) ? props.form.hero_media_types : [];
+  return urls.map((url, index) => ({
+    url,
+    mediaType: types[index] === 'video' ? 'video' : 'image'
+  }));
+});
 </script>
 
 <style scoped>
@@ -124,7 +144,6 @@ defineEmits(['pick-image', 'remove-image']);
   color: var(--color-text-muted);
 }
 
-/* —— Hero (madd left / photo right, then photo left / .lines right) —— */
 .admin-home-preview__hero {
   position: relative;
   overflow: hidden;
@@ -139,64 +158,6 @@ defineEmits(['pick-image', 'remove-image']);
   margin: 0 auto;
 }
 
-.admin-home-preview__hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-lg);
-  align-items: stretch;
-  width: 100%;
-  margin-top: var(--space-md);
-}
-
-.admin-home-preview__hero-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(1.25rem, 3vh, 2rem);
-  min-width: 0;
-  text-align: center;
-}
-
-.admin-home-preview__hero-word {
-  margin: 0;
-  padding: 0 0 0 0.08em;
-  font-family: var(--gallery-meta-font, 'Oswald', var(--font-sans));
-  font-size: clamp(1.85rem, 3.6vw, 3rem);
-  font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--color-text);
-}
-
-.admin-home-preview__hero-grid--reversed {
-  margin-top: var(--space-2xl);
-}
-
-.admin-home-preview__hero-photo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.admin-home-preview__hero-photo :deep(.admin-home-img-slot__hit) {
-  aspect-ratio: 3 / 4;
-  min-height: 20rem;
-}
-
-.admin-home-preview__hero-photo :deep(.admin-home-img-slot__photo) {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.admin-home-preview__about-me {
-  position: relative;
-  overflow: hidden;
-}
-
 .admin-home-preview__field-hint {
   margin: 0;
   font-size: 0.8125rem;
@@ -205,22 +166,23 @@ defineEmits(['pick-image', 'remove-image']);
 }
 
 .admin-home-preview__hero-signature-field {
-  width: 100%;
-  max-width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-xs);
+  width: 100%;
+  max-width: 18rem;
+  margin-top: var(--space-lg);
 }
 
 .admin-home-preview__hero-signature-input {
-  width: min(100%, 18rem);
+  width: 100%;
   padding: 0.5rem 0;
   font-family: var(--font-script);
   font-size: clamp(1.35rem, 2.4vw, 1.75rem);
   font-weight: 400;
   letter-spacing: 0.01em;
-  text-align: center;
+  text-align: left;
   color: var(--color-heading);
   opacity: 0.72;
   border: none;
@@ -235,29 +197,62 @@ defineEmits(['pick-image', 'remove-image']);
   opacity: 1;
 }
 
-/* —— Shared container —— */
+.admin-home-preview__slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-home-preview__slide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.admin-home-preview__slide :deep(.admin-home-img-slot__hit) {
+  aspect-ratio: 3 / 4;
+  min-height: 12rem;
+}
+
+.admin-home-preview__slide :deep(.admin-home-img-slot__photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-home-preview__add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.admin-home-preview__add-slide {
+  margin-top: 0;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-paper);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+
+.admin-home-preview__add-slide:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .admin-home-preview__container {
   max-width: 1100px;
   margin: 0 auto;
-}
-
-.admin-home-preview__section-title {
-  display: block;
-  width: 100%;
-  margin: 0 0 var(--space-xl);
-  font-size: clamp(1.25rem, 3.25vw, 1.875rem);
-  padding: 0.25rem 0.5rem;
-  border: 1px dashed transparent;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  text-align: center;
-}
-
-.admin-home-preview__section-title:hover,
-.admin-home-preview__section-title:focus {
-  border-color: var(--color-border);
-  outline: none;
 }
 
 .admin-home-preview__about-me {
@@ -290,18 +285,6 @@ defineEmits(['pick-image', 'remove-image']);
   object-fit: cover;
 }
 
-@media (min-width: 641px) {
-  .admin-home-preview__hero-inner {
-    max-width: 1100px;
-    width: 100%;
-  }
-
-  .admin-home-preview__section-title {
-    margin-top: 0;
-  }
-
-}
-
 @media (max-width: 640px) {
   .admin-home-preview__hero,
   .admin-home-preview__about-me {
@@ -311,25 +294,10 @@ defineEmits(['pick-image', 'remove-image']);
 
   .admin-home-preview__about-me-pair {
     grid-template-columns: 1fr;
-    gap: var(--space-md);
   }
 
-  .admin-home-preview__hero-grid {
+  .admin-home-preview__slides {
     grid-template-columns: 1fr;
   }
-
-  .admin-home-preview__hero-grid--reversed .admin-home-preview__hero-photo {
-    order: -1;
-  }
-
-  .admin-home-preview__hero-photo :deep(.admin-home-img-slot__hit) {
-    min-height: 16rem;
-  }
-
-  .admin-home-preview__hero {
-    padding-top: var(--space-xl);
-    padding-bottom: var(--space-xl);
-  }
-
 }
 </style>

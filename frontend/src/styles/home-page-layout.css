@@ -38,6 +38,7 @@
 }
 
 /* Home bands stack as opaque sheets over the sticky footer */
+.home-landing,
 .home-hero,
 .home-about-me,
 .home-pink-spacer,
@@ -65,10 +66,11 @@
 #contact,
 #book {
   scroll-margin-top: calc(
-    var(--site-header-height, 52px) + var(--nav-float-top, 10px) + 12px
+    var(--site-header-height, 52px) + var(--nav-top-inset, 12px) + var(--nav-float-top, 10px) + 12px
   );
 }
 
+.home-landing { z-index: 1; }
 .home-hero { z-index: 1; }
 .home-hero--reversed { z-index: 2; }
 .home-about-me { z-index: 2; }
@@ -184,6 +186,7 @@
   min-height: 100dvh;
   box-sizing: border-box;
   padding-block: clamp(var(--space-2xl), 8vh, var(--space-3xl));
+  scroll-snap-align: start;
 }
 
 .home-my-art .home-placeholder__masthead {

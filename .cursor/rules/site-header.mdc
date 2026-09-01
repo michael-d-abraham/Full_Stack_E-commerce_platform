@@ -64,7 +64,7 @@ Glass, blur, and fill stay constant. Do not make the pill more opaque on scroll.
 - Bar height: `--site-header-bar-height-compact` (2.75rem)
 - Three-link content (no brand mark in the header)
 
-**Pitfall:** Interpolating shell width from full-bleed → hug-content shifts the links horizontally. The pill hugs `me` / `my art` / `say hi` at every scroll position; only surface treatment changes.
+**Pitfall:** Interpolating shell width from full-bleed → hug-content shifts the links horizontally. The pill hugs `artist` / `portfolio` / `contact` at every scroll position; only surface treatment changes.
 
 Do not put the brand mark back in the header. Do not bring back the hamburger for this set.
 

@@ -24,6 +24,7 @@ const homePageSchema = new mongoose.Schema(
         hero_image_urls: { type: [String], default: () => [] },
         hero_image_file_id: { type: String, default: '' },
         hero_image_file_ids: { type: [String], default: () => [] },
+        hero_media_types: { type: [String], default: () => [] },
         hero_lines_image_url: { type: String, default: '' },
         hero_lines_image_file_id: { type: String, default: '' },
         hero_background_image_url: { type: String, default: '' },

@@ -12,6 +12,7 @@ import {
     showBookNav
 } from '../composables/useStorefrontNav.js';
 import { startNavProgress, finishNavProgress } from '../composables/useNavProgress.js';
+import AdminCustomize from '../pages/admin/AdminCustomize.vue';
 
 const Gallery = () => import('../pages/Gallery.vue');
 const WannaDos = () => import('../pages/WannaDos.vue');
@@ -27,7 +28,6 @@ const AdminOrders = () => import('../pages/admin/AdminOrders.vue');
 const AdminListings = () => import('../pages/admin/AdminListings.vue');
 const AdminGallery = () => import('../pages/admin/AdminGallery.vue');
 const AdminSchedule = () => import('../pages/admin/AdminSchedule.vue');
-const AdminCustomize = () => import('../pages/admin/AdminCustomize.vue');
 const AdminSettings = () => import('../pages/admin/AdminSettings.vue');
 const AdminForm = () => import('../pages/AdminForm.vue');
 const AdminCreate = () => import('../pages/AdminCreate.vue');
@@ -209,8 +209,9 @@ router.afterEach((to, from) => {
     });
 });
 
-router.onError(() => {
-    finishNavProgress();
+router.onError((error) => {
+  finishNavProgress();
+  console.error('[router] navigation failed', error);
 });
 
 export default router;

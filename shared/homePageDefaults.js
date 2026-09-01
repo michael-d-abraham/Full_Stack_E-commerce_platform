@@ -1,10 +1,12 @@
 const FEATURED_PRODUCT_SLOTS = 6;
+const HERO_SLIDESHOW_MAX = 12;
 
 const DEFAULT_HOME_PAGE = {
     hero_title: 'madison yeates',
     hero_subtitle: '',
     hero_image_url: '',
     hero_image_urls: [],
+    hero_media_types: [],
     hero_background_image_url: '',
     featured_title: 'Featured products',
     featured_products: Array.from({ length: FEATURED_PRODUCT_SLOTS }, () => ({
@@ -55,6 +57,38 @@ function resolveHeroImageUrls(stored) {
     return legacyUrl ? [legacyUrl] : [];
 }
 
+function normalizeHeroMediaType(value) {
+    const type = normalizeOptionalText(value).toLowerCase();
+    return type === 'video' ? 'video' : 'image';
+}
+
+function inferHeroMediaTypeFromUrl(url) {
+    return /\.(mp4|webm|mov)(\?|#|$)/i.test(normalizeOptionalText(url)) ? 'video' : 'image';
+}
+
+function resolveHeroMediaTypes(stored, urls = null) {
+    const base = stored && typeof stored === 'object' ? stored : {};
+    const heroUrls = Array.isArray(urls) ? urls : resolveHeroImageUrls(base);
+    if (!heroUrls.length) {
+        return [];
+    }
+
+    const fromArray = Array.isArray(base.hero_media_types)
+        ? base.hero_media_types.map((type) => normalizeHeroMediaType(type))
+        : [];
+
+    return heroUrls.map((url, index) => fromArray[index] || inferHeroMediaTypeFromUrl(url));
+}
+
+function resolveHeroSlideshowItems(stored) {
+    const urls = resolveHeroImageUrls(stored);
+    const types = resolveHeroMediaTypes(stored, urls);
+    return urls.map((src, index) => ({
+        type: types[index],
+        src
+    }));
+}
+
 function resolveHeroImageFileIds(stored) {
     const base = stored && typeof stored === 'object' ? stored : {};
     const urls = resolveHeroImageUrls(base);
@@ -85,12 +119,14 @@ function mergeHomePageTextDefaults(stored) {
     const base = stored && typeof stored === 'object' ? stored : {};
     const hero_image_urls = resolveHeroImageUrls(base);
     const hero_image_url = hero_image_urls[0] || '';
+    const hero_media_types = resolveHeroMediaTypes(base, hero_image_urls);
 
     return {
         hero_title: resolveHeroTitle(base.hero_title),
         hero_subtitle: normalizeOptionalText(base.hero_subtitle),
         hero_image_url,
         hero_image_urls,
+        hero_media_types,
         featured_title:
             normalizeOptionalText(base.featured_title) || DEFAULT_HOME_PAGE.featured_title,
         about_title:
@@ -110,9 +146,13 @@ function mergeHomePageTextDefaults(stored) {
 
 module.exports = {
     FEATURED_PRODUCT_SLOTS,
+    HERO_SLIDESHOW_MAX,
     DEFAULT_HOME_PAGE,
     emptyFeaturedProduct,
     resolveHeroImageUrls,
     resolveHeroImageFileIds,
+    resolveHeroMediaTypes,
+    resolveHeroSlideshowItems,
+    normalizeHeroMediaType,
     mergeHomePageTextDefaults
 };

@@ -15,6 +15,12 @@ export const STOREFRONT_NAV = {
   sayHi: 'say-hi'
 };
 
+export const STOREFRONT_NAV_LABELS = {
+  [STOREFRONT_NAV.me]: 'artist',
+  [STOREFRONT_NAV.myArt]: 'portfolio',
+  [STOREFRONT_NAV.sayHi]: 'contact'
+};
+
 export const FOOTER_SECTION_IDS = new Set([
   STOREFRONT_NAV.sayHi,
   STOREFRONT_SECTION.contact,

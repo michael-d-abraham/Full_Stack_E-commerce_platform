@@ -4,6 +4,7 @@ import {
   FOOTER_SECTION_IDS,
   STOREFRONT_NAV,
   STOREFRONT_SECTION,
+  STOREFRONT_NAV_LABELS,
   resolveStorefrontNavId,
   resolveStorefrontScrollTarget,
   storefrontHash
@@ -94,11 +95,14 @@ export function scrollToStorefrontSection(sectionId) {
 
 function navItemList() {
   const items = [
-    { id: STOREFRONT_NAV.me, label: 'me' },
-    { id: STOREFRONT_NAV.myArt, label: 'my art' }
+    { id: STOREFRONT_NAV.me, label: STOREFRONT_NAV_LABELS[STOREFRONT_NAV.me] },
+    { id: STOREFRONT_NAV.myArt, label: STOREFRONT_NAV_LABELS[STOREFRONT_NAV.myArt] }
   ];
   if (showSayHiNav()) {
-    items.push({ id: STOREFRONT_NAV.sayHi, label: 'say hi' });
+    items.push({
+      id: STOREFRONT_NAV.sayHi,
+      label: STOREFRONT_NAV_LABELS[STOREFRONT_NAV.sayHi]
+    });
   }
   return items;
 }

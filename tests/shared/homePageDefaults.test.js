@@ -4,6 +4,8 @@ const {
     emptyFeaturedProduct,
     resolveHeroImageUrls,
     resolveHeroImageFileIds,
+    resolveHeroMediaTypes,
+    resolveHeroSlideshowItems,
     mergeHomePageTextDefaults
 } = require('../../shared/homePageDefaults');
 
@@ -81,6 +83,43 @@ describe('shared/homePageDefaults', () => {
                 hero_image_urls: ['https://example.com/one.jpg']
             })
         ).toEqual(['']);
+    });
+
+    it('resolveHeroMediaTypes infers video from file extension', () => {
+        expect(
+            resolveHeroMediaTypes({
+                hero_image_urls: ['https://example.com/clip.mp4', 'https://example.com/photo.jpg']
+            })
+        ).toEqual(['video', 'image']);
+    });
+
+    it('resolveHeroMediaTypes prefers stored hero_media_types', () => {
+        expect(
+            resolveHeroMediaTypes({
+                hero_image_urls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
+                hero_media_types: ['video', 'image']
+            })
+        ).toEqual(['video', 'image']);
+    });
+
+    it('resolveHeroSlideshowItems pairs urls with media types', () => {
+        expect(
+            resolveHeroSlideshowItems({
+                hero_image_urls: ['https://example.com/a.mp4', 'https://example.com/b.jpg'],
+                hero_media_types: ['video', 'image']
+            })
+        ).toEqual([
+            { type: 'video', src: 'https://example.com/a.mp4' },
+            { type: 'image', src: 'https://example.com/b.jpg' }
+        ]);
+    });
+
+    it('mergeHomePageTextDefaults includes hero_media_types', () => {
+        const merged = mergeHomePageTextDefaults({
+            hero_image_urls: ['https://example.com/a.mp4'],
+            hero_media_types: ['video']
+        });
+        expect(merged.hero_media_types).toEqual(['video']);
     });
 
     it('mergeHomePageTextDefaults keeps hero_quote and about_header independent', () => {

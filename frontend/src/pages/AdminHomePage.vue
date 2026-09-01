@@ -34,6 +34,15 @@
       @file="onPhotoFile"
       @cancel="onPhotoCancel"
     />
+    <input
+      ref="videoInputRef"
+      type="file"
+      class="admin-home__video-input"
+      accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+      tabindex="-1"
+      aria-hidden="true"
+      @change="onVideoPicked"
+    />
     </PageReveal>
   </div>
 </template>
@@ -43,13 +52,15 @@ import { reactive, ref, onMounted } from 'vue';
 import {
   getAdminHomePage,
   updateAdminHomePage,
-  uploadAdminImage
+  uploadAdminImage,
+  uploadAdminVideo
 } from '../services/api.js';
 import AdminHomePagePreview from '../components/admin/AdminHomePagePreview.vue';
 import AdminPhotoUploadFlow from '../components/admin/AdminPhotoUploadFlow.vue';
 import PageReveal from '../components/loading/PageReveal.vue';
 import Skeleton from '../components/loading/Skeleton.vue';
-import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls, resolveHeroImageFileIds } from '@shared/homePageDefaults.js';
+import { FEATURED_PRODUCT_SLOTS, emptyFeaturedProduct, resolveHeroImageUrls, resolveHeroImageFileIds, resolveHeroMediaTypes } from '@shared/homePageDefaults.js';
+import { HERO_SLIDESHOW_MAX } from '../constants/heroSlideshow.js';
 
 function createEmptyForm() {
   return {
@@ -59,6 +70,7 @@ function createEmptyForm() {
     hero_image_urls: [],
     hero_image_file_id: '',
     hero_image_file_ids: [],
+    hero_media_types: [],
     hero_lines_image_url: '',
     hero_lines_image_file_id: '',
     hero_background_image_url: '',
@@ -89,10 +101,21 @@ const saving = ref(false);
 const uploading = ref(false);
 const uploadTarget = ref(null);
 const photoFlowRef = ref(null);
+const videoInputRef = ref(null);
 
 function syncHeroFromUrls() {
   form.hero_image_url = form.hero_image_urls[0] || '';
   form.hero_image_file_id = form.hero_image_file_ids[0] || '';
+}
+
+function alignHeroMediaTypesToUrls() {
+  const targetLength = form.hero_image_urls.length;
+  while (form.hero_media_types.length < targetLength) {
+    form.hero_media_types.push('image');
+  }
+  if (form.hero_media_types.length > targetLength) {
+    form.hero_media_types.splice(targetLength);
+  }
 }
 
 function alignHeroFileIdsToUrls() {
@@ -103,16 +126,18 @@ function alignHeroFileIdsToUrls() {
   if (form.hero_image_file_ids.length > targetLength) {
     form.hero_image_file_ids.splice(targetLength);
   }
+  alignHeroMediaTypesToUrls();
   syncHeroFromUrls();
 }
 
 function applySettings(data) {
   const next = createEmptyForm();
   if (data && typeof data === 'object') {
-    next.hero_image_urls = resolveHeroImageUrls(data).slice(0, 1);
+    next.hero_image_urls = resolveHeroImageUrls(data).slice(0, HERO_SLIDESHOW_MAX);
     next.hero_image_url = next.hero_image_urls[0] || '';
     next.hero_image_file_ids = resolveHeroImageFileIds(data).slice(0, next.hero_image_urls.length);
     next.hero_image_file_id = next.hero_image_file_ids[0] || '';
+    next.hero_media_types = resolveHeroMediaTypes(data, next.hero_image_urls);
     next.hero_lines_image_url =
       data.hero_lines_image_url != null ? String(data.hero_lines_image_url).trim() : '';
     next.hero_lines_image_file_id =
@@ -168,6 +193,7 @@ function applySettings(data) {
   form.hero_image_urls.splice(0, form.hero_image_urls.length, ...next.hero_image_urls);
   form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, ...next.hero_image_file_ids);
   form.hero_image_file_id = next.hero_image_file_id;
+  form.hero_media_types.splice(0, form.hero_media_types.length, ...next.hero_media_types);
   form.hero_lines_image_url = next.hero_lines_image_url;
   form.hero_lines_image_file_id = next.hero_lines_image_file_id;
   form.hero_title = next.hero_title;
@@ -198,10 +224,13 @@ function payloadFromForm() {
   const hero_image_urls = form.hero_image_urls
     .map((url) => String(url).trim())
     .filter(Boolean)
-    .slice(0, 1);
+    .slice(0, HERO_SLIDESHOW_MAX);
   const hero_image_file_ids = form.hero_image_file_ids
     .slice(0, hero_image_urls.length)
     .map((id) => String(id || '').trim());
+  const hero_media_types = form.hero_media_types
+    .slice(0, hero_image_urls.length)
+    .map((type) => (type === 'video' ? 'video' : 'image'));
   return {
     hero_title: form.hero_title,
     hero_subtitle: form.hero_subtitle,
@@ -209,6 +238,7 @@ function payloadFromForm() {
     hero_image_urls,
     hero_image_file_id: hero_image_file_ids[0] || '',
     hero_image_file_ids,
+    hero_media_types,
     hero_lines_image_url: form.hero_lines_image_url,
     hero_lines_image_file_id: form.hero_lines_image_file_id,
     featured_title: form.featured_title,
@@ -273,10 +303,14 @@ async function onSave() {
 }
 
 function editorOptionsForTarget(target) {
-  if (target?.type === 'hero') {
+  if (target?.type === 'hero' || target?.type === 'hero-add') {
+    const slideNumber =
+      target.type === 'hero-add'
+        ? form.hero_image_urls.length + 1
+        : Number(target.index) + 1;
     return {
-      editorTitle: 'madd photo',
-      outputFileName: 'hero.jpg',
+      editorTitle: `slideshow photo ${slideNumber}`,
+      outputFileName: `hero-slide-${slideNumber}.jpg`,
       outputMime: 'image/jpeg',
       preserveSourceFormat: false
     };
@@ -318,13 +352,49 @@ function editorOptionsForTarget(target) {
 function openFilePicker(target) {
   uploadTarget.value = target;
   actionError.value = '';
+  if (target?.mediaType === 'video') {
+    const input = videoInputRef.value;
+    if (input) {
+      input.value = '';
+      input.click();
+    }
+    return;
+  }
   photoFlowRef.value?.openPicker(editorOptionsForTarget(target));
 }
 
-function setImageUrl(target, url, fileId = '') {
-  if (target.type === 'hero') {
-    form.hero_image_urls.splice(0, form.hero_image_urls.length, url);
-    form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length, fileId || '');
+function heroMediaTypeForTarget(target) {
+  if (target?.mediaType === 'video') {
+    return 'video';
+  }
+  if (target?.type === 'hero' && Number.isInteger(target.index)) {
+    return form.hero_media_types[target.index] === 'video' ? 'video' : 'image';
+  }
+  return 'image';
+}
+
+function setImageUrl(target, url, fileId = '', mediaType = 'image') {
+  const resolvedType = mediaType === 'video' ? 'video' : 'image';
+  if (target.type === 'hero-add') {
+    if (form.hero_image_urls.length >= HERO_SLIDESHOW_MAX) {
+      return;
+    }
+    form.hero_image_urls.push(url);
+    form.hero_image_file_ids.push(fileId || '');
+    form.hero_media_types.push(resolvedType);
+    syncHeroFromUrls();
+    return;
+  }
+  if (target.type === 'hero' && Number.isInteger(target.index)) {
+    form.hero_image_urls[target.index] = url;
+    while (form.hero_image_file_ids.length < form.hero_image_urls.length) {
+      form.hero_image_file_ids.push('');
+    }
+    while (form.hero_media_types.length < form.hero_image_urls.length) {
+      form.hero_media_types.push('image');
+    }
+    form.hero_image_file_ids[target.index] = fileId || '';
+    form.hero_media_types[target.index] = resolvedType;
     syncHeroFromUrls();
     return;
   }
@@ -348,7 +418,13 @@ function setImageUrl(target, url, fileId = '') {
 }
 
 function uploadFolderForTarget(target) {
-  if (target?.type === 'hero' || target?.type === 'hero-lines') return 'site/hero';
+  if (
+    target?.type === 'hero' ||
+    target?.type === 'hero-add' ||
+    target?.type === 'hero-lines'
+  ) {
+    return 'site/hero';
+  }
   if (target?.type === 'hero-background') return 'site/hero-background';
   if (target?.type === 'about-me-left' || target?.type === 'about-me-right') return 'site/about';
   return undefined;
@@ -361,8 +437,10 @@ async function uploadFileForTarget(file) {
   uploading.value = true;
   actionError.value = '';
   try {
-    const { image_url, file_id } = await uploadAdminImage(file, uploadFolderForTarget(target));
-    setImageUrl(target, image_url, file_id);
+    const mediaType = heroMediaTypeForTarget(target);
+    const uploadFn = mediaType === 'video' ? uploadAdminVideo : uploadAdminImage;
+    const { image_url, file_id } = await uploadFn(file, uploadFolderForTarget(target));
+    setImageUrl(target, image_url, file_id, mediaType);
     await persistSettings();
   } catch (e) {
     actionError.value = e.message || 'Upload failed';
@@ -370,6 +448,18 @@ async function uploadFileForTarget(file) {
     uploading.value = false;
     uploadTarget.value = null;
   }
+}
+
+async function onVideoPicked(event) {
+  const file = event?.target?.files?.[0];
+  if (event?.target) {
+    event.target.value = '';
+  }
+  if (!file) {
+    uploadTarget.value = null;
+    return;
+  }
+  await uploadFileForTarget(file);
 }
 
 async function onPhotoFile(file) {
@@ -381,9 +471,10 @@ function onPhotoCancel() {
 }
 
 async function clearImage(target) {
-  if (target.type === 'hero') {
-    form.hero_image_urls.splice(0, form.hero_image_urls.length);
-    form.hero_image_file_ids.splice(0, form.hero_image_file_ids.length);
+  if (target.type === 'hero' && Number.isInteger(target.index)) {
+    form.hero_image_urls.splice(target.index, 1);
+    form.hero_image_file_ids.splice(target.index, 1);
+    form.hero_media_types.splice(target.index, 1);
     syncHeroFromUrls();
     try {
       await persistSettings();
@@ -450,5 +541,17 @@ onMounted(load);
   margin: 0;
   font-size: 0.875rem;
   color: var(--color-text-muted);
+}
+
+.admin-home__video-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

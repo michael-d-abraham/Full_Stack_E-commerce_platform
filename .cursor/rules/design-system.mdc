@@ -65,7 +65,7 @@ Do not use 640px for header nav layout. Do not use 768px for product gallery or 
 
 - Short ease transitions (~0.15–0.26s). Always `@media (prefers-reduced-motion: reduce)`.
 - Parallax only via `useScrollParallax` / `useSectionBackgroundParallax`.
-- **Storefront header:** compact three-link pill (`me` / `my art` / `say hi`), constant see-through glass, `--nav-scroll` only for float offset. See `site-header.mdc`.
+- **Storefront header:** compact three-link pill (`artist` / `portfolio` / `contact`), constant see-through glass, `--nav-scroll` only for float offset. See `site-header.mdc`.
 
 ## Content & images
 

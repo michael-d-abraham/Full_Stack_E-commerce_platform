@@ -18,7 +18,7 @@ Every customize photo lives on the singleton `site_settings` doc (`key: 'default
 
 | Surface | GET / PUT |
 |---|---|
-| Home (madd photo, .lines photo, about-me pair) | `/api/admin/site/home-page` |
+| Home (landing slideshow, about-me pair) | `/api/admin/site/home-page` |
 | Public home | `/api/site/home-page` |
 
 ## New home image checklist
@@ -49,8 +49,8 @@ Portrait-style editor options should match about-me: `outputFileName`, `outputMi
 
 | Slot | Fields | Folder |
 |---|---|---|
-| madd hero | `hero_image_url` / `hero_image_file_id` | `site/hero` |
-| .lines hero | `hero_lines_image_url` / `hero_lines_image_file_id` | `site/hero` |
+| landing slideshow | `hero_image_urls[]` / `hero_image_file_ids[]` (max 12) | `site/hero` |
+| legacy .lines hero | `hero_lines_image_url` / `hero_lines_image_file_id` | `site/hero` |
 | about me left / right | `about_me_*_image_url` / `_file_id` | `site/about` |
 
 The two hero photos are **independent**. Customize preview must show both bands with separate pickers. Do not restore the removed about section UI (portrait, quote, statement, about background).

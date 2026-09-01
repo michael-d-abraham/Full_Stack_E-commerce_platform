@@ -8,18 +8,29 @@
       @click="$emit('pick')"
     >
       <img
-        v-if="imageUrl"
+        v-if="imageUrl && mediaType !== 'video'"
         class="admin-home-img-slot__photo"
         :class="photoClass"
         :src="imageUrl"
         alt=""
       />
+      <video
+        v-else-if="imageUrl && mediaType === 'video'"
+        class="admin-home-img-slot__photo admin-home-img-slot__video"
+        :class="photoClass"
+        :src="imageUrl"
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        aria-hidden="true"
+      />
       <span v-else class="admin-home-img-slot__empty">
         <span class="admin-home-img-slot__icon" aria-hidden="true">+</span>
-        Click to add image
+        {{ emptyLabel }}
       </span>
       <span class="admin-home-img-slot__overlay">
-        {{ imageUrl ? 'Change image' : 'Add image' }}
+        {{ imageUrl ? changeLabel : emptyLabel }}
       </span>
     </button>
     <button
@@ -28,22 +39,29 @@
       class="admin-home-img-slot__remove"
       @click.stop="$emit('remove')"
     >
-      Remove
+      remove
     </button>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   imageUrl: { type: String, default: '' },
+  mediaType: { type: String, default: 'image' },
   disabled: { type: Boolean, default: false },
-  ariaLabel: { type: String, default: 'Upload image' },
+  ariaLabel: { type: String, default: 'upload image' },
   /** Show the full image at native aspect ratio (no crop box). */
   naturalDisplay: { type: Boolean, default: false },
   photoClass: { type: String, default: '' }
 });
 
 defineEmits(['pick', 'remove']);
+
+const isVideo = computed(() => props.mediaType === 'video');
+const emptyLabel = computed(() => (isVideo.value ? 'click to add video' : 'click to add image'));
+const changeLabel = computed(() => (isVideo.value ? 'change video' : 'change image'));
 </script>
 
 <style scoped>
@@ -88,6 +106,10 @@ defineEmits(['pick', 'remove']);
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.admin-home-img-slot__video {
+  pointer-events: none;
 }
 
 .admin-home-img-slot--natural .admin-home-img-slot__hit:has(.admin-home-img-slot__photo) {

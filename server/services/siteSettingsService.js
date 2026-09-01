@@ -18,6 +18,8 @@ const {
     emptyFeaturedProduct,
     resolveHeroImageUrls,
     resolveHeroImageFileIds,
+    resolveHeroMediaTypes,
+    normalizeHeroMediaType,
     mergeHomePageTextDefaults
 } = require('../utils/homePageDefaults');
 const { withContactFormLabelDefaults } = require('../utils/contactPageDefaults');
@@ -518,6 +520,38 @@ function normalizeHeroImageUrlsInput(body, errors) {
     return hero_image_url ? [hero_image_url] : [];
 }
 
+function alignHeroMediaTypesToUrls(urls, rawTypes) {
+    const types = Array.isArray(rawTypes) ? rawTypes.map((type) => normalizeHeroMediaType(type)) : [];
+    return urls.map((url, index) => {
+        if (types[index]) {
+            return types[index];
+        }
+        return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || '').trim()) ? 'video' : 'image';
+    });
+}
+
+function normalizeHeroMediaTypesInput(body, hero_image_urls, errors) {
+    if (body.hero_media_types !== undefined) {
+        if (!Array.isArray(body.hero_media_types)) {
+            errors.push('hero_media_types must be an array');
+            return null;
+        }
+
+        const types = [];
+        for (let i = 0; i < body.hero_media_types.length; i++) {
+            const value = body.hero_media_types[i];
+            if (value !== undefined && value !== null && typeof value !== 'string') {
+                errors.push(`hero_media_types[${i}] must be a string`);
+                return null;
+            }
+            types.push(normalizeHeroMediaType(value));
+        }
+        return alignHeroMediaTypesToUrls(hero_image_urls, types);
+    }
+
+    return resolveHeroMediaTypes(body, hero_image_urls);
+}
+
 function normalizeFileIdArrayInput(raw, fieldName, errors) {
     if (!Array.isArray(raw)) {
         errors.push(`${fieldName} must be an array`);
@@ -638,6 +672,7 @@ function toAdminHomePagePayload(doc) {
     const hero_image_url = hero_image_urls[0] || '';
     const hero_image_file_ids = resolveHeroImageFileIds(base);
     const hero_image_file_id = hero_image_file_ids[0] || '';
+    const hero_media_types = resolveHeroMediaTypes(base, hero_image_urls);
     return {
         hero_title: normalizeOptionalText(base.hero_title),
         hero_subtitle: normalizeOptionalText(base.hero_subtitle),
@@ -645,6 +680,7 @@ function toAdminHomePagePayload(doc) {
         hero_image_urls,
         hero_image_file_id,
         hero_image_file_ids,
+        hero_media_types,
         hero_background_image_url: normalizeOptionalText(base.hero_background_image_url),
         hero_background_image_file_id: normalizeOptionalText(base.hero_background_image_file_id),
         featured_title: normalizeOptionalText(base.featured_title),
@@ -690,6 +726,10 @@ function normalizeHomePageInput(body) {
         return { errors };
     }
     const hero_image_file_id = hero_image_file_ids[0] || '';
+    const hero_media_types = normalizeHeroMediaTypesInput(body, hero_image_urls, errors);
+    if (hero_media_types === null) {
+        return { errors };
+    }
 
     const about_image_url = normalizeOptionalImageUrl(
         body.about_image_url,
@@ -781,6 +821,7 @@ function normalizeHomePageInput(body) {
             hero_image_urls,
             hero_image_file_id,
             hero_image_file_ids,
+            hero_media_types,
             featured_title: normalizeOptionalText(body.featured_title),
             featured_products,
             about_title: normalizeOptionalText(body.about_title),

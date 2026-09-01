@@ -140,6 +140,7 @@
   --site-header-mobile-padding-y-compact: 0;
 
   --nav-inset-x: clamp(12px, 3.5vw, 20px);
+  --nav-top-inset: 12px;
   --nav-float-top: 8px;
   --nav-pill-radius: 999px;
   --nav-pill-padding-x: 0.7rem;
@@ -155,6 +156,7 @@
   :root {
     --nav-scroll-distance: 160px;
     --nav-inset-x: clamp(20px, 4vw, 56px);
+    --nav-top-inset: 18px;
     --nav-float-top: 10px;
     --nav-pill-padding-x: 0.9rem;
   }

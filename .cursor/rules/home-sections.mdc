@@ -13,22 +13,18 @@ alwaysApply: false
 
 # Home sections
 
-## Hero pair
+## Landing (hero)
 
-Two stacked bands, same `HomeHero.vue` (~60% viewport each; diagonal overlap on desktop):
+Single full-viewport band — `HomeLanding.vue` (`#landing`):
 
-1. **madd.lines** — quote top-left (`quote="madd.lines"`, `show-signature="false"`), photo right (`hero_image_url`)
-2. **signature** — photo left, cursive name bottom-right (`reversed`, `hero_lines_image_url`, `show-quote="false"`)
+- **Full-bleed slideshow** — `hero_image_urls` (crossfade, ~5.5s when 2+ photos); text overlay unchanged. Falls back to placeholder art when empty.
+- **Text overlay** — centered `madd.lines` (Oswald) + signature from `hero_title` (Great Vibes); white type (`--color-paper`) with a soft ink scrim for contrast
 
-`hero_title` defaults to **madison yeates** (`shared/homePageDefaults.js` → `resolveHeroTitle`). Signature uses `--font-script` (Great Vibes). Legacy `madison` / `madison.` migrates to the full name.
-
-Photos use `object-fit: contain`. Both uploads are **separate** ImageKit slots (`site/hero`). Empty slots may use `PLACEHOLDER_ARTWORK`.
-
-Hero scroll-down targets `.home-my-art` (not a separate reviews band).
+Height: full viewport (`100dvh`). The header floats over the image; home `app-main` has **no top padding**.
 
 ## Stack (do not reorder unless asked)
 
-Hero (madd.lines) → Hero reversed (signature) → **My art** (`HomeMyArtSection`) → footer
+**Landing** (`HomeLanding`) → **My art** (`HomeMyArtSection`) → footer
 
 There is **no about section**, **no separate artwork marquee**, and **no separate testimonial marquee** on the home page. Do not restore `HomeAboutSection`, `HomeAboutMeSection`, or the admin about preview. Leftover `about_*` Mongo fields may still save so old files are not wiped.
 
@@ -74,9 +70,9 @@ Three items in `useStorefrontSectionNav` / `storefrontSections.js`:
 
 | Label | Scrolls to | Also covers |
 |---|---|---|
-| **me** | top of the page | hero pair |
-| **my art** | `#my-art` | my art marquee |
-| **say hi** | footer `#say-hi` | contact + book |
+| **artist** | top of the page (`#landing`) | landing text + hero photo |
+| **portfolio** | `#my-art` | my art marquee |
+| **contact** | footer `#say-hi` | contact + book |
 
 Old hashes (`#about`, `#gallery`, `#contact`) still resolve. `#say-hi` must land below the floated header (`--nav-float-top`). Header breakpoint is **768px** — not 640px (`site-header.mdc`).
 

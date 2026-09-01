@@ -6,7 +6,9 @@
   --nav-bar-padding-x: var(--nav-pill-padding-x);
   --nav-bar-padding-y: var(--site-header-mobile-padding-y-compact);
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + var(--nav-float-top) * var(--nav-scroll));
+  top: calc(
+    env(safe-area-inset-top, 0px) + var(--nav-top-inset) + var(--nav-float-top) * var(--nav-scroll)
+  );
   left: 50%;
   width: max-content;
   max-width: calc(100% - 2 * var(--nav-inset-x));

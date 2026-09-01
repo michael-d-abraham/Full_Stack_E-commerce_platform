@@ -162,7 +162,6 @@ onUnmounted(() => {
 
 .app-main--home {
   padding: 0;
-  padding-top: var(--site-header-height, 52px);
 }
 
 .app-main--home .app-main__inner {
@@ -205,10 +204,7 @@ onUnmounted(() => {
   }
 
   .app-main.app-main--home {
-    padding-left: 0;
-    padding-right: 0;
-    padding-bottom: 0;
-    padding-top: var(--site-header-height, 52px);
+    padding: 0;
   }
 
   .app-main--admin {

@@ -3,30 +3,22 @@
     <PageReveal :ready="ready">
       <template #skeleton>
         <div class="home-page__skeleton" aria-hidden="true">
-          <div class="skeleton-stack">
-            <Skeleton variant="title" width="70%" />
+          <div class="skeleton-stack home-page__skeleton-landing">
             <Skeleton variant="title" width="55%" />
-            <div class="home-page__skeleton-marquee">
-              <Skeleton v-for="n in 3" :key="n" variant="card" height="12rem" />
-            </div>
+            <Skeleton variant="title" width="40%" />
+            <Skeleton variant="card" height="42vh" />
+          </div>
+          <div class="home-page__skeleton-marquee">
+            <Skeleton v-for="n in 3" :key="n" variant="card" height="12rem" />
           </div>
         </div>
       </template>
 
       <p v-if="error" class="error home-page__status">{{ error }}</p>
       <template v-else-if="content">
-        <HomeHero
-          quote="madd.lines"
+        <HomeLanding
           :title="content.hero_title"
-          :image-url="heroImageUrl"
-          :show-signature="false"
-        />
-        <HomeHero
-          :title="content.hero_title"
-          :image-url="heroLinesImageUrl"
-          reversed
-          section-id="landing-echo"
-          :show-quote="false"
+          :slideshow-items="heroSlideshowItems"
         />
         <HomeMyArtSection />
       </template>
@@ -39,8 +31,9 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPublicHomePage } from '../services/api.js';
 import { createSwrCache } from '../composables/createSwrCache.js';
-import HomeHero from '../components/home/HomeHero.vue';
+import HomeLanding from '../components/home/HomeLanding.vue';
 import HomeMyArtSection from '../components/home/HomeMyArtSection.vue';
+import { resolveHeroSlideshowItems } from '@shared/homePageDefaults.js';
 import { PLACEHOLDER_ARTWORK } from '../constants/artworkPlaceholders.js';
 import PageReveal from '../components/loading/PageReveal.vue';
 import Skeleton from '../components/loading/Skeleton.vue';
@@ -65,18 +58,15 @@ const { ensurePortfolio } = usePublicPortfolio();
 
 const ready = computed(() => Boolean(content.value) || Boolean(error.value));
 
-const heroImageUrl = computed(() => {
-  const saved = content.value?.hero_image_url
-    ? String(content.value.hero_image_url).trim()
-    : '';
-  return saved || PLACEHOLDER_ARTWORK[0]?.src || '';
-});
-
-const heroLinesImageUrl = computed(() => {
-  const saved = content.value?.hero_lines_image_url
-    ? String(content.value.hero_lines_image_url).trim()
-    : '';
-  return saved || PLACEHOLDER_ARTWORK[1]?.src || PLACEHOLDER_ARTWORK[0]?.src || '';
+const heroSlideshowItems = computed(() => {
+  const saved = resolveHeroSlideshowItems(content.value || {});
+  if (saved.length) {
+    return saved;
+  }
+  return PLACEHOLDER_ARTWORK.slice(0, 3).map((item) => ({
+    type: 'image',
+    src: item.src
+  }));
 });
 
 function scrollToHash() {
@@ -140,6 +130,13 @@ onMounted(async () => {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  scroll-snap-type: y proximity;
+}
+
+.home-page__skeleton-landing {
+  min-height: 100dvh;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .home-page__status {

@@ -231,4 +231,26 @@ describe('home page hero_image_urls API', () => {
             ])
         );
     });
+
+    it('PUT and GET persist hero_media_types aligned to hero_image_urls', async () => {
+        const cookie = await adminCookie();
+        const videoUrl = 'https://example.com/hero.mp4';
+
+        const putRes = await request(app)
+            .put('/api/admin/site/home-page')
+            .set('Cookie', cookie)
+            .send(
+                homePageBody({
+                    hero_image_urls: [videoUrl, URL_ONE],
+                    hero_media_types: ['video', 'image']
+                })
+            );
+
+        expect(putRes.status).toBe(200);
+        expect(putRes.body.hero_media_types).toEqual(['video', 'image']);
+
+        const publicGetRes = await request(app).get('/api/site/home-page');
+        expect(publicGetRes.status).toBe(200);
+        expect(publicGetRes.body.hero_media_types).toEqual(['video', 'image']);
+    });
 });

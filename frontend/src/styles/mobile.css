@@ -40,6 +40,6 @@
 
 html.has-fixed-site-header {
   scroll-padding-top: calc(
-    var(--site-header-height, 52px) + var(--nav-float-top, 10px) + 12px
+    var(--site-header-height, 52px) + var(--nav-top-inset, 12px) + var(--nav-float-top, 10px) + 12px
   );
 }

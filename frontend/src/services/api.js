@@ -349,6 +349,20 @@ export function uploadAdminImage(file, folder) {
     });
 }
 
+/** Upload a hero slideshow video to ImageKit (admin session required). Returns { image_url, file_id? }. */
+export function uploadAdminVideo(file, folder) {
+    const formData = new FormData();
+    formData.append('video', file);
+    const folderValue = folder != null ? String(folder).trim() : '';
+    if (folderValue) {
+        formData.append('folder', folderValue);
+    }
+    return fetchJson('/api/admin/upload-video', {
+        method: 'POST',
+        body: formData
+    });
+}
+
 export function generateIgContent(body) {
     return fetchJson('/api/admin/ai/generate-ig', {
         method: 'POST',
